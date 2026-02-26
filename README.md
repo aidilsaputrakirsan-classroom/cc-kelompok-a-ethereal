@@ -35,10 +35,38 @@ Kelarin ditunjukan untuk mahasiswa yang sering kali mengalami permasalahan kesul
 
 ## 🚀 Getting Started
 
-### Prasyarat
-- Python 3.10+
-- Node.js 18+
-- Git
+### 📋 Prasyarat
+- **Python 3.10+**
+- **Node.js 18+**
+- **Git**
+
+---
+
+### 🛠️ Tech Stack
+
+#### Backend
+| Komponen | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Language** | Python 3.10+ | Bahasa pemrograman utama |
+| **Framework** | FastAPI | REST API server (High performance) |
+| **Database** | PostgreSQL | Penyimpanan data relasional |
+| **API Gateway** | Nginx | Reverse proxy & routing |
+
+#### Frontend
+| Komponen | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Library** | React.js | User Interface library |
+| **Build Tool** | Vite | Frontend tooling & bundling (SPA) |
+
+#### DevOps & Deployment
+| Komponen | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Container** | Docker | Packaging aplikasi |
+| **Orchestration**| Docker Compose | Multi-container management |
+| **CI/CD** | GitHub Actions | Automated test & deploy |
+| **Cloud** | Railway | Hosting & deployment platform |
+
+---
 
 ### Backend
 ```bash
