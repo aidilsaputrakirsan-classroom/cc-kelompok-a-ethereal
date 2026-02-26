@@ -1,9 +1,10 @@
-# ☁️ Cloud App - [Nama Proyek Tim Anda]
+# ☁️ Cloud App - Kelarin
 
-Deskripsi singkat aplikasi (1-2 paragraf): apa yang dilakukan, 
-untuk siapa, masalah apa yang diselesaikan.
+Kelarin merupakan sistem manajemen tugas berbasis cloud yang dirancang untuk membantu mahasiswa dalam mengelola tugas akademik secara terstruktur dan kolaboratif. Dengan Kelarin, pengguna dapat menambahkan tugas , menentukan deadline, serta membagikannya kepada anggota tim sehinggaa seluruh anggota dapat memantau dan mengerjakan tugas secara bersama-sama.
 
-## 👥 Tim
+Kelarin ditunjukan untuk mahasiswa yang sering kali mengalami permasalahan kesulitan dalam mengatur tugas bersama, seperti tugas yang tidak terdokumentasi dengan baik, pembagian peran yang tidak jelas, atau keterlambatan penyelesaian tugas. Melalui pengguanan sistem ini seluruh data tugas disimpan secara terpusat pada cloud, sehingga dapat diakses kapan saja dan di mana saja. Dengan demikian, proses kerja kelompok menjadi lebih terorganisir, transparan, dan efisien. 
+
+## 👥 ETHEREAL TEAM
 
 | Nama | NIM | Peran |
 |------|-----|-------|
