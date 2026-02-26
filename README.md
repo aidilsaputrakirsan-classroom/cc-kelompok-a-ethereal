@@ -28,10 +28,37 @@ Kelarin ditunjukan untuk mahasiswa yang sering kali mengalami permasalahan kesul
 ## 🏗️ Architecture
 
 ```
-[React Frontend] <--HTTP--> [FastAPI Backend] <--SQL--> [PostgreSQL]
+[Client / User]
+       |
+     (HTTPS)
+       |
+       v
+[React Frontend (Vite)]  <--- REST API --->  [FastAPI Backend]
+                                                 |
+                              ---------------------------------
+                              |                               |
+                           (SQL / ORM)                    (API / SDK)
+                              |                               |
+                              v                               v
+                        [PostgreSQL]                    [Cloud Storage]
+                  (Data User, Task, Status)        (Optional: File Attachment)
 ```
+**Penjelasan Arsitektur**
 
-*(Diagram ini akan berkembang setiap minggu)*
+Client / User
+Pengguna mengakses aplikasi Kelarin melalui browser menggunakan protokol HTTPS untuk memastikan komunikasi yang aman.
+
+React Frontend (Vite)
+Frontend berfungsi sebagai antarmuka pengguna yang menangani tampilan dashboard, manajemen tugas, serta interaksi user. Frontend berkomunikasi dengan backend melalui REST API.
+
+FastAPI Backend
+Backend bertanggung jawab dalam logika bisnis aplikasi seperti autentikasi, pengelolaan tugas (CRUD), pembaruan status, serta pengolahan data sebelum disimpan ke database atau cloud storage.
+
+PostgreSQL
+Digunakan untuk menyimpan data terstruktur seperti data pengguna, daftar tugas, status, dan deadline.
+
+Cloud Storage
+Digunakan jika terdapat fitur upload file seperti lampiran tugas atau bukti penyelesaian.
 
 ## 🚀 Getting Started
 
