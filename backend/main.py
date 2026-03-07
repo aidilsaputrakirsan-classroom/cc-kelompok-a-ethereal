@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from database import engine, get_db
-from models import Base
+from models import Base, Item
 from schemas import ItemCreate, ItemUpdate, ItemResponse, ItemListResponse
 import crud
 
@@ -40,11 +40,6 @@ def health_check():
 def create_item(item: ItemCreate, db: Session = Depends(get_db)):
     """
     Buat item baru.
-    
-    - **name**: Nama item (wajib, 1-100 karakter)
-    - **price**: Harga (wajib, > 0)
-    - **description**: Deskripsi (opsional)
-    - **quantity**: Jumlah stok (default: 0)
     """
     return crud.create_item(db=db, item_data=item)
 
@@ -58,10 +53,6 @@ def list_items(
 ):
     """
     Ambil daftar items dengan pagination dan search.
-    
-    - **skip**: Offset untuk pagination (default: 0)
-    - **limit**: Jumlah item per halaman (default: 20, max: 100)
-    - **search**: Kata kunci pencarian (opsional)
     """
     return crud.get_items(db=db, skip=skip, limit=limit, search=search)
 
@@ -79,7 +70,6 @@ def get_item(item_id: int, db: Session = Depends(get_db)):
 def update_item(item_id: int, item: ItemUpdate, db: Session = Depends(get_db)):
     """
     Update item berdasarkan ID.
-    Hanya field yang dikirim yang akan di-update (partial update).
     """
     updated = crud.update_item(db=db, item_id=item_id, item_data=item)
     if not updated:
@@ -96,6 +86,24 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     return None
 
 
+# ==================== ITEM STATS (TUGAS BACKEND) ====================
+
+@app.get("/items/stats")
+def items_stats(db: Session = Depends(get_db)):
+    """Statistik inventory."""
+    items = db.query(Item).all()
+    if not items:
+        return {"total_items": 0, "total_value": 0, "most_expensive": None, "cheapest": None}
+    
+    return {
+        "total_items": len(items),
+        "total_value": sum(i.price * i.quantity for i in items),
+        "most_expensive": {"name": max(items, key=lambda x: x.price).name, 
+                          "price": max(items, key=lambda x: x.price).price},
+        "cheapest": {"name": min(items, key=lambda x: x.price).name,
+                    "price": min(items, key=lambda x: x.price).price},
+    }
+
 # ==================== TEAM INFO ====================
 
 @app.get("/team")
@@ -104,11 +112,10 @@ def team_info():
     return {
         "team": "cloud-team-XX",
         "members": [
-            # TODO: Isi dengan data tim Anda
             {"name": "Amazia Devid", "nim": "10231013", "role": "Lead Frontend"},
             {"name": "Andini Permata Sari", "nim": "10231015", "role": "Lead QA & Docs"},
             {"name": "Alsha Dwi Cahya", "nim": "10231011", "role": "Lead Container"},
             {"name": "Ansellma Tita Pakartiwuri Putri", "nim": "10231017", "role": "Lead Deploy & CI/CD"},
-            {"name": "Tiya Mitra Ayu", "nim": "10231088", "role": "Backend"},
+            {"name": "Tiya Mitra Ayu", "nim": "10231088", "role": "Lead Backend"},
         ],
     }
