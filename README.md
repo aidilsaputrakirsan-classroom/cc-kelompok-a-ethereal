@@ -127,8 +127,13 @@ npm run dev
 ```
 cc-kelompok-ethereal_a/
 ├── backend/
+│   ├── crud.py
+│   ├── database.py
 │   ├── main.py
-│   └── requirements.txt
+│   ├── models.py
+│   ├── requirements.txt
+│   ├── schemas.py
+│   └── setup.sh
 ├── frontend/
 │   ├── node_modules/
 │   ├── public/
@@ -151,3 +156,245 @@ cc-kelompok-ethereal_a/
 ├── package-lock.json
 └── README.md
 ```
+
+# setup.sh
+setup.sh adalah script otomatis untuk menyiapkan environment project.
+
+
+# Dokumentasi Endpoint
+
+## GET/Healt
+![alt text](image.png)
+
+URL: http://localhost:8000/health
+
+Body Request:
+```
+{
+  "status": "healthy",
+  "version": "0.2.0"
+}
+```
+
+Response Example: 
+```
+"string"
+```
+
+## POST/Items
+![alt text](image-1.png)
+
+URL: http://localhost:8000/items
+
+Body Request:
+```
+{
+  "name": "Laptop",
+  "description": "Laptop untuk cloud computing",
+  "price": 15000000,
+  "quantity": 10,
+  "id": 1,
+  "created_at": "2026-03-07T14:16:52.193380+08:00",
+  "updated_at": null
+}
+```
+
+Response Example: 
+```
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+```
+
+## GET/Items
+![alt text](image-2.png)
+
+URL: http://localhost:8000/items?skip=0&limit=20
+
+Body Request:
+```
+{
+  "total": 1,
+  "items": [
+    {
+      "name": "Laptop",
+      "description": "Laptop untuk cloud computing",
+      "price": 15000000,
+      "quantity": 10,
+      "id": 1,
+      "created_at": "2026-03-07T14:16:52.193380+08:00",
+      "updated_at": null
+    }
+  ]
+}
+```
+
+Response Example: 
+```
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+```
+
+## GET/Item/stats
+![alt text](image-6.png)
+
+URL: http://localhost:8000/items/stats
+
+Response Example: 
+```
+"string"
+```
+
+
+## GET/Items/{item_id}
+![alt text](image-3.png)
+
+URL: http://localhost:8000/items/1
+
+Body Request:
+```
+{
+  "name": "Laptop",
+  "description": "Laptop untuk cloud computing",
+  "price": 15000000,
+  "quantity": 10,
+  "id": 1,
+  "created_at": "2026-03-07T14:16:52.193380+08:00",
+  "updated_at": null
+}
+```
+
+Response Example: 
+```
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+```
+
+## PUT/Items/{item_id}
+![alt text](image-4.png)
+
+URL: http://localhost:8000/items/1
+
+Body Request:
+```
+{
+  "name": "Laptop",
+  "description": "Laptop untuk cloud computing",
+  "price": 15000000,
+  "quantity": 10,
+  "id": 0,
+  "created_at": "2026-03-07T06:25:20.352Z",
+  "updated_at": "2026-03-07T06:25:20.352Z"
+}
+```
+
+Response Example: 
+```
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+```
+
+## DELETE/Item
+![alt text](image-5.png)
+
+URL: http://localhost:8000/items/1 
+
+Example Value: 
+```
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+```
+
+## GET/team
+![alt text](image-7.png)
+
+URL:  http://localhost:8000/team
+
+Body Request:
+```
+{
+  "team": "cloud-team-XX",
+  "members": [
+    {
+      "name": "Amazia Devid",
+      "nim": "10231013",
+      "role": "Lead Frontend"
+    },
+    {
+      "name": "Andini Permata Sari",
+      "nim": "10231015",
+      "role": "Lead QA & Docs"
+    },
+    {
+      "name": "Alsha Dwi Cahya",
+      "nim": "10231011",
+      "role": "Lead Container"
+    },
+    {
+      "name": "Ansellma Tita Pakartiwuri Putri",
+      "nim": "10231017",
+      "role": "Lead Deploy & CI/CD"
+    },
+    {
+      "name": "Tiya Mitra Ayu",
+      "nim": "10231088",
+      "role": "Lead Backend"
+    }
+  ]
+}
+```
+
+Response Example: 
+```
+"string"
+```
+
