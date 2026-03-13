@@ -3,11 +3,13 @@ import Header from "./components/Header"
 import SearchBar from "./components/SearchBar"
 import ItemForm from "./components/ItemForm"
 import ItemList from "./components/ItemList"
+import Filter from "./components/Filter"
 import { fetchItems, createItem, updateItem, deleteItem, checkHealth } from "./services/api"
 
 function App() {
   // ==================== STATE ====================
   const [items, setItems] = useState([])
+  const [displayItems, setDisplayItems] = useState([])
   const [totalItems, setTotalItems] = useState(0)
   const [loading, setLoading] = useState(true)
   const [isConnected, setIsConnected] = useState(false)
@@ -17,10 +19,14 @@ function App() {
   // ==================== LOAD DATA ====================
   const loadItems = useCallback(async (search = "") => {
     setLoading(true)
+
     try {
       const data = await fetchItems(search)
+
       setItems(data.items)
+      setDisplayItems(data.items)
       setTotalItems(data.total)
+
     } catch (err) {
       console.error("Error loading items:", err)
     } finally {
@@ -30,35 +36,35 @@ function App() {
 
   // ==================== ON MOUNT ====================
   useEffect(() => {
-    // Cek koneksi API
     checkHealth().then(setIsConnected)
-    // Load items
     loadItems()
   }, [loadItems])
 
-  // ==================== HANDLERS ====================
+  // ==================== CRUD ====================
 
   const handleSubmit = async (itemData, editId) => {
     if (editId) {
-      // Mode edit
       await updateItem(editId, itemData)
       setEditingItem(null)
     } else {
-      // Mode create
       await createItem(itemData)
     }
-    // Reload daftar items
+
     loadItems(searchQuery)
   }
 
   const handleEdit = (item) => {
     setEditingItem(item)
-    // Scroll ke atas ke form
-    window.scrollTo({ top: 0, behavior: "smooth" })
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    })
   }
 
   const handleDelete = async (id) => {
     const item = items.find((i) => i.id === id)
+
     if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
 
     try {
@@ -69,32 +75,68 @@ function App() {
     }
   }
 
+  // ==================== SEARCH ====================
+
   const handleSearch = (query) => {
     setSearchQuery(query)
     loadItems(query)
   }
+
+  // ==================== SORTING ====================
+
+  const handleSort = (type) => {
+    let sorted = [...displayItems]
+
+    if (type === "name") {
+      sorted.sort((a, b) => a.name.localeCompare(b.name))
+    }
+
+    if (type === "price") {
+      sorted.sort((a, b) => a.price - b.price)
+    }
+
+    if (type === "newest") {
+      sorted.sort((a, b) => b.id - a.id)
+    }
+
+    setDisplayItems(sorted)
+  }
+
+  // ==================== CANCEL EDIT ====================
 
   const handleCancelEdit = () => {
     setEditingItem(null)
   }
 
   // ==================== RENDER ====================
+
   return (
     <div style={styles.app}>
       <div style={styles.container}>
-        <Header totalItems={totalItems} isConnected={isConnected} />
+
+        <Header
+          totalItems={totalItems}
+          isConnected={isConnected}
+        />
+
         <ItemForm
           onSubmit={handleSubmit}
           editingItem={editingItem}
           onCancelEdit={handleCancelEdit}
         />
+
         <SearchBar onSearch={handleSearch} />
+
+        {/* SORTING DROPDOWN */}
+        <Filter onSort={handleSort} />
+
         <ItemList
-          items={items}
+          items={displayItems}
           onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
         />
+
       </div>
     </div>
   )
@@ -107,6 +149,7 @@ const styles = {
     padding: "2rem",
     fontFamily: "'Segoe UI', Arial, sans-serif",
   },
+
   container: {
     maxWidth: "900px",
     margin: "0 auto",
