@@ -9,7 +9,6 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-# Pastikan import ini sesuai dengan struktur folder proyekmu
 from database import get_db
 from models import User
 
@@ -21,43 +20,39 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
-# Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# OAuth2 scheme - Mencari header "Authorization: Bearer <token>"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 # ==================== PASSWORD ====================
 
 def hash_password(password: str) -> str:
-    """Hash password menggunakan bcrypt."""
     return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifikasi password terhadap hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 # ==================== JWT TOKEN ====================
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Buat JWT access token."""
     to_encode = data.copy()
-    
-    # Pastikan 'sub' diubah menjadi string karena JWT standard menggunakan string
+
     if "sub" in to_encode:
         to_encode["sub"] = str(to_encode["sub"])
-        
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
     to_encode.update({"exp": expire})
-    
+
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> dict:
-    """Decode dan verifikasi JWT token."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
@@ -75,13 +70,9 @@ def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    """
-    Dependency: Mengambil user aktif berdasarkan token di header.
-    Gunakan ini di endpoint yang butuh login: (user: User = Depends(get_current_user))
-    """
+
     payload = decode_token(token)
-    
-    # Ambil subject (user_id) dari payload
+
     user_id_str: str = payload.get("sub")
 
     if user_id_str is None:
@@ -91,7 +82,6 @@ def get_current_user(
         )
 
     try:
-        # Konversi kembali ke integer untuk query ke Database (Postgres)
         user_id = int(user_id_str)
     except ValueError:
         raise HTTPException(
@@ -99,7 +89,6 @@ def get_current_user(
             detail="Format User ID dalam token tidak valid",
         )
 
-    # Cari user di database
     user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
@@ -108,7 +97,7 @@ def get_current_user(
             detail="User dengan ID ini tidak ditemukan di database",
         )
 
-    if hasattr(user, 'is_active') and not user.is_active:
+    if hasattr(user, "is_active") and not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Akun ini telah dinonaktifkan",
