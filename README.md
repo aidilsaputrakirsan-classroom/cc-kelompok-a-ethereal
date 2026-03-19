@@ -18,8 +18,8 @@ Kelarin ditujukan untuk mahasiswa yang sering kali mengalami permasalahan kesuli
 
 | Teknologi | Fungsi |
 |-----------|--------|
-| FastAPI   | Backend REST API |
-| React     | Frontend SPA |
+| FastAPI   | Backend |
+| React     | Frontend |
 | PostgreSQL | Database |
 | Docker    | Containerization |
 | GitHub Actions | CI/CD |
@@ -115,7 +115,7 @@ npm run dev
 |--------|--------|--------|
 | 1 | Setup & Hello World | ✅ |
 | 2 | REST API + Database | ✅ |
-| 3 | React Frontend | ⬜ |
+| 3 | React Frontend | ✅ |
 | 4 | Full-Stack Integration | ⬜ |
 | 5-7 | Docker & Compose | ⬜ |
 | 8 | UTS Demo | ⬜ |
@@ -163,8 +163,8 @@ setup.sh adalah script otomatis untuk menyiapkan environment project.
 
 # Dokumentasi Endpoint
 
-## GET/Healt
-![alt text](img/image.png)
+## GET/Health
+![alt text](img/readme/image.png)
 
 URL: http://localhost:8000/health
 
@@ -182,7 +182,7 @@ Response Example:
 ```
 
 ## POST/Items
-![alt text](img/image-1.png)
+![alt text](img/readme/image-1.png)
 
 URL: http://localhost:8000/items
 
@@ -216,7 +216,7 @@ Response Example:
 ```
 
 ## GET/Items
-![alt text](img/image-2.png)
+![alt text](img/readme/image-2.png)
 
 URL: http://localhost:8000/items?skip=0&limit=20
 
@@ -255,7 +255,7 @@ Response Example:
 ```
 
 ## GET/Item/stats
-![alt text](img/image-6.png)
+![alt text](img/readme/image-6.png)
 
 URL: http://localhost:8000/items/stats
 
@@ -266,7 +266,7 @@ Response Example:
 
 
 ## GET/Items/{item_id}
-![alt text](img/image-3.png)
+![alt text](img/readme/image-3.png)
 
 URL: http://localhost:8000/items/1
 
@@ -300,7 +300,7 @@ Response Example:
 ```
 
 ## PUT/Items/{item_id}
-![alt text](img/image-4.png)
+![alt text](img/readme/image-4.png)
 
 URL: http://localhost:8000/items/1
 
@@ -334,7 +334,7 @@ Response Example:
 ```
 
 ## DELETE/Item
-![alt text](img/image-5.png)
+![alt text](img/readme/image-5.png)
 
 URL: http://localhost:8000/items/1 
 
@@ -355,7 +355,7 @@ Example Value:
 ```
 
 ## GET/team
-![alt text](img/image-7.png)
+![alt text](img/readme/image-7.png)
 
 URL:  http://localhost:8000/team
 
