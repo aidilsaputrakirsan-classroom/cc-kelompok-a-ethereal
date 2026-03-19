@@ -1,57 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from "react"
 
-const Toast = ({ message, type, onClose }) => {
-  const [isVisible, setIsVisible] = useState(false);
+function Toast({ message, type = "success", onClose }) {
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // Mulai animasi masuk
-    const startTimer = setTimeout(() => setIsVisible(true), 10);
+    // Animasi masuk
+    const startTimer = setTimeout(() => setIsVisible(true), 10)
 
-    // Mulai animasi keluar pada detik ke 2.5
+    // Animasi keluar
     const exitTimer = setTimeout(() => {
-      setIsVisible(false);
-    }, 2500);
+      setIsVisible(false)
+    }, 2500)
 
-    // Hapus komponen dari DOM pada detik ke 3
+    // Hapus dari DOM
     const unmountTimer = setTimeout(() => {
-      onClose();
-    }, 3000);
+      onClose()
+    }, 3000)
 
     return () => {
-      clearTimeout(startTimer);
-      clearTimeout(exitTimer);
-      clearTimeout(unmountTimer);
-    };
-  }, [onClose]);
+      clearTimeout(startTimer)
+      clearTimeout(exitTimer)
+      clearTimeout(unmountTimer)
+    }
+  }, [onClose])
 
-  // Konfigurasi Gaya (Styles)
   const styles = {
     container: {
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      padding: '12px 24px',
-      borderRadius: '8px',
-      color: 'white',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
+      position: "fixed",
+      bottom: "20px",
+      right: "20px",
+      padding: "12px 16px",
+      borderRadius: "10px",
+      color: "white",
+      boxShadow: "0 6px 15px rgba(0,0,0,0.2)",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
       zIndex: 1000,
-      backgroundColor: type === 'success' ? '#22c55e' : '#ef4444',
-      // Animasi Transisi
-      transition: 'opacity 0.5s ease, transform 0.5s ease',
+      backgroundColor: type === "success" ? "#22c55e" : "#ef4444",
+      transition: "opacity 0.4s ease, transform 0.4s ease",
       opacity: isVisible ? 1 : 0,
-      transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
-    }
-  };
+      transform: isVisible ? "translateY(0)" : "translateY(20px)",
+      maxWidth: "300px",
+      wordBreak: "break-word",
+      pointerEvents: "auto",
+    },
+
+    icon: {
+      fontSize: "18px",
+    },
+
+    text: {
+      margin: 0,
+      fontSize: "14px",
+      flex: 1,
+    },
+
+    closeBtn: {
+      background: "transparent",
+      border: "none",
+      color: "white",
+      fontSize: "16px",
+      cursor: "pointer",
+      marginLeft: "5px",
+    },
+  }
 
   return (
     <div style={styles.container}>
-      <span style={styles.icon}>{type === 'success' ? '✅' : '❌'}</span>
-      <p style={styles.text}>{message}</p>
-    </div>
-  );
-};
+      <span style={styles.icon}>
+        {type === "success" ? "✅" : "❌"}
+      </span>
 
-export default Toast;
+      <p style={styles.text}>{message}</p>
+
+      <button onClick={onClose} style={styles.closeBtn}>
+        ✕
+      </button>
+    </div>
+  )
+}
+
+export default Toast

@@ -4,6 +4,7 @@ import SearchBar from "./components/SearchBar"
 import ItemForm from "./components/ItemForm"
 import ItemList from "./components/ItemList"
 import LoginPage from "./components/LoginPage"
+import Toast from "./components/Toast"
 import {
   fetchItems, createItem, updateItem, deleteItem,
   checkHealth, login, register, getToken, clearToken, getMe
@@ -11,7 +12,6 @@ import {
 
 function App() {
   // ==================== AUTH STATE ====================
-  // Langsung cek localStorage saat aplikasi pertama kali dimuat
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken())
   const [user, setUser] = useState(null)
 
@@ -23,6 +23,13 @@ function App() {
   const [editingItem, setEditingItem] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
 
+  // ==================== NOTIFICATION ====================
+  const [notification, setNotification] = useState(null)
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type })
+  }
+
   // ==================== LOAD DATA ====================
   const loadItems = useCallback(async (search = "") => {
     setLoading(true)
@@ -33,6 +40,8 @@ function App() {
     } catch (err) {
       if (err.message === "UNAUTHORIZED") {
         handleLogout()
+      } else {
+        showNotification("Gagal mengambil data", "error")
       }
       console.error("Error loading items:", err)
     } finally {
@@ -40,46 +49,44 @@ function App() {
     }
   }, [])
 
-  // Check Health Backend
+  // ==================== EFFECT ====================
+
   useEffect(() => {
     checkHealth().then(setIsConnected)
   }, [])
 
-  // Re-sync User & Items saat refresh
   useEffect(() => {
     if (isAuthenticated) {
-      // 1. Ambil data user profil jika belum ada (berguna saat refresh)
       if (!user) {
         getMe()
           .then(data => setUser(data.user || data))
           .catch(() => handleLogout())
       }
-      // 2. Load data items
       loadItems(searchQuery)
     }
   }, [isAuthenticated, loadItems, user, searchQuery])
 
-  // ==================== AUTH HANDLERS ====================
+  // ==================== AUTH ====================
 
   const handleLogin = async (email, password) => {
     try {
       const data = await login(email, password)
-      // data.user dipastikan sesuai dengan payload response backend kamu
       setUser(data.user)
       setIsAuthenticated(true)
+      showNotification("Login berhasil 🎉")
     } catch (err) {
-      alert("Login Gagal: " + err.message)
+      showNotification("Login gagal: " + err.message, "error")
     }
   }
 
-const handleRegister = async (userData) => {
+  const handleRegister = async (userData) => {
     try {
       setLoading(true)
       await register(userData)
-      // Setelah register berhasil, panggil handleLogin
       await handleLogin(userData.email, userData.password)
+      showNotification("Registrasi berhasil 🎉")
     } catch (err) {
-      alert("Registrasi gagal: " + err.message)
+      showNotification("Registrasi gagal: " + err.message, "error")
       setLoading(false)
     }
   }
@@ -92,22 +99,25 @@ const handleRegister = async (userData) => {
     setTotalItems(0)
     setEditingItem(null)
     setSearchQuery("")
+    showNotification("Logout berhasil")
   }
 
-  // ==================== ITEM HANDLERS ====================
+  // ==================== ITEM ====================
 
   const handleSubmit = async (itemData, editId) => {
     try {
       if (editId) {
         await updateItem(editId, itemData)
         setEditingItem(null)
+        showNotification("Item berhasil diupdate")
       } else {
         await createItem(itemData)
+        showNotification("Item berhasil ditambahkan")
       }
       loadItems(searchQuery)
     } catch (err) {
       if (err.message === "UNAUTHORIZED") handleLogout()
-      else alert("Gagal menyimpan: " + err.message)
+      else showNotification("Gagal menyimpan: " + err.message, "error")
     }
   }
 
@@ -119,12 +129,14 @@ const handleRegister = async (userData) => {
   const handleDelete = async (id) => {
     const item = items.find((i) => i.id === id)
     if (!window.confirm(`Yakin ingin menghapus "${item?.name}"?`)) return
+
     try {
       await deleteItem(id)
+      showNotification("Item berhasil dihapus")
       loadItems(searchQuery)
     } catch (err) {
       if (err.message === "UNAUTHORIZED") handleLogout()
-      else alert("Gagal menghapus: " + err.message)
+      else showNotification("Gagal menghapus: " + err.message, "error")
     }
   }
 
@@ -136,30 +148,50 @@ const handleRegister = async (userData) => {
   // ==================== RENDER ====================
 
   if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
+    return (
+      <>
+        <Toast
+          message={notification?.message}
+          type={notification?.type}
+          onClose={() => setNotification(null)}
+        />
+        <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
+      </>
+    )
   }
 
   return (
     <div style={styles.app}>
       <div style={styles.container}>
+
+        <Toast
+          message={notification?.message}
+          type={notification?.type}
+          onClose={() => setNotification(null)}
+        />
+
         <Header
           totalItems={totalItems}
           isConnected={isConnected}
           user={user}
           onLogout={handleLogout}
         />
+
         <ItemForm
           onSubmit={handleSubmit}
           editingItem={editingItem}
           onCancelEdit={() => setEditingItem(null)}
         />
+
         <SearchBar onSearch={handleSearch} />
+
         <ItemList
           items={items}
           onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
         />
+
       </div>
     </div>
   )
@@ -172,7 +204,10 @@ const styles = {
     padding: "2rem",
     fontFamily: "'Segoe UI', Arial, sans-serif",
   },
-  container: { maxWidth: "900px", margin: "0 auto" },
+  container: {
+    maxWidth: "900px",
+    margin: "0 auto",
+  },
 }
 
 export default App
