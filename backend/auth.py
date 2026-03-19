@@ -9,20 +9,22 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
+# Pastikan import ini sesuai dengan struktur folder proyekmu
 from database import get_db
 from models import User
 
 load_dotenv()
 
-# Konfigurasi dari environment variables
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key-for-development")
+# ==================== KONFIGURASI ====================
+
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# OAuth2 scheme — FastAPI akan mencari header "Authorization: Bearer <token>"
+# OAuth2 scheme - Mencari header "Authorization: Bearer <token>"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
@@ -43,8 +45,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Buat JWT access token."""
     to_encode = data.copy()
+    
+    # Pastikan 'sub' diubah menjadi string karena JWT standard menggunakan string
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
+        
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
+    
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -68,30 +76,42 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     """
-    Dependency injection: ambil current user dari JWT token.
-    Gunakan di endpoint yang butuh autentikasi.
+    Dependency: Mengambil user aktif berdasarkan token di header.
+    Gunakan ini di endpoint yang butuh login: (user: User = Depends(get_current_user))
     """
     payload = decode_token(token)
-    user_id: int = payload.get("sub")
+    
+    # Ambil subject (user_id) dari payload
+    user_id_str: str = payload.get("sub")
 
-    if user_id is None:
+    if user_id_str is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token tidak valid",
+            detail="Token tidak memiliki informasi user (sub missing)",
         )
 
+    try:
+        # Konversi kembali ke integer untuk query ke Database (Postgres)
+        user_id = int(user_id_str)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Format User ID dalam token tidak valid",
+        )
+
+    # Cari user di database
     user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User tidak ditemukan",
+            detail="User dengan ID ini tidak ditemukan di database",
         )
 
-    if not user.is_active:
+    if hasattr(user, 'is_active') and not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Akun tidak aktif",
+            detail="Akun ini telah dinonaktifkan",
         )
 
     return user

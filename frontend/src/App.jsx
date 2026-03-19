@@ -6,13 +6,14 @@ import ItemList from "./components/ItemList"
 import LoginPage from "./components/LoginPage"
 import {
   fetchItems, createItem, updateItem, deleteItem,
-  checkHealth, login, register, setToken, clearToken,
+  checkHealth, login, register, getToken, clearToken, getMe
 } from "./services/api"
 
 function App() {
   // ==================== AUTH STATE ====================
+  // Langsung cek localStorage saat aplikasi pertama kali dimuat
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getToken())
   const [user, setUser] = useState(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // ==================== APP STATE ====================
   const [items, setItems] = useState([])
@@ -39,28 +40,48 @@ function App() {
     }
   }, [])
 
+  // Check Health Backend
   useEffect(() => {
     checkHealth().then(setIsConnected)
   }, [])
 
+  // Re-sync User & Items saat refresh
   useEffect(() => {
     if (isAuthenticated) {
-      loadItems()
+      // 1. Ambil data user profil jika belum ada (berguna saat refresh)
+      if (!user) {
+        getMe()
+          .then(data => setUser(data.user || data))
+          .catch(() => handleLogout())
+      }
+      // 2. Load data items
+      loadItems(searchQuery)
     }
-  }, [isAuthenticated, loadItems])
+  }, [isAuthenticated, loadItems, user, searchQuery])
 
   // ==================== AUTH HANDLERS ====================
 
   const handleLogin = async (email, password) => {
-    const data = await login(email, password)
-    setUser(data.user)
-    setIsAuthenticated(true)
+    try {
+      const data = await login(email, password)
+      // data.user dipastikan sesuai dengan payload response backend kamu
+      setUser(data.user)
+      setIsAuthenticated(true)
+    } catch (err) {
+      alert("Login Gagal: " + err.message)
+    }
   }
 
-  const handleRegister = async (userData) => {
-    // Register lalu otomatis login
-    await register(userData)
-    await handleLogin(userData.email, userData.password)
+const handleRegister = async (userData) => {
+    try {
+      setLoading(true)
+      await register(userData)
+      // Setelah register berhasil, panggil handleLogin
+      await handleLogin(userData.email, userData.password)
+    } catch (err) {
+      alert("Registrasi gagal: " + err.message)
+      setLoading(false)
+    }
   }
 
   const handleLogout = () => {
@@ -86,7 +107,7 @@ function App() {
       loadItems(searchQuery)
     } catch (err) {
       if (err.message === "UNAUTHORIZED") handleLogout()
-      else throw err
+      else alert("Gagal menyimpan: " + err.message)
     }
   }
 
@@ -114,12 +135,10 @@ function App() {
 
   // ==================== RENDER ====================
 
-  // Jika belum login, tampilkan login page
   if (!isAuthenticated) {
     return <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
   }
 
-  // Jika sudah login, tampilkan main app
   return (
     <div style={styles.app}>
       <div style={styles.container}>
