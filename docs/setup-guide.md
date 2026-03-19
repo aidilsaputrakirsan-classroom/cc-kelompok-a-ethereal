@@ -1,4 +1,4 @@
-# SETUP GUIDE
+# Setup Guide - Kelarin App
 
 
 **Panduan lengkap dari nol sampai aplikasi bisa jalan**
@@ -16,7 +16,7 @@ Pastikan perangkat Anda telah terpasang dan berjalan dengan baik:
 ## 1️⃣ Clone Repository
 
 ```bash
-git clone <https://github.com/aidilsaputrakirsan-classroom/cc-kelompok-a-ethereal.git>
+git clone https://github.com/aidilsaputrakirsan-classroom/cc-kelompok-a-ethereal.git
 cd cc-kelompok-a-ethereal
 ```
 
