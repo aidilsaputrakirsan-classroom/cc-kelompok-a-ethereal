@@ -45,19 +45,19 @@ Kelarin ditujukan untuk mahasiswa yang sering kali mengalami permasalahan kesuli
 ```
 **Penjelasan Arsitektur**
 
-Client / User
+- Client / User
 Pengguna mengakses aplikasi Kelarin melalui browser menggunakan protokol HTTPS untuk memastikan komunikasi yang aman.
 
-React Frontend (Vite)
+-  React Frontend (Vite)
 Frontend berfungsi sebagai antarmuka pengguna yang menangani tampilan dashboard, manajemen tugas, serta interaksi user. Frontend berkomunikasi dengan backend melalui REST API.
 
-FastAPI Backend
+- FastAPI Backend
 Backend bertanggung jawab dalam logika bisnis aplikasi seperti autentikasi, pengelolaan tugas (CRUD), pembaruan status, serta pengolahan data sebelum disimpan ke database atau cloud storage.
 
-PostgreSQL
+- PostgreSQL
 Digunakan untuk menyimpan data terstruktur seperti data pengguna, daftar tugas, status, dan deadline.
 
-Cloud Storage
+- Cloud Storage
 Digunakan jika terdapat fitur upload file seperti lampiran tugas atau bukti penyelesaian.
 
 ## 🚀 Getting Started
@@ -116,7 +116,7 @@ npm run dev
 | 1 | Setup & Hello World | ✅ |
 | 2 | REST API + Database | ✅ |
 | 3 | React Frontend | ✅ |
-| 4 | Full-Stack Integration | ⬜ |
+| 4 | Full-Stack Integration | ✅ |
 | 5-7 | Docker & Compose | ⬜ |
 | 8 | UTS Demo | ⬜ |
 | 9-11 | CI/CD Pipeline | ⬜ |
@@ -161,9 +161,9 @@ cc-kelompok-ethereal_a/
 setup.sh adalah script otomatis untuk menyiapkan environment project.
 
 
-# Dokumentasi Endpoint
+## List API Endpoint 
 
-## GET/Health
+### GET/Health
 ![alt text](img/readme/image.png)
 
 URL: http://localhost:8000/health
@@ -181,7 +181,107 @@ Response Example:
 "string"
 ```
 
-## POST/Items
+
+### POST/auth/register (Register)
+![alt text](image-13.png)
+
+Body Request:
+```
+{
+  "email": "user@student.itk.ac.id",
+  "name": "Tiya Mitra",
+  "password": "Password123"
+}
+```
+
+Response Example: 
+- Successful Response (201)
+```
+{
+  "id": 0,
+  "email": "user@example.com",
+  "name": "string",
+  "is_active": true,
+  "created_at": "2026-03-22T01:45:04.250Z"
+}
+```
+
+- Validation Error (422)
+```
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+```
+
+### POST/auth/login (Login)
+![alt text](image-14.png)
+
+Body Request:
+```
+grant_type
+string | (string | null)
+pattern: password
+username *
+string
+password *
+string
+scope
+string
+client_id
+string | (string | null)
+client_secret
+string | (string | null)
+```
+
+Response Example: 
+- Successful Response (200)
+```
+"string"
+```
+
+- Validation Error (422)
+```
+{
+  "detail": [
+    {
+      "loc": [
+        "string",
+        0
+      ],
+      "msg": "string",
+      "type": "string"
+    }
+  ]
+}
+```
+
+### GET/auth/me (Get Me)
+![alt text](image-15.png)
+
+URL: http://localhost:8000/auth/me
+
+Response Example: 
+```
+{
+  "id": 0,
+  "email": "user@example.com",
+  "name": "string",
+  "is_active": true,
+  "created_at": "2026-03-22T01:53:42.854Z"
+}
+```
+
+### POST/Items (Create Item)
+
 ![alt text](img/readme/image-1.png)
 
 URL: http://localhost:8000/items
@@ -215,7 +315,7 @@ Response Example:
 }
 ```
 
-## GET/Items
+### GET/Items (List Item)
 ![alt text](img/readme/image-2.png)
 
 URL: http://localhost:8000/items?skip=0&limit=20
@@ -254,7 +354,7 @@ Response Example:
 }
 ```
 
-## GET/Item/stats
+### GET/Item/stats (Get Item Stats)
 ![alt text](img/readme/image-6.png)
 
 URL: http://localhost:8000/items/stats
@@ -265,7 +365,7 @@ Response Example:
 ```
 
 
-## GET/Items/{item_id}
+### GET/Items/{item_id} (Get Item)
 ![alt text](img/readme/image-3.png)
 
 URL: http://localhost:8000/items/1
@@ -299,7 +399,7 @@ Response Example:
 }
 ```
 
-## PUT/Items/{item_id}
+### PUT/Items/{item_id} (Upadte Item)
 ![alt text](img/readme/image-4.png)
 
 URL: http://localhost:8000/items/1
@@ -333,7 +433,7 @@ Response Example:
 }
 ```
 
-## DELETE/Item
+### DELETE/Item/{item_id} (Delete Item)
 ![alt text](img/readme/image-5.png)
 
 URL: http://localhost:8000/items/1 
@@ -354,7 +454,7 @@ Example Value:
 }
 ```
 
-## GET/team
+### GET/team
 ![alt text](img/readme/image-7.png)
 
 URL:  http://localhost:8000/team
@@ -398,7 +498,7 @@ Response Example:
 "string"
 ```
 
-### Struktur Database Kelarin
+## Struktur Database Kelarin
 **1. Tabel `users`** (Data Mahasiswa)
 | Kolom | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
@@ -474,3 +574,49 @@ Karena sistem kolaborasi sering melibatkan hubungan yang kompleks (Banyak-ke-Ban
 * **`users` ke `tasks` - Sebagai Pelaksana (Banyak-ke-Banyak melalui `task_assignments`)**
     * Satu tugas (`tasks`) bisa dipecah dan dikerjakan oleh banyak mahasiswa (`users`).
     * Satu mahasiswa (`users`) bisa diberikan banyak peran/tugas turunan dari berbagai tugas yang ada di tim tersebut.
+
+
+## Pengujian Authentication
+### Register
+  ![alt text](image-5.png)
+Pengujian ini dilakukan untuk memastikan bahwa fitur registrasi akun pada aplikasi Cloud App berjalan dengan baik. User mengisi data seperti nama lengkap, email, dan password pada form yang tersedia.
+
+Setelah tombol Register ditekan, sistem berhasil memproses data dan menampilkan notifikasi “Registrasi berhasil”. Hal ini menunjukkan bahwa data akun baru berhasil disimpan ke dalam sistem.
+
+### Login
+![alt text](image-6.png)
+Pengujian ini dilakukan untuk memastikan bahwa fitur login dapat digunakan dengan akun yang sudah terdaftar. User memasukkan email dan password yang sesuai.
+  
+Setelah berhasil login, sistem mengarahkan user ke halaman utama aplikasi dan menampilkan notifikasi “Login berhasil”. Hal ini menunjukkan bahwa proses autentikasi berjalan dengan baik.
+
+## Pengujian CRUD
+### Create
+![alt text](image-7.png)
+Pengujian ini dilakukan untuk memastikan bahwa fitur penambahan item baru (create) berjalan dengan baik. User mengisi form seperti nama item, harga, deskripsi, dan jumlah stok.
+
+Setelah tombol Tambah Item ditekan, item baru berhasil ditambahkan dan ditampilkan pada daftar item. Notifikasi “Item berhasil ditambahkan” juga muncul sebagai tanda proses berhasil.
+
+### Read
+![alt text](image-8.png)
+Pengujian ini dilakukan untuk memastikan bahwa sistem dapat menampilkan data item yang sudah tersimpan. Data ditampilkan dalam bentuk card yang berisi informasi seperti nama item, harga, stok, dan waktu input.
+
+Selain itu, setiap item memiliki tombol Edit dan Hapus, yang menunjukkan bahwa data dapat dikelola lebih lanjut.
+
+### Update
+![alt text](image-9.png)
+![alt text](image-10.png)
+Pengujian ini dilakukan untuk memastikan bahwa fitur update dapat mengubah data yang sudah ada. User melakukan perubahan pada data item melalui form edit.
+
+Setelah tombol Update Item ditekan, data berhasil diperbarui dan perubahan langsung terlihat pada daftar item. Sistem juga menampilkan notifikasi “Item berhasil diperbarui”.
+
+### Delete
+![alt text](image-11.png)
+![alt text](image-12.png)
+Pengujian ini dilakukan untuk memastikan bahwa fitur delete dapat menghapus data dengan benar. Saat tombol hapus ditekan, sistem menampilkan pop-up konfirmasi terlebih dahulu.
+
+Setelah user memilih OK, item berhasil dihapus dari daftar dan muncul notifikasi “Item berhasil dihapus”. Hal ini menunjukkan bahwa fitur delete berjalan dengan baik.
+
+
+## Bug Fixing
+![alt text](<Screenshot 2026-03-22 081118.png>)
+  - Register: Tidak bisa login karena kesalahan pada penulisan password yang tidak sesuai dengan kriteria (Harus diawali dengan huruf kapital) Jika tidak, akan terjadi error seperti "register gagal"

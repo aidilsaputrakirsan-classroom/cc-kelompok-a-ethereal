@@ -65,27 +65,34 @@ export async function register(userData) {
 }
 
 export async function login(email, password) {
+  // 1. FastAPI standard expects "username" and "password" as Form Data
+  const formData = new URLSearchParams();
+  formData.append("username", email); // We put the email into the 'username' slot
+  formData.append("password", password);
+
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  })
+    // 2. Change header to form-urlencoded
+    headers: { 
+      "Content-Type": "application/x-www-form-urlencoded" 
+    },
+    body: formData, // Send the URLSearchParams object directly
+  });
 
-  const data = await handleResponse(response)
+  const data = await handleResponse(response);
   
-  // DEBUG: Lihat di console (F12) apa isi data ini saat kamu register/login
-  console.log("Response Login:", data)
+  console.log("Response Login:", data);
 
-  // Ambil token dari kemungkinan nama field yang dikirim backend
-  const token = data.access_token || data.token || data.accessToken
+  // 3. FastAPI usually returns 'access_token'
+  const token = data.access_token || data.token || data.accessToken;
   
   if (token) {
-    setToken(token)
+    setToken(token);
   } else {
-    console.error("Token tidak ditemukan di response backend!")
+    console.error("Token tidak ditemukan di response backend!");
   }
   
-  return data
+  return data;
 }
 
 export async function getMe() {
