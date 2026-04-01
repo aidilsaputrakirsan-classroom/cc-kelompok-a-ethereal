@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Header from "./components/Header"
 import SearchBar from "./components/SearchBar"
+import Filter from "./components/Filter"
 import ItemForm from "./components/ItemForm"
 import ItemList from "./components/ItemList"
 import LoginPage from "./components/LoginPage"
@@ -22,12 +23,34 @@ function App() {
   const [isConnected, setIsConnected] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState("")
 
   // ==================== NOTIFICATION ====================
   const [notification, setNotification] = useState(null)
 
   const showNotification = (message, type = "success") => {
     setNotification({ message, type })
+  }
+
+  // ==================== SORT FUNCTION ====================
+  const sortItems = (items, sortBy) => {
+    let sorted = [...items]
+
+    switch (sortBy) {
+      case "name":
+        sorted.sort((a, b) => a.name.localeCompare(b.name))
+        break
+      case "price":
+        sorted.sort((a, b) => a.price - b.price)
+        break
+      case "newest":
+        sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        break
+      default:
+        break
+    }
+
+    return sorted
   }
 
   // ==================== LOAD DATA ====================
@@ -50,7 +73,6 @@ function App() {
   }, [])
 
   // ==================== EFFECT ====================
-
   useEffect(() => {
     checkHealth().then(setIsConnected)
   }, [])
@@ -67,7 +89,6 @@ function App() {
   }, [isAuthenticated, loadItems, user, searchQuery])
 
   // ==================== AUTH ====================
-
   const handleLogin = async (email, password) => {
     try {
       const data = await login(email, password)
@@ -99,11 +120,11 @@ function App() {
     setTotalItems(0)
     setEditingItem(null)
     setSearchQuery("")
+    setSortBy("")
     showNotification("Logout berhasil")
   }
 
   // ==================== ITEM ====================
-
   const handleSubmit = async (itemData, editId) => {
     try {
       if (editId) {
@@ -145,8 +166,14 @@ function App() {
     loadItems(query)
   }
 
-  // ==================== RENDER ====================
+  const handleSort = (value) => {
+    setSortBy(value)
+  }
 
+  // ==================== DERIVED DATA ====================
+  const displayedItems = sortItems(items, sortBy)
+
+  // ==================== RENDER ====================
   if (!isAuthenticated) {
     return (
       <>
@@ -185,8 +212,10 @@ function App() {
 
         <SearchBar onSearch={handleSearch} />
 
+        <Filter onSort={handleSort} />
+
         <ItemList
-          items={items}
+          items={displayedItems}
           onEdit={handleEdit}
           onDelete={handleDelete}
           loading={loading}
