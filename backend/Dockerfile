@@ -28,6 +28,9 @@ RUN useradd -m appuser
 # Memberitahu Docker untuk menjalankan aplikasi menggunakan user ini
 USER appuser
 
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
 # 8. Command untuk menjalankan aplikasi
 #    --host 0.0.0.0: agar bisa diakses dari luar container
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
