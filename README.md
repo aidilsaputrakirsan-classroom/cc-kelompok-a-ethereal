@@ -164,7 +164,7 @@ setup.sh adalah script otomatis untuk menyiapkan environment project.
 ## List API Endpoint 
 
 ### GET/Health
-![alt text](img/readme/image.png)
+![alt text](img/Modul2/image-8.png)
 
 URL: http://localhost:8000/health
 
@@ -172,7 +172,7 @@ Body Request:
 ```
 {
   "status": "healthy",
-  "version": "0.2.0"
+  "version": "0.4.0"
 }
 ```
 
@@ -183,7 +183,7 @@ Response Example:
 
 
 ### POST/auth/register (Register)
-![alt text](image-13.png)
+![alt text](img/Modul2/image-13.png)
 
 Body Request:
 ```
@@ -223,7 +223,7 @@ Response Example:
 ```
 
 ### POST/auth/login (Login)
-![alt text](image-14.png)
+![alt text](img/Modul2/image-14.png)
 
 Body Request:
 ```
@@ -265,7 +265,7 @@ Response Example:
 ```
 
 ### GET/auth/me (Get Me)
-![alt text](image-15.png)
+![alt text](img/Modul2/image-15.png)
 
 URL: http://localhost:8000/auth/me
 
@@ -282,7 +282,7 @@ Response Example:
 
 ### POST/Items (Create Item)
 
-![alt text](img/readme/image-1.png)
+![alt text](img/Modul2/image-16.png)
 
 URL: http://localhost:8000/items
 
@@ -316,7 +316,7 @@ Response Example:
 ```
 
 ### GET/Items (List Item)
-![alt text](img/readme/image-2.png)
+![alt text](img/Modul2/image-17.png)
 
 URL: http://localhost:8000/items?skip=0&limit=20
 
@@ -355,7 +355,7 @@ Response Example:
 ```
 
 ### GET/Item/stats (Get Item Stats)
-![alt text](img/readme/image-6.png)
+![alt text](img/Modul2/image-19.png)
 
 URL: http://localhost:8000/items/stats
 
@@ -366,7 +366,7 @@ Response Example:
 
 
 ### GET/Items/{item_id} (Get Item)
-![alt text](img/readme/image-3.png)
+![alt text](img/Modul2/image-20.png)
 
 URL: http://localhost:8000/items/1
 
@@ -400,7 +400,7 @@ Response Example:
 ```
 
 ### PUT/Items/{item_id} (Upadte Item)
-![alt text](img/readme/image-4.png)
+![alt text](img/Modul2/image-21.png)
 
 URL: http://localhost:8000/items/1
 
@@ -434,7 +434,7 @@ Response Example:
 ```
 
 ### DELETE/Item/{item_id} (Delete Item)
-![alt text](img/readme/image-5.png)
+![alt text](img/Modul2/image-22.png)
 
 URL: http://localhost:8000/items/1 
 
@@ -455,7 +455,7 @@ Example Value:
 ```
 
 ### GET/team
-![alt text](img/readme/image-7.png)
+![alt text](img/Modul2/image-23.png)
 
 URL:  http://localhost:8000/team
 
@@ -591,32 +591,32 @@ Setelah berhasil login, sistem mengarahkan user ke halaman utama aplikasi dan me
 
 ## Pengujian CRUD
 ### Create
-![alt text](image-7.png)
+![alt text](img/TestCRUD/image-7.png)
 Pengujian ini dilakukan untuk memastikan bahwa fitur penambahan item baru (create) berjalan dengan baik. User mengisi form seperti nama item, harga, deskripsi, dan jumlah stok.
 
 Setelah tombol Tambah Item ditekan, item baru berhasil ditambahkan dan ditampilkan pada daftar item. Notifikasi “Item berhasil ditambahkan” juga muncul sebagai tanda proses berhasil.
 
 ### Read
-![alt text](image-8.png)
+![alt text](img/TestCRUD/image-8.png)
 Pengujian ini dilakukan untuk memastikan bahwa sistem dapat menampilkan data item yang sudah tersimpan. Data ditampilkan dalam bentuk card yang berisi informasi seperti nama item, harga, stok, dan waktu input.
 
 Selain itu, setiap item memiliki tombol Edit dan Hapus, yang menunjukkan bahwa data dapat dikelola lebih lanjut.
 
 ### Update
-![alt text](image-9.png)
-![alt text](image-10.png)
+![alt text](img/TestCRUD/image-9.png)
+![alt text](img/TestCRUD/image-10.png)
 Pengujian ini dilakukan untuk memastikan bahwa fitur update dapat mengubah data yang sudah ada. User melakukan perubahan pada data item melalui form edit.
 
 Setelah tombol Update Item ditekan, data berhasil diperbarui dan perubahan langsung terlihat pada daftar item. Sistem juga menampilkan notifikasi “Item berhasil diperbarui”.
 
 ### Delete
-![alt text](image-11.png)
-![alt text](image-12.png)
+![alt text](img/TestCRUD/image-11.png)
+![alt text](img/TestCRUD/image-12.png)
 Pengujian ini dilakukan untuk memastikan bahwa fitur delete dapat menghapus data dengan benar. Saat tombol hapus ditekan, sistem menampilkan pop-up konfirmasi terlebih dahulu.
 
 Setelah user memilih OK, item berhasil dihapus dari daftar dan muncul notifikasi “Item berhasil dihapus”. Hal ini menunjukkan bahwa fitur delete berjalan dengan baik.
 
 
 ## Bug Fixing
-![alt text](<Screenshot 2026-03-22 081118.png>)
+![alt text](img/TestCRUD/bugfixing.png)
   - Register: Tidak bisa login karena kesalahan pada penulisan password yang tidak sesuai dengan kriteria (Harus diawali dengan huruf kapital) Jika tidak, akan terjadi error seperti "register gagal"
