@@ -9,7 +9,7 @@ from database import engine, get_db
 from models import Base, User
 from schemas import (
     ItemCreate, ItemUpdate, ItemResponse, ItemListResponse,
-    UserCreate, UserResponse, TokenResponse,
+    UserCreate, UserResponse
 )
 from auth import create_access_token, get_current_user
 import crud
@@ -21,19 +21,16 @@ load_dotenv()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Cloud App API",
-    description="REST API untuk mata kuliah Komputasi Awan — SI ITK",
-    version="0.4.0",
+    title="Kelarin API",
+    description="REST API untuk aplikasi manajemen tugas Kelarin",
+    version="1.0.0",
 )
 
-# ==================== CORS ====================
-
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
-origins_list = [origin.strip() for origin in allowed_origins.split(",")]
+# ==================== CORS (FIX TOTAL) ====================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins_list,
+    allow_origins=["*"],  # 🔥 sementara bebas biar gak error
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,8 +40,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "version": "0.4.0"}
-
+    return {"status": "healthy", "app": "Kelarin"}
 
 # ==================== AUTH ====================
 
@@ -56,19 +52,18 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-# 🔥 FIXED LOGIN (SWAGGER COMPATIBLE)
 @app.post("/auth/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = crud.authenticate_user(
         db=db,
-        email=form_data.username,  # username = email
+        email=form_data.username,
         password=form_data.password
     )
 
     if not user:
         raise HTTPException(status_code=401, detail="Email atau password salah")
 
-    token = create_access_token(data={"sub": user.id})
+    token = create_access_token(data={"sub": str(user.id)})
 
     return {
         "access_token": token,
@@ -81,10 +76,10 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-# ==================== ITEMS ====================
+# ==================== TASKS (RENAME DARI ITEMS) ====================
 
-@app.post("/items", response_model=ItemResponse, status_code=201)
-def create_item(
+@app.post("/tasks", response_model=ItemResponse, status_code=201)
+def create_task(
     item: ItemCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -92,8 +87,8 @@ def create_item(
     return crud.create_item(db=db, item_data=item)
 
 
-@app.get("/items", response_model=ItemListResponse)
-def list_items(
+@app.get("/tasks", response_model=ItemListResponse)
+def list_tasks(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     search: str = Query(None),
@@ -102,49 +97,43 @@ def list_items(
 ):
     return crud.get_items(db=db, skip=skip, limit=limit, search=search)
 
-@app.get("/items/stats")
-def get_items_stats(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    return crud.get_items_stats(db)
 
-
-@app.get("/items/{item_id}", response_model=ItemResponse)
-def get_item(
-    item_id: int,
+@app.get("/tasks/{task_id}", response_model=ItemResponse)
+def get_task(
+    task_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    item = crud.get_item(db=db, item_id=item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Item {item_id} tidak ditemukan")
-    return item
+    task = crud.get_item(db=db, item_id=task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
+    return task
 
 
-@app.put("/items/{item_id}", response_model=ItemResponse)
-def update_item(
-    item_id: int,
+@app.put("/tasks/{task_id}", response_model=ItemResponse)
+def update_task(
+    task_id: int,
     item: ItemUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    updated = crud.update_item(db=db, item_id=item_id, item_data=item)
+    updated = crud.update_item(db=db, item_id=task_id, item_data=item)
     if not updated:
-        raise HTTPException(status_code=404, detail=f"Item {item_id} tidak ditemukan")
+        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
     return updated
 
 
-@app.delete("/items/{item_id}", status_code=204)
-def delete_item(
-    item_id: int,
+@app.delete("/tasks/{task_id}", status_code=204)
+def delete_task(
+    task_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    success = crud.delete_item(db=db, item_id=item_id)
+    success = crud.delete_item(db=db, item_id=task_id)
     if not success:
-        raise HTTPException(status_code=404, detail=f"Item {item_id} tidak ditemukan")
+        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
     return None
+
 
 # ==================== TEAM ====================
 
@@ -153,10 +142,10 @@ def team_info():
     return {
         "team": "cloud-team-Ethereal",
         "members": [
-            {"name": "Amazia Devid Saputra", "nim": "10231013", "role": "Lead Frontend"},
-            {"name": "Alsha Dwi Cahya", "nim": "10231011", "role": "Lead DevOps"},
-            {"name": "Andini Permata Sari", "nim": "10231015", "role": "Lead QA & Docs"},
-            {"name": "Ansellma Tita Pakartiwuri P", "nim": "10231017", "role": "Lead CI/CD & Deploy"},
-            {"name": "Tiya Mitra Ayu", "nim": "10231088", "role": "Lead Backend"},
+            {"name": "Amazia Devid Saputra", "nim": "10231013", "role": "Frontend"},
+            {"name": "Alsha Dwi Cahya", "nim": "10231011", "role": "DevOps"},
+            {"name": "Andini Permata Sari", "nim": "10231015", "role": "QA & Docs"},
+            {"name": "Ansellma Tita Pakartiwuri P", "nim": "10231017", "role": "CI/CD"},
+            {"name": "Tiya Mitra Ayu", "nim": "10231088", "role": "Backend"},
         ],
     }

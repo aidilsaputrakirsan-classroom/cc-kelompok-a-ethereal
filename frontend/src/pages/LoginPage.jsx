@@ -8,6 +8,7 @@ function LoginPage({ setToken }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Check for capital letter at start
     if (!/^[A-Z]/.test(password)) {
       alert("Password harus diawali huruf kapital");
       return;
@@ -24,13 +25,21 @@ function LoginPage({ setToken }) {
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
+    <div className="login-container">
       <h2>Masuk ke Kelarin</h2>
       <form onSubmit={handleSubmit}>
-        <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
-        <br />
-        <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
-        <br />
+        <input 
+          type="email" 
+          placeholder="Email" 
+          onChange={(e) => setEmail(e.target.value)} 
+          required 
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          onChange={(e) => setPassword(e.target.value)} 
+          required 
+        />
         <button type="submit">Login</button>
       </form>
     </div>
