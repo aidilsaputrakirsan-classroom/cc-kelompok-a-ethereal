@@ -1,4 +1,3 @@
-// src/services/api.js
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export const api = {
@@ -11,17 +10,15 @@ export const api = {
     return res.json();
   },
 
-  // Mengambil daftar tugas mahasiswa sesuai tabel 'tasks' di ERD Kelarin
   getTasks: async (token) => {
-    const res = await fetch(`${API_URL}/items`, { // Endpoint /items sesuai Modul 2
+    const res = await fetch(`${API_URL}/tasks`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (res.status === 401) return { error: "Unauthorized" };
     return res.json();
   },
 
   createTask: async (taskData, token) => {
-    const res = await fetch(`${API_URL}/items`, {
+    const res = await fetch(`${API_URL}/tasks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,5 +27,5 @@ export const api = {
       body: JSON.stringify(taskData),
     });
     return res.json();
-  }
+  },
 };

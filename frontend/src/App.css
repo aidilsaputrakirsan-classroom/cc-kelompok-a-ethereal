@@ -8,6 +8,11 @@ body {
   padding: 0;
 }
 
+.app {
+  max-width: 900px;
+  margin: auto;
+}
+
 input:focus {
   border-color: #2E75B6 !important;
 }
