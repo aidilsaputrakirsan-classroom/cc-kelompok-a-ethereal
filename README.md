@@ -630,12 +630,12 @@ Dengan Docker, semua dependency dan konfigurasi sudah dikemas dalam satu contain
 Langkah pertama adalah membuat Docker image dari project ini menggunakan Dockerfile. Terdapat docker image yaitu frontend dan backend. 
 - Frontend
 ```bash
-docker build -t kelarin-frontend:v1 .
+docker build -t dwialsha/kelarin-frontend:v1 .
 ```
 
 - Backend
 ```bash
-docker build -t kelarin-backend:v2 .
+docker build -t dwialsha/kelarin-backend:v2 .
 ```
 
 ## ▶️ Menjalankan Container
