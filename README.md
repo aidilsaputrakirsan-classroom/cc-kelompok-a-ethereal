@@ -620,3 +620,66 @@ Setelah user memilih OK, item berhasil dihapus dari daftar dan muncul notifikasi
 ## Bug Fixing
 ![alt text](img/TestCRUD/bugfixing.png)
   - Register: Tidak bisa login karena kesalahan pada penulisan password yang tidak sesuai dengan kriteria (Harus diawali dengan huruf kapital) Jika tidak, akan terjadi error seperti "register gagal"
+
+# Docker Setup
+Project ini menggunakan Docker untuk mempermudah proses instalasi dan menjalankan aplikasi tanpa perlu mengatur environment secara manual di setiap perangkat.
+
+Dengan Docker, semua dependency dan konfigurasi sudah dikemas dalam satu container, sehingga aplikasi bisa berjalan dengan konsisten di berbagai lingkungan.
+
+## 🔧 Build Docker Image
+Langkah pertama adalah membuat Docker image dari project ini menggunakan Dockerfile. Terdapat docker image yaitu frontend dan backend. 
+- Frontend
+```bash
+docker build -t kelarin-frontend:v1 .
+```
+
+- Backend
+```bash
+docker build -t kelarin-backend:v2 .
+```
+
+## ▶️ Menjalankan Container
+Setelah image berhasil dibuat, jalankan container dengan perintah berikut:
+```bash
+docker run -d \
+      --name db-kelarin \
+      --network kelarin-net \
+      -e POSTGRES_USER=postgres \
+      -e POSTGRES_PASSWORD=PW_ANDA \
+      -e POSTGRES_DB=kelarin \
+      -p 5433:5432 \
+      -v pgdata:/var/lib/postgresql/data \
+      postgres:16-alpine
+  ```
+
+Penjelasan:
+
+- **docker run** → perintah untuk menjalankan container baru dari sebuah image
+- **-d** → menjalankan container di background (tidak mengganggu terminal)
+- **--name db-kelarin** → memberi nama container agar mudah dikenali dan digunakan oleh container lain
+- **--network kelarin-net** → menghubungkan container ke network Docker agar bisa berkomunikasi dengan service lain (misalnya backend)
+- **-e POSTGRES_USER=postgres** → menentukan username untuk database PostgreSQL
+- **-e POSTGRES_PASSWORD=PW_ANDA** → menentukan password untuk database PostgreSQL
+- **-e POSTGRES_DB=kelarin** → menentukan nama database yang akan dibuat otomatis saat container dijalankan
+- **-p 5433:5432** → menghubungkan port lokal (5433) ke port dalam container (5432) agar database bisa diakses dari luar
+- **-v pgdata:/var/lib/postgresql/data** → menyimpan data database ke dalam volume Docker agar tidak hilang meskipun container dihapus
+- **postgres:16-alpine** → image PostgreSQL versi 16 dengan ukuran ringan (alpine) yang digunakan untuk menjalankan database.
+
+
+## 🌐 Akses Aplikasi
+Setelah container berjalan, aplikasi dapat diakses melalui:
+http://localhost:8000
+
+## 🐳 Docker Hub Image
+Jika tidak ingin build manual, kamu juga bisa menggunakan image yang sudah tersedia di Docker Hub:
+```bash
+docker pull <username>/cloudapp-backend:v2
+```
+Kemudian jalankan dengan perintah yang sama seperti di atas.
+
+## 🚀 Getting Started (Menggunakan Docker)
+1. Pastikan Docker sudah terinstall di perangkat
+2. Clone repository ini
+3. Build image atau pull dari Docker Hub
+4. Jalankan container
+5. Akses aplikasi melalui browser
