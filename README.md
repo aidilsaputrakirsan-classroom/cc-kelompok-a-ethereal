@@ -160,6 +160,82 @@ cc-kelompok-ethereal_a/
 # setup.sh
 setup.sh adalah script otomatis untuk menyiapkan environment project.
 
+## Struktur Database Kelarin
+**1. Tabel `users`** (Data Mahasiswa)
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Primary Key, Auto Increment |
+| `full_name` | VARCHAR | Nama lengkap mahasiswa |
+| `email` | VARCHAR | Email mahasiswa (Unique) |
+| `password_hash` | VARCHAR | Password yang dienkripsi |
+| `created_at` | TIMESTAMP | Waktu akun dibuat |
+
+**2. Tabel `teams`** (Data Kelompok/Tim)
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Primary Key, Auto Increment |
+| `team_name` | VARCHAR | Nama kelompok |
+| `description` | TEXT | Deskripsi atau tujuan kelompok |
+| `created_at` | TIMESTAMP | Waktu kelompok dibuat |
+
+**3. Tabel `team_members`** (Anggota Kelompok)
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Primary Key, Auto Increment |
+| `team_id` | INT (FK) | Relasi ke tabel `teams` |
+| `user_id` | INT (FK) | Relasi ke tabel `users` |
+| `role` | VARCHAR | Peran di tim (misal: Ketua, Anggota) |
+| `joined_at` | TIMESTAMP | Waktu bergabung ke tim |
+
+**4. Tabel `tasks`** (Daftar Tugas)
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Primary Key, Auto Increment |
+| `team_id` | INT (FK) | Relasi ke tabel `teams` |
+| `title` | VARCHAR | Judul tugas |
+| `description` | TEXT | Instruksi atau detail tugas |
+| `deadline` | TIMESTAMP | Tenggat waktu tugas |
+| `status` | VARCHAR | *To Do, In Progress, Done* |
+| `created_by` | INT (FK) | Mahasiswa yang membuat tugas (`users`) |
+| `created_at`| TIMESTAMP | Waktu tugas dibuat |
+
+**5. Tabel `task_assignments`** (Pembagian Peran Tugas Spesifik)
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Primary Key, Auto Increment |
+| `task_id` | INT (FK) | Relasi ke tabel `tasks` |
+| `user_id` | INT (FK) | Relasi ke tabel `users` |
+| `task_role` | VARCHAR | Detail pengerjaan tugas (misal: "Bikin PPT", "Bab 1") |
+| `assigned_at` | TIMESTAMP | Waktu penugasan diberikan |
+
+---
+
+### Entity Relationship Diagram (ERD) Kelarin
+
+#### 1. Entitas Utama
+Entitas utama adalah tabel yang menyimpan data master dalam sistem:
+* **`users`**: Merupakan entitas pusat yang menyimpan data profil dan kredensial login mahasiswa. Setiap aktivitas dalam sistem akan merujuk pada entitas ini.
+* **`teams`**: Berfungsi sebagai ruang kerja (*workspace*) digital tempat mahasiswa berkumpul membentuk kelompok.
+* **`tasks`**: Menyimpan detail pekerjaan atau tugas akademik yang harus diselesaikan oleh sebuah `teams`, lengkap dengan tenggat waktu (`deadline`) dan status penyelesaian.
+
+#### 2. Tabel Relasi (Junction / Pivot Tables)
+Karena sistem kolaborasi sering melibatkan hubungan yang kompleks (Banyak-ke-Banyak / *Many-to-Many*), sistem ini menggunakan tabel perantara:
+* **`team_members`**: Mengatasi relasi *Many-to-Many* antara mahasiswa dan kelompok. Tabel ini mencatat siapa saja anggota dari sebuah tim beserta peran hierarkis mereka (kolom `role`, misalnya: Ketua atau Anggota).
+* **`task_assignments`**: Menjawab masalah utama "pembagian peran yang tidak jelas". Tabel ini mengatasi relasi *Many-to-Many* antara mahasiswa dan tugas spesifik. Di sinilah dicatat detail siapa mengerjakan apa (kolom `task_role`, misalnya: "Mengerjakan Bab 1").
+
+#### 3. Detail Relasi Antar Tabel
+* **`users` ke `teams` (Banyak-ke-Banyak melalui `team_members`)**
+    * Satu mahasiswa (`users`) dapat bergabung ke dalam banyak kelompok (`teams`).
+    * Satu kelompok (`teams`) terdiri dari banyak mahasiswa (`users`).
+* **`teams` ke `tasks` (Satu-ke-Banyak / *One-to-Many*)**
+    * Satu kelompok (`teams`) bisa memiliki dan mengelola banyak tugas (`tasks`).
+    * Setiap tugas (`tasks`) hanya dimiliki oleh satu kelompok tertentu.
+* **`users` ke `tasks` - Sebagai Pembuat (Satu-ke-Banyak / *One-to-Many*)**
+    * Satu mahasiswa (`users`) bisa membuat banyak tugas (`tasks`) di dalam timnya.
+    * Setiap tugas (`tasks`) dicatat siapa pembuat aslinya melalui kolom `created_by` (merujuk ke `users.id`).
+* **`users` ke `tasks` - Sebagai Pelaksana (Banyak-ke-Banyak melalui `task_assignments`)**
+    * Satu tugas (`tasks`) bisa dipecah dan dikerjakan oleh banyak mahasiswa (`users`).
+    * Satu mahasiswa (`users`) bisa diberikan banyak peran/tugas turunan dari berbagai tugas yang ada di tim tersebut.
 
 ## List API Endpoint 
 
