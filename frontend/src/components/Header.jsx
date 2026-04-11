@@ -1,70 +1,29 @@
-function Header({ totalItems = 0, isConnected = true, user, onLogout }) {
+import { Button } from "./ui/Button";
+
+const Header = ({ onLogout }) => {
   return (
-    <header style={styles.header}>
-      <div>
-        <h1 style={styles.title}>🚀 Kelarin</h1>
-        <p style={styles.subtitle}>Kelola tugasmu dengan mudah</p>
-      </div>
-
-      <div style={styles.right}>
-        <div style={styles.stats}>
-          <span style={styles.badge}>{totalItems} tugas</span>
-          <span
-            style={{
-              ...styles.status,
-              backgroundColor: isConnected ? "#E2EFDA" : "#FBE5D6",
-              color: isConnected ? "#548235" : "#C00000",
-            }}
-          >
-            {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
-          </span>
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">☁️</span>
+          <span className="font-bold text-xl text-gray-800 tracking-tight">Kelarin</span>
         </div>
-
-        {user && (
-          <div style={styles.user}>
-            <span style={styles.userName}>👤 {user.name}</span>
-            <button onClick={onLogout} style={styles.btnLogout}>
-              Logout
-            </button>
-          </div>
-        )}
+        
+        <nav className="flex items-center gap-6">
+          <span className="text-sm text-gray-500 hidden sm:block italic">
+            Ethereal Team Workspace
+          </span>
+          <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
+          <button 
+            onClick={onLogout}
+            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+          >
+            Logout
+          </button>
+        </nav>
       </div>
     </header>
   );
-}
-
-const styles = {
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "1.5rem 2rem",
-    backgroundColor: "#1F4E79",
-    color: "white",
-    borderRadius: "12px",
-    marginBottom: "1.5rem",
-  },
-  title: { margin: 0, fontSize: "1.8rem" },
-  subtitle: { margin: "0.25rem 0 0 0", fontSize: "0.9rem", opacity: 0.8 },
-  right: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.5rem" },
-  stats: { display: "flex", gap: "0.5rem", alignItems: "center" },
-  badge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    padding: "0.3rem 0.7rem",
-    borderRadius: "20px",
-    fontSize: "0.8rem",
-  },
-  status: { padding: "0.3rem 0.7rem", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold" },
-  user: { display: "flex", gap: "0.5rem", alignItems: "center" },
-  userName: { fontSize: "0.85rem" },
-  btnLogout: {
-    padding: "0.3rem 0.8rem",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    color: "white",
-    border: "1px solid rgba(255,255,255,0.3)",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
 };
 
 export default Header;

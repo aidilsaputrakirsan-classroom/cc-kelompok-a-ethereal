@@ -1,30 +1,38 @@
 import { useState } from "react";
-// Note: Ensure filename matches your sidebar (LoginPage.jsx)
-import LoginPage from "./pages/LoginPage.jsx"; 
-import Header from "./components/Header.jsx";
-import TaskList from "./components/TaskList.jsx";
+import LoginPage from "./pages/LoginPage"; 
+import HomePage from "./pages/HomePage";
+import Toast from "./components/ui/Toast";
 
 function App() {
-  // Initialize state from localStorage
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const [notification, setNotification] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setNotification({ message, type });
+  };
 
   const handleLogout = () => {
     setToken(null);
     localStorage.removeItem("token");
+    showToast("Logged out successfully", "info");
   };
 
   return (
-    /* This wrapper ensures your CSS/Padding applies to both Login and Tasks */
-    <div className="app-main-wrapper" style={{ padding: "2rem" }}>
-      {!token ? (
-        <LoginPage setToken={setToken} />
-      ) : (
-        <>
-          <Header onLogout={handleLogout} />
-          <TaskList token={token} />
-        </>
+    <>
+      {notification && (
+        <Toast 
+          message={notification.message} 
+          type={notification.type} 
+          onClose={() => setNotification(null)} 
+        />
       )}
-    </div>
+
+      {!token ? (
+        <LoginPage setToken={setToken} showToast={showToast} />
+      ) : (
+        <HomePage token={token} onLogout={handleLogout} />
+      )}
+    </>
   );
 }
 
