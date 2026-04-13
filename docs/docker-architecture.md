@@ -25,7 +25,7 @@ flowchart LR
 
     %% FRONTEND
     subgraph FE_CONTAINER["Frontend Container"]
-        FE["Frontend App<br/>Port: 3000<br/>API_URL → backend:8000"]
+        FE["Frontend App<br/>Port: 5173<br/>API_URL → backend:8000"]
     end
 
     %% BACKEND
@@ -39,7 +39,7 @@ flowchart LR
     end
 
     %% CONNECTION FLOW
-    U -->|HTTP :3000| FE
+    U -->|HTTP 5173| FE
     FE -->|API :8000| BE
     BE -->|SQL :5432| DB
 
@@ -55,6 +55,24 @@ flowchart LR
     DB --> V
 ```
 
+## Konfigurasi Ports
+
+Berikut adalah mapping port antara host dan container:
+
+- Frontend:
+  - Host: 5173 → Container: 5173
+
+- Backend:
+  - Host: 8000 → Container: 8000
+
+- Database:
+  - Host: 5433 → Container: 5432
+
+**Penjelasan:**
+
+Port mapping memungkinkan aplikasi di dalam container dapat diakses dari luar (host). 
+Sebagai contoh, database menggunakan port 5433 di host agar tidak bentrok dengan PostgreSQL lokal.
+
 ## Penjelasan Arsitektur
 
 Arsitektur ini terdiri dari tiga container yang masing-masing memiliki peran yang berbeda namun saling terhubung.
@@ -65,7 +83,7 @@ Frontend merupakan bagian yang berinteraksi langsung dengan user. Biasanya berup
 
 **Detail konfigurasi:**
 
-- Port: 3000
+- Port: 5173
 - Diakses melalui browser oleh user
 - Menggunakan environment variable:
     - API_URL=http://backend:8000
@@ -109,6 +127,29 @@ Database digunakan untuk menyimpan seluruh data aplikasi secara permanen.
 
 Database berjalan dalam container terpisah agar lebih aman dan terisolasi. Data disimpan menggunakan volume pgdata sehingga tidak akan hilang meskipun container dihentikan atau dihapus.
 
+## Ringkasan Environment Variables
+
+Berikut adalah environment variables yang digunakan pada masing-masing container:
+
+### Frontend
+- API_URL=http://backend:8000
+
+### Backend
+- DB_HOST=db
+- DB_PORT=5432
+- DB_USER=postgres
+- DB_PASSWORD=***
+- DB_NAME=kelarin
+
+### Database
+- POSTGRES_USER=postgres
+- POSTGRES_PASSWORD=***
+- POSTGRES_DB=kelarin
+
+**Penjelasan:**
+
+Environment variables digunakan untuk memisahkan konfigurasi dari kode program, sehingga lebih fleksibel dan aman.
+
 ## Penjelasan Network
 
 Semua container berada dalam satu Docker network bernama:
@@ -145,7 +186,7 @@ pgdata
 - Memungkinkan reuse data
 
 ## Alur Kerja Sistem
-1. User mengakses aplikasi melalui browser di port 3000
+1. User mengakses aplikasi melalui browser di port 5173
 2. Frontend menerima request dari user
 3. Frontend mengirim request ke backend melalui port 8000
 4. Backend memproses request
@@ -153,6 +194,16 @@ pgdata
 6. Database mengembalikan data ke backend
 7. Backend mengirim response ke frontend
 8. Frontend menampilkan hasil ke user
+
+## Keuntungan Arsitektur
+
+Beberapa keuntungan dari arsitektur ini:
+
+- Modular: setiap komponen berjalan secara terpisah
+- Mudah dikembangkan: perubahan pada satu service tidak mempengaruhi yang lain
+- Scalable: masing-masing container bisa di-scale secara independen
+- Portable: dapat dijalankan di berbagai environment (local, cloud, server)
+- Maintainable: lebih mudah dalam debugging dan monitoring
 
 ## Kesimpulan
 
