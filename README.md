@@ -759,3 +759,80 @@ Kemudian jalankan dengan perintah yang sama seperti di atas.
 3. Build image atau pull dari Docker Hub
 4. Jalankan container
 5. Akses aplikasi melalui browser
+
+---
+
+## 🐳 Docker Compose Instructions
+
+Panduan ini menjelaskan cara menjalankan aplikasi menggunakan Docker Compose.
+
+
+## 🚀 Cara Menjalankan Aplikasi
+
+Ikuti langkah-langkah berikut:
+
+1. Pastikan Docker sudah terinstall dan sedang berjalan
+2. Buka terminal di folder project ini
+3. Untuk menjalankan seluruh service (frontend, backend, dan database), gunakan perintah berikut:
+
+```bash
+docker compose up --build
+```
+
+4. Tunggu hingga semua service berhasil berjalan
+5. Buka browser dan akses:
+- Frontend → http://localhost:3000
+- Backend → http://localhost:8000
+
+Jika halaman berhasil terbuka, berarti aplikasi sudah berjalan dengan baik ✅
+
+### 🛑 Cara Menghentikan Aplikasi
+
+Untuk menghentikan semua container, jalankan:
+
+``` bash
+docker compose down
+```
+
+### 🔍 Cara Mengecek Status
+
+Untuk memastikan semua service berjalan:
+
+```bash
+docker compose ps
+```
+
+Jika statusnya Up, berarti container berjalan dengan normal.
+
+### 📜 Cara Melihat Log
+
+Jika terjadi error atau ingin melihat aktivitas aplikasi:
+
+```bash
+docker compose logs
+```
+
+Untuk melihat log secara real-time:
+
+```bash
+docker compose logs -f
+```
+
+## ⚙️ Perintah Penting Docker Compose
+
+Berikut beberapa perintah Docker Compose yang sering digunakan:
+
+| Perintah | Deskripsi |
+|----------|----------|
+| docker compose up | Menjalankan semua service (build jika diperlukan) |
+| docker compose up -d | Menjalankan semua service di background (detached mode) |
+| docker compose down | Menghentikan dan menghapus container serta network |
+| docker compose down -v | Menghentikan dan menghapus container beserta volume (⚠️ data akan hilang) |
+| docker compose restart | Me-restart semua service |
+| docker compose stop | Menghentikan container tanpa menghapus |
+| docker compose ps | Menampilkan status semua container |
+| docker compose logs | Menampilkan log dari semua service |
+| docker compose logs -f | Menampilkan log secara real-time |
+| docker compose exec backend bash | Masuk ke dalam container backend |
+| docker compose build | Build semua image |
+| docker compose pull | Mengambil image dari registry |
