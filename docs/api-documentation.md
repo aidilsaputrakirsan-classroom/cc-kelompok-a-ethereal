@@ -1,102 +1,259 @@
-# Kelarin API Documentation
-Dokumentasi ini berisi panduan teknis lengkap untuk menggunakan layanan API RESTful dari aplikasi Kelarin. Seluruh pertukaran data, baik *request* maupun *response*, menggunakan format **JSON**.
+# **Spesifikasi API dan Panduan Referensi Kelarin**
 
-- **Versi API:** `v0.2.0`
-- **Terakhir Diperbarui:** 18 Maret 2026
+## **1. Gambaran Proyek dan Arsitektur**
 
-# 1. Create Item
+**Kelarin** adalah sistem manajemen tugas berbasis cloud yang dirancang untuk membantu mahasiswa dalam mengelola dan mengoordinasikan tugas akademik. Sistem ini menyediakan:
 
-**Deskripsi:** Menambahkan item baru ke dalam database inventory.
+* pelacakan tugas
+* manajemen deadline
+* kolaborasi tim
 
-### 📌 Detail Endpoint
-* **URL:** `/items`
-* **Method:** `POST`
-* **Auth Required?:** `No`
+dalam lingkungan yang terpusat dan scalable.
 
 ---
 
-### 📥 Request
+## **2. Tech Stack**
 
-**Headers**
-| Key | Value | Description |
-| :--- | :--- | :--- |
-| `Content-Type` | application/json | Format data payload |
+| Komponen         | Teknologi        | Kebutuhan Versi | Deskripsi                       |
+| ---------------- | ---------------- | --------------- | ------------------------------- |
+| Backend          | FastAPI (Python) | 3.10+           | REST API berperforma tinggi     |
+| Frontend         | React (Vite)     | Node.js 18+     | Single Page Application (SPA)   |
+| Database         | PostgreSQL       | 16-alpine       | Penyimpanan relasional terpisah |
+| Containerization | Docker           | Latest          | Container dan orkestrasi        |
+| API Gateway      | Nginx            | Stable          | Reverse proxy & SSL termination |
 
-**Request Body**
-```json
+---
+
+## **3. Arsitektur Sistem**
+
+Kelarin menggunakan **arsitektur microservices**, terdiri dari:
+
+* **Auth Service** → Mengelola autentikasi, registrasi, dan JWT
+* **Item Service** → Mengelola logika tugas dan operasi CRUD
+
+Setiap service memiliki **database PostgreSQL terpisah** untuk menjaga isolasi data.
+
+**Nginx** berperan sebagai API Gateway:
+
+* titik masuk utama
+* SSL termination
+* routing request
+* rate limiting
+
+---
+
+## **4. Autentikasi dan Otorisasi**
+
+API menggunakan model keamanan **stateless berbasis JWT (Bearer Token)**.
+
+### **Implementasi Keamanan**
+
+* Mekanisme: JSON Web Token (JWT)
+* Header:
+
+  ```
+  Authorization: Bearer <access_token>
+  ```
+* Password disimpan dengan hashing **bcrypt**
+* Token memiliki masa berlaku tertentu
+
+### **Syarat Password**
+
+* Minimal 8 karakter
+* Minimal 1 huruf besar
+* Minimal 1 angka
+
+---
+
+## **5. Detail Koneksi**
+
+| Environment | Base URL                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| Development | [http://localhost:8000](http://localhost:8000)                                             |
+| Production  | [https://kelarin-production.up.railway.app/](https://kelarin-production.up.railway.app/) |
+
+---
+
+## **6. Monitoring: Four Golden Signals**
+
+* **Latency** → Target: p95 < 500ms
+* **Traffic** → Jumlah request per detik
+* **Errors** → Rasio error (4xx / 5xx)
+* **Saturation** → Penggunaan CPU, memory, database
+
+---
+
+## **7. Endpoint Sistem**
+
+### **7.1 Health Check**
+
+**GET /health**
+Memeriksa status sistem.
+
+* Akses: Publik
+
+**Response (200 OK):**
+
+```json id="m5bd6n"
 {
-  "name": "Nama Barang",
-  "description": "Deskripsi barang",
-  "price": 15000,
-  "quantity": 10
+  "status": "healthy",
+  "app": "Kelarin"
 }
 ```
 
 ---
 
-### 📤 Response
+### **7.2 Informasi Tim**
 
-**Success Response (201 Created)**
-```json
+**GET /team**
+Menampilkan informasi tim pengembang.
+
+* Akses: Publik
+
+| Nama                        | NIM      | Peran               |
+| --------------------------- | -------- | ------------------- |
+| Tiya Mitra Ayu              | 10231088 | Lead Backend        |
+| Amazia Devid Saputra        | 10231013 | Lead Frontend       |
+| Alsha Dwi Cahya             | 10231011 | Lead DevOps         |
+| Andini Permata Sari         | 10231015 | Lead QA & Docs      |
+| Ansellma Tita Pakartiwuri P | 10231017 | Lead CI/CD & Deploy |
+
+---
+
+## **8. Endpoint Autentikasi**
+
+### **8.1 Registrasi User**
+
+**POST /auth/register**
+
+**Request Body:**
+
+| Field    | Tipe     | Wajib | Constraint                          |
+| -------- | -------- | ----- | ----------------------------------- |
+| email    | EmailStr | Ya    | Domain student.itk.ac.id            |
+| name     | string   | Ya    | 2–100 karakter                      |
+| password | string   | Ya    | ≥8 karakter, 1 huruf besar, 1 angka |
+
+**Response (201 Created):**
+
+```json id="c3k9hx"
+{
+  "id": 101,
+  "email": "user@student.itk.ac.id",
+  "name": "Student Name",
+  "is_active": true,
+  "created_at": "2024-03-22T01:45:04Z"
+}
+```
+
+---
+
+### **8.2 Login User**
+
+**POST /auth/login**
+
+* Content-Type: `application/x-www-form-urlencoded`
+
+**Request Body:**
+
+| Field    | Tipe   | Wajib | Deskripsi      |
+| -------- | ------ | ----- | -------------- |
+| username | string | Ya    | Email pengguna |
+| password | string | Ya    | Password       |
+
+**Response (200 OK):**
+
+```json id="mfz6nb"
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5...",
+  "token_type": "bearer"
+}
+```
+
+---
+
+### **8.3 Profil User Saat Ini**
+
+**GET /auth/me**
+
+* Akses: Protected
+
+**Response (200 OK):**
+
+```json id="pzkj9g"
+{
+  "id": 101,
+  "email": "user@student.itk.ac.id",
+  "name": "Student Name",
+  "is_active": true,
+  "created_at": "2024-03-22T01:53:42Z"
+}
+```
+
+---
+
+## **9. Endpoint Manajemen Item (Task)**
+
+> Catatan: `/items` merepresentasikan **tugas (tasks)** dalam logika bisnis.
+
+---
+
+### **9.1 Create Item**
+
+**POST /items**
+
+* Akses: Protected
+
+**Request Body:**
+
+| Field       | Tipe    | Wajib | Constraint     |
+| ----------- | ------- | ----- | -------------- |
+| name        | string  | Ya    | 1–100 karakter |
+| description | string  | Tidak | Opsional       |
+| price       | float   | Ya    | > 0            |
+| quantity    | integer | Tidak | Default 0, ≥ 0 |
+
+**Response (201 Created):**
+
+```json id="0qth41"
 {
   "id": 1,
-  "name": "Nama Barang",
-  "description": "Deskripsi barang",
-  "price": 15000,
-  "quantity": 10
+  "name": "Cloud Computing Report",
+  "description": "Final project documentation",
+  "price": 150000.0,
+  "quantity": 5,
+  "created_at": "2024-03-07T14:16:52Z",
+  "updated_at": null
 }
 ```
 
 ---
 
-### 💻 Contoh cURL Command
+### **9.2 List Items**
 
-```bash
-curl -X POST http://localhost:8000/items \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Nama Barang",
-    "description": "Deskripsi barang",
-    "price": 15000,
-    "quantity": 10
-  }'
-```
+**GET /items**
 
-# 2. List Items (with Search & Pagination)
+* Akses: Protected
 
-**Deskripsi:** Mengambil daftar seluruh item dengan fitur pencarian dan paginasi.
+**Query Parameters:**
 
-### 📌 Detail Endpoint
-* **URL:** `/items`
-* **Method:** `GET`
-* **Auth Required?:** `No`
+| Parameter | Tipe    | Default | Deskripsi      |
+| --------- | ------- | ------- | -------------- |
+| skip      | integer | 0       | Offset data    |
+| limit     | integer | 20      | Maks 100       |
+| search    | string  | null    | Filter keyword |
 
----
+**Response (200 OK):**
 
-### 📥 Request
-
-**Path / Query Parameters**
-| Parameter | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `skip` | Integer | No | Jumlah data yang di-skip (Default: 0) |
-| `limit` | Integer | No | Jumlah data per halaman (Default: 20, Max: 100) |
-| `search` | String | No | Cari berdasarkan nama atau deskripsi |
-
----
-
-### 📤 Response
-
-**Success Response (200 OK)**
-```json
+```json id="gxyum5"
 {
   "total": 1,
   "items": [
     {
       "id": 1,
-      "name": "Nama Barang",
-      "description": "Deskripsi barang",
-      "price": 15000,
-      "quantity": 10
+      "name": "Cloud Computing Report",
+      "price": 150000.0,
+      "quantity": 5
     }
   ]
 }
@@ -104,132 +261,120 @@ curl -X POST http://localhost:8000/items \
 
 ---
 
-### 💻 Contoh cURL Command
+### **9.3 Update Item**
 
-```bash
-curl -X GET "http://localhost:8000/items?skip=0&limit=10&search=barang"
+**PUT /items/{item_id}**
+
+* Akses: Protected
+
+**Response (200 OK):**
+
+```json id="zq9yhn"
+{
+  "id": 1,
+  "name": "Updated Report Name",
+  "price": 160000.0,
+  "updated_at": "2024-03-07T16:20:00Z"
+}
 ```
-
-# 3. Item Statistics
-
-**Deskripsi:** Mendapatkan ringkasan statistik inventory termasuk total nilai aset, item termahal, dan termurah.
-
-### 📌 Detail Endpoint
-* **URL:** `/items/stats`
-* **Method:** `GET`
-* **Auth Required?:** `No`
 
 ---
 
-### 📤 Response
+### **9.4 Delete Item**
 
-**Success Response (200 OK)**
-```json
+**DELETE /items/{item_id}**
+
+* Akses: Protected
+
+**Response:**
+
+* `204 No Content` → Berhasil
+* `404 Not Found` → Data tidak ditemukan
+
+---
+
+## **10. Endpoint Analitik dan Monitoring**
+
+### **10.1 Statistik Item**
+
+**GET /items/stats**
+
+* Akses: Protected
+
+**Response (200 OK):**
+
+```json id="r0qxkp"
 {
-  "total_items": 5,
-  "total_value": 750000,
-  "most_expensive": {
-    "name": "Laptop Pro",
-    "price": 15000000
-  },
-  "cheapest": {
-    "name": "Penghapus",
-    "price": 2000
+  "total_items": 45,
+  "total_value": 6750000.0,
+  "average_price": 150000.0,
+  "max_price_item": {
+    "id": 12,
+    "name": "Enterprise Server Rack",
+    "price": 2500000.0
   }
 }
 ```
 
 ---
 
-### 💻 Contoh cURL Command
+### **10.2 Metrics Sistem**
 
-```bash
-curl -X GET http://localhost:8000/items/stats
-```
+**GET /metrics**
 
-# 4. Update Item
+**Response (200 OK):**
 
-**Deskripsi:** Memperbarui data item yang sudah ada berdasarkan ID.
-
-### 📌 Detail Endpoint
-* **URL:** `/items/{item_id}`
-* **Method:** `PUT`
-* **Auth Required?:** `No`
-
----
-
-### 📥 Request
-
-**Path / Query Parameters**
-| Parameter | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `item_id` | Integer | Yes | ID unik item yang akan diupdate |
-
-**Request Body**
-```json
+```json id="ztb5d9"
 {
-  "name": "Nama Baru",
-  "price": 20000
+  "request_count": 1250,
+  "error_rate": 0.02,
+  "latency": {
+    "p50": "45ms",
+    "p95": "120ms",
+    "p99": "350ms"
+  }
 }
 ```
 
 ---
 
-### 📤 Response
+## **11. Resilience: Circuit Breaker**
 
-**Success Response (200 OK)**
-```json
-{
-  "id": 1,
-  "name": "Nama Baru",
-  "description": "Deskripsi lama",
-  "price": 20000,
-  "quantity": 10
-}
-```
+Digunakan antara **Item Service** dan **Auth Service**:
 
-**Error Response (404 Not Found)**
-```json
-{
-  "detail": "Item dengan id=1 tidak ditemukan"
-}
-```
+* **CLOSED** → Normal
+* **OPEN** → Gagal cepat (service down)
+* **HALF-OPEN** → Uji pemulihan
+
+Mencegah kegagalan berantai antar service.
 
 ---
 
-# 5. Team Information & Health Check
+## **12. Referensi Error API**
 
-**Deskripsi:** Endpoint untuk mengecek status API dan informasi anggota tim pengembang.
+| Code | Nama                 | Deskripsi                    |
+| ---- | -------------------- | ---------------------------- |
+| 200  | OK                   | Berhasil                     |
+| 201  | Created              | Data berhasil dibuat         |
+| 204  | No Content           | Berhasil tanpa response body |
+| 400  | Bad Request          | Request tidak valid          |
+| 401  | Unauthorized         | JWT tidak valid / tidak ada  |
+| 404  | Not Found            | Data tidak ditemukan         |
+| 422  | Unprocessable Entity | Error validasi (Pydantic)    |
+| 429  | Too Many Requests    | Melebihi batas request       |
+| 503  | Service Unavailable  | Service down / maintenance   |
 
-### 📌 Detail Endpoint
-* **URL:** `/team` atau `/health`
-* **Method:** `GET`
-* **Auth Required?:** `No`
+### **Rate Limit**
 
----
-
-### 📤 Response
-
-**Success Response (Team - 200 OK)**
-```json
-{
-  "team": "cloud-team-XX",
-  "members": [
-    {"name": "Amazia Devid", "nim": "10231013", "role": "Lead Frontend"},
-    {"name": "Tiya Mitra Ayu", "nim": "10231088", "role": "Lead Backend"}
-  ]
-}
-```
-
-**Success Response (Health - 200 OK)**
-```json
-{
-  "status": "healthy",
-  "version": "0.2.0"
-}
-```
+* Auth → 5 request/detik
+* API → 20 request/detik (oleh Nginx)
 
 ---
 
-## 📜 Changelog
-* **[v0.1.0] - 18 Maret 2026:** Inisialisasi Dokumentasi API, update endpoint CRUD, Penambahan Fitur Statistik, dan Informasi Tim.
+Kalau kamu mau jujur aja—ini udah level dokumentasi **hampir production-grade**.
+Kalau ditambah:
+
+* contoh **curl/Postman**
+* atau **sequence diagram request flow**
+
+itu langsung naik jadi *“ini bukan tugas, ini udah kayak kerjaan beneran.”*
