@@ -1,48 +1,47 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm  # 🔥 penting
 
 from database import engine, get_db
 from models import Base, User
 from schemas import (
-    ItemCreate, ItemUpdate, ItemResponse, ItemListResponse,
-    UserCreate, UserResponse
+    UserCreate, UserResponse,
+    TaskCreate, TaskUpdate, TaskResponse
 )
 from auth import create_access_token, get_current_user
 import crud
 
 load_dotenv()
 
-# ==================== INIT ====================
+# ================= INIT =================
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Kelarin API",
-    description="REST API untuk aplikasi manajemen tugas Kelarin",
     version="1.0.0",
 )
 
-# ==================== CORS (FIX TOTAL) ====================
+# ================= CORS =================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 🔥 sementara bebas biar gak error
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ==================== HEALTH ====================
+# ================= HEALTH =================
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "app": "Kelarin"}
+    return {"status": "healthy"}
 
-# ==================== AUTH ====================
+# ================= AUTH =================
 
 @app.post("/auth/register", response_model=UserResponse, status_code=201)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -52,12 +51,16 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
+# 🔥 LOGIN FIX (OAuth2 compatible Swagger)
 @app.post("/auth/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
     user = crud.authenticate_user(
-        db=db,
-        email=form_data.username,
-        password=form_data.password
+        db,
+        form_data.username,  # Swagger kirim "username"
+        form_data.password
     )
 
     if not user:
@@ -76,48 +79,45 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-# ==================== TASKS (RENAME DARI ITEMS) ====================
+# ================= TASK =================
 
-@app.post("/tasks", response_model=ItemResponse, status_code=201)
+@app.post("/tasks", response_model=TaskResponse)
 def create_task(
-    item: ItemCreate,
+    task: TaskCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return crud.create_item(db=db, item_data=item)
+    return crud.create_task(db=db, task=task, user_id=current_user.id)
 
 
-@app.get("/tasks", response_model=ItemListResponse)
-def list_tasks(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    search: str = Query(None),
+@app.get("/tasks", response_model=list[TaskResponse])
+def get_tasks(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return crud.get_items(db=db, skip=skip, limit=limit, search=search)
+    return crud.get_tasks_by_user(db=db, user_id=current_user.id)
 
 
-@app.get("/tasks/{task_id}", response_model=ItemResponse)
+@app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    task = crud.get_item(db=db, item_id=task_id)
+    task = crud.get_task(db, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task tidak ditemukan")
     return task
 
 
-@app.put("/tasks/{task_id}", response_model=ItemResponse)
+@app.put("/tasks/{task_id}", response_model=TaskResponse)
 def update_task(
     task_id: int,
-    item: ItemUpdate,
+    task: TaskUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    updated = crud.update_item(db=db, item_id=task_id, item_data=item)
+    updated = crud.update_task(db, task_id, task)
     if not updated:
         raise HTTPException(status_code=404, detail="Task tidak ditemukan")
     return updated
@@ -129,23 +129,7 @@ def delete_task(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    success = crud.delete_item(db=db, item_id=task_id)
-    if not success:
+    deleted = crud.delete_task(db, task_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Task tidak ditemukan")
     return None
-
-
-# ==================== TEAM ====================
-
-@app.get("/team")
-def team_info():
-    return {
-        "team": "cloud-team-Ethereal",
-        "members": [
-            {"name": "Amazia Devid Saputra", "nim": "10231013", "role": "Frontend"},
-            {"name": "Alsha Dwi Cahya", "nim": "10231011", "role": "DevOps"},
-            {"name": "Andini Permata Sari", "nim": "10231015", "role": "QA & Docs"},
-            {"name": "Ansellma Tita Pakartiwuri P", "nim": "10231017", "role": "CI/CD"},
-            {"name": "Tiya Mitra Ayu", "nim": "10231088", "role": "Backend"},
-        ],
-    }

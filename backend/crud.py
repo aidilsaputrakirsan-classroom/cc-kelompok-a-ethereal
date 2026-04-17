@@ -1,102 +1,44 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
-from models import Item, User
-from schemas import ItemCreate, ItemUpdate, UserCreate
-from auth import hash_password, verify_password
+from models import Task, User
+from schemas import TaskCreate, TaskUpdate
+from passlib.context import CryptContext
+
+# ==================== PASSWORD CONFIG ====================
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-# ==================== ITEM CRUD ====================
-
-def create_item(db: Session, item_data: ItemCreate) -> Item:
-    db_item = Item(**item_data.model_dump())
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return db_item
+def hash_password(password: str):
+    return pwd_context.hash(password)
 
 
-def get_items(db: Session, skip: int = 0, limit: int = 20, search: str = None):
-    query = db.query(Item)
-
-    if search:
-        query = query.filter(
-            or_(
-                Item.name.ilike(f"%{search}%"),
-                Item.description.ilike(f"%{search}%")
-            )
-        )
-
-    total = query.count()
-    items = query.order_by(Item.created_at.desc()).offset(skip).limit(limit).all()
-
-    return {"total": total, "items": items}
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_item(db: Session, item_id: int) -> Item | None:
-    return db.query(Item).filter(Item.id == item_id).first()
+# ==================== USER ====================
 
-
-def update_item(db: Session, item_id: int, item_data: ItemUpdate) -> Item | None:
-    db_item = db.query(Item).filter(Item.id == item_id).first()
-
-    if not db_item:
+def create_user(db: Session, user_data):
+    # cek apakah email sudah ada
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
         return None
 
-    update_data = item_data.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_item, field, value)
-
-    db.commit()
-    db.refresh(db_item)
-    return db_item
-
-
-def delete_item(db: Session, item_id: int) -> bool:
-    db_item = db.query(Item).filter(Item.id == item_id).first()
-
-    if not db_item:
-        return False
-
-    db.delete(db_item)
-    db.commit()
-    return True
-
-
-# ==================== 🔥 ITEM STATS (TUGAS WAJIB) ====================
-
-def get_items_stats(db: Session):
-    items = db.query(Item).all()
-
-    total_items = len(items)
-    total_stock = sum(item.quantity for item in items)
-    total_value = sum(item.price * item.quantity for item in items)
-
-    return {
-        "total_items": total_items,
-        "total_stock": total_stock,
-        "total_value": total_value
-    }
-
-
-# ==================== USER CRUD ====================
-
-def create_user(db: Session, user_data: UserCreate) -> User | None:
-    existing = db.query(User).filter(User.email == user_data.email).first()
-    if existing:
-        return None
-
-    db_user = User(
-        email=user_data.email,
+    # buat user baru
+    new_user = User(
         name=user_data.name,
-        hashed_password=hash_password(user_data.password),
+        email=user_data.email,
+        hashed_password=hash_password(user_data.password)
     )
-    db.add(db_user)
+
+    db.add(new_user)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(new_user)
+
+    return new_user
 
 
-def authenticate_user(db: Session, email: str, password: str) -> User | None:
+def authenticate_user(db: Session, email: str, password: str):
     user = db.query(User).filter(User.email == email).first()
     if not user:
         return None
@@ -105,3 +47,50 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
         return None
 
     return user
+
+
+# ==================== TASK ====================
+
+def get_tasks(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Task).offset(skip).limit(limit).all()
+
+
+def get_task(db: Session, task_id: int):
+    return db.query(Task).filter(Task.id == task_id).first()
+
+
+def get_tasks_by_user(db: Session, user_id: int):
+    return db.query(Task).filter(
+        (Task.created_by == user_id) | (Task.assigned_to == user_id)
+    ).all()
+
+
+def create_task(db: Session, task: TaskCreate, user_id: int):
+    db_task = Task(**task.model_dump(), created_by=user_id)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+
+def update_task(db: Session, task_id: int, task: TaskUpdate):
+    db_task = get_task(db, task_id)
+    if not db_task:
+        return None
+
+    for key, value in task.model_dump(exclude_unset=True).items():
+        setattr(db_task, key, value)
+
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+
+def delete_task(db: Session, task_id: int):
+    db_task = get_task(db, task_id)
+    if not db_task:
+        return None
+
+    db.delete(db_task)
+    db.commit()
+    return db_task
