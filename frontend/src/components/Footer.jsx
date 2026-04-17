@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div>
             <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-              <span className="text-xl">☁️</span>
+              <span className="text-xl">📋</span>
               <span className="font-bold text-gray-800 text-lg">Kelarin</span>
             </div>
             <p className="text-sm text-gray-500">

@@ -4,7 +4,7 @@ import HomePage from "./pages/HomePage";
 import Toast from "./components/ui/Toast";
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(null);
   const [notification, setNotification] = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -30,7 +30,11 @@ function App() {
       {!token ? (
         <LoginPage setToken={setToken} showToast={showToast} />
       ) : (
-        <HomePage token={token} onLogout={handleLogout} />
+        <HomePage 
+  token={token} 
+  onLogout={handleLogout} 
+  showToast={showToast}
+/>
       )}
     </>
   );

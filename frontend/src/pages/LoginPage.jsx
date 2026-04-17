@@ -51,8 +51,8 @@ const LoginPage = ({ setToken, showToast }) => {
         setIsRegister(false);
       } else {
         const token = data.access_token || data;
-        localStorage.setItem("token", token);
-        setToken(token);
+        localStorage.setItem("token", data.access_token);
+        setToken(data.access_token);
         showToast("Login berhasil!", "success");
       }
     } catch (err) {
@@ -66,7 +66,7 @@ const LoginPage = ({ setToken, showToast }) => {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-100">
         <header className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Kelarin ☁️</h2>
+          <h2 className="text-3xl font-bold text-gray-800">Kelarin📋</h2>
           <p className="text-gray-500 mt-2">
             {isRegister ? "Create your student account" : "Welcome back!"}
           </p>
@@ -76,7 +76,7 @@ const LoginPage = ({ setToken, showToast }) => {
           {isRegister && (
             <Input 
               label="Full Name" 
-              placeholder="Tiya Mitra" 
+              placeholder="Name" 
               required
               onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
             />
