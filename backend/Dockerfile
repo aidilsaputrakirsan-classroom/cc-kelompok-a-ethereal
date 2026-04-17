@@ -1,41 +1,45 @@
 # ============================================================
-# Stage: Production Image
-# ============================================================
+# Stage 1: Builder (Untuk install library)
+# ============================================
+FROM python:3.12-slim AS builder
 
-# 1. Base image — Python 3.12 slim
-FROM python:3.12-slim
-
-# 2. Set working directory
 WORKDIR /app
-
-# 3. Copy requirements.txt (cache optimization)
 COPY requirements.txt .
 
-# 4. Install dependencies & curl (curl dibutuhkan untuk HEALTHCHECK)
-# apt-get update & clean dilakukan dalam satu RUN untuk menjaga image tetap kecil
+# Install dependencies ke dalam folder tertentu (/install)
+RUN apt-get update && apt-get install -y --no-install-recommends gcc build-essential \
+    && pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+
+# ============================================================
+# Stage 2: Production Image (Final)
+# ============================================================
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# 1. Ambil library dari stage builder (Tanpa bawa sampah build-tools)
+COPY --from=builder /install /usr/local
+
+# 2. Install curl saja (karena curl ringan & penting buat HEALTHCHECK)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    && pip install --no-cache-dir -r requirements.txt \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 5. Copy seluruh kode aplikasi
+# 3. Copy seluruh kode aplikasi
 COPY . .
 
-# 6. Dokumentasikan port
+# 4. Dokumentasikan port
 EXPOSE 8000
 
-# 7. Security: Membuat dan menggunakan non-root user (Tugas Lead DevOps)
-RUN useradd -m appuser
-# Pastikan folder aplikasi dimiliki oleh appuser
-RUN chown -R appuser:appuser /app
+# 5. Security: Non-root user (Tetap aman!)
+RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
-# 8. Healthcheck (Tugas Lead Backend)
-# Memastikan aplikasi merespon di endpoint /health
+# 6. Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-# 9. Jalankan aplikasi
+# 7. Jalankan aplikasi
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
