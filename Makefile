@@ -1,43 +1,32 @@
-.PHONY: up down build logs ps clean restart shell-backend shell-db
+# Makefile untuk Project Kelarin
 
-# 1. Menyalakan aplikasi (Default)
+.PHONY: build up down logs push clean restart
+
+# Build semua image Docker
+build:
+	docker compose build
+
+# Jalankan semua service di background
 up:
 	docker compose up -d
 
-# 2. Build ulang dari nol (Wajib dipakai setelah tim push kode baru/Vite v7)
-# Pakai --no-cache supaya benar-benar fresh seperti instruksi tadi
-build:
-	docker compose build --no-cache
-	docker compose up -d
-
-# 3. Matikan aplikasi (Hapus container tapi data DB aman)
+# Hentikan dan hapus container beserta network
 down:
 	docker compose down
 
-# 4. Reset Total (Hapus volume database & sampah image)
-# Hati-hati: Data di database kelarin bakal hilang!
+# Lihat log dari semua service secara real-time
+logs:
+	docker compose logs -f
+
+# Push semua image ke Docker Hub (Tugas Lead CI/CD)
+push:
+	docker compose push
+
+# Hentikan, hapus container, beserta volume (hati-hati, data database akan hilang)
 clean:
 	docker compose down -v
 	docker system prune -f
 
-# 5. Lihat status container (Untuk cek port 5173 & 8000)
-ps:
-	docker compose ps
-
-# 6. Pantau Log secara Real-time (Untuk debugging backend/frontend)
-logs:
-	docker compose logs -f
-
-# 7. Masuk ke terminal Backend (Buat cek file di dalam container)
-shell-backend:
-	docker compose exec backend bash
-
-# 8. Masuk ke Database Postgres (Langsung ke DB kelarin)
-# Sesuaikan 'db-kelarin' dengan nama service di docker-compose.yml kamu
-shell-db:
-	docker compose exec db-kelarin psql -U postgres -d kelarin
-
-# 9. Jalankan Setup awal (Shortcut buat teman timmu)
-setup:
-	chmod +x setup.sh
-	./setup.sh
+# Restart semua service
+restart:
+	docker compose restart
