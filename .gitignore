@@ -3,33 +3,35 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-# Node
-node_modules/
-dist/
-dist-ssr/
-*.local
-
-# Python
-venv/
+# Python (Sangat Penting!)
 __pycache__/
+**/__pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Environment — catch .env everywhere
+# Environment (Sudah Bagus)
 .env
 .env.*
 **/.env
 **/.env.*
 
-# Editor
-.vscode/*
+# Node (Jika ada frontend/tooling node)
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editor & System
+.vscode/
 !.vscode/extensions.json
 .idea/
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
