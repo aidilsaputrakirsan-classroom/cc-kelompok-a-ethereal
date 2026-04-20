@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pgpg
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: kelarin
     ports:
       - "5433:5432"

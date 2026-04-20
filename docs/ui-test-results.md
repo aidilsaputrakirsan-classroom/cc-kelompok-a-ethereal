@@ -1,43 +1,71 @@
-# TEST CASE CLOUD APP
+# Test Case Project Kelarin
 
-## 1. Menambahkan Item Baru dengan Mengisi semua kolom
-![alt text](../img/ui-test/image.png)
-Test case ini bertujuan untuk memastikan bahwa sistem dapat menyimpan data item baru ketika semua kolom diisi dengan benar. Pengguna memasukkan nama item, harga, deskripsi, dan jumlah stok, lalu menekan tombol Tambah Item. Jika berhasil, data akan tersimpan dan muncul di daftar item, serta sistem menampilkan notifikasi bahwa data berhasil ditambahkan.
+## 📋 Ringkasan Test Case
 
-## 2. Menambahkan Item Baru tanpa mengisi kolom Nama item
-![alt text](../img/ui-test/image-1.png)
-Test ini dilakukan untuk memastikan sistem melakukan validasi terhadap kolom yang wajib diisi. Ketika pengguna tidak mengisi kolom Nama Item lalu mencoba menambahkan item, sistem harus menolak proses tersebut dan menampilkan pesan bahwa nama item wajib diisi. Dengan begitu data yang tidak lengkap tidak akan tersimpan.
+Dokumen ini berisi hasil pengujian antarmuka pengguna (UI) aplikasi Kelarin untuk memverifikasi alur autentikasi dan manajemen tugas (CRUD).
 
-## 3. Menambahkan Item Baru tanpa mengisi kolom Harga
-![alt text](../img/ui-test/image-2.png)
-Test case ini bertujuan untuk mengecek validasi pada kolom harga. Jika pengguna tidak mengisi harga atau memasukkan nilai yang tidak valid, sistem harus menampilkan pesan error seperti harga harus lebih dari 0. Hal ini untuk memastikan bahwa setiap item memiliki nilai harga yang valid sebelum disimpan.
+## 📋 Ringkasan Test Case (CRUD + Auth)
 
-## 4. Mencari Item dari Search Bar
-![alt text](../img/ui-test/image-3.png)
-Pengujian ini dilakukan untuk memastikan fitur pencarian berjalan dengan baik. Pengguna memasukkan kata kunci pada kolom pencarian, misalnya nama item tertentu. Sistem kemudian akan menampilkan item yang sesuai dengan kata kunci tersebut sehingga pengguna bisa menemukan data dengan lebih cepat.
+| ID | Test Case | Ekspektasi Hasil | Status |
+| :--- | :--- | :--- | :--- |
+| **TC-01** | Register User Baru | User berhasil terdaftar & diarahkan ke login | ✅ Pass |
+| **TC-02** | Login User | Berhasil masuk & token JWT tersimpan | ✅ Pass |
+| **TC-03** | Proteksi Route | Halaman dashboard tidak bisa diakses sebelum login | ✅ Pass |
+| **TC-04** | Tambah Tugas (Create) | Tugas baru muncul di dashboard | ✅ Pass |
+| **TC-05** | Validasi Input | Form kosong/tidak valid memunculkan error | ✅ Pass |
+| **TC-06** | Tampil Tugas (Read) | Daftar tugas muncul dengan benar | ✅ Pass |
+| **TC-07** | Edit Tugas (Update) | Data tugas berubah setelah diedit | ✅ Pass |
+| **TC-08** | Hapus Tugas (Delete) | Tugas hilang dari list setelah konfirmasi | ✅ Pass |
+| **TC-09** | Logout | Token dihapus & user diarahkan ke login | ✅ Pass |
+| **TC-10** | Empty State | Pesan "Belum ada tugas" jika belum ada data | ✅ Pass |
 
-## 5. Mencari Item berdasarkan urutan Harga
-![alt text](../img/ui-test/image-4.png)
-Test ini bertujuan untuk memastikan fitur sorting berdasarkan harga bekerja dengan benar. Ketika pengguna memilih opsi urutkan berdasarkan harga, sistem akan menampilkan daftar item yang sudah diurutkan sesuai nilai harga. Pada tampilan diatas, sistem menampilkan item dari harga terendah ke tertinggi.
+---
 
-## 6. Mencari Item berdasarkan urutan Nama
-![alt text](../img/ui-test/image-5.png)
-Pengujian ini memastikan sistem dapat mengurutkan item berdasarkan nama. Saat pengguna memilih opsi Nama, sistem akan menampilkan daftar item dalam urutan alfabet sehingga lebih mudah untuk mencari item tertentu.
+## Dokumetasi Hasil Testing
+Berikut adalah bukti pengujian untuk setiap *test case* yang telah dijalankan:
 
-## 7. Mencari Item berdasarkan urutan Terbaru
-![alt text](../img/ui-test/image-6.png)
-Test ini bertujuan untuk mengecek apakah sistem dapat menampilkan item berdasarkan waktu penambahan terbaru. Ketika opsi Terbaru dipilih, item yang paling baru ditambahkan akan muncul di bagian atas daftar.
+1.  **TC-01 (Register):** 
+![alt text](image.png)
+Pengujian dimulai dengan membuat akun baru melalui halaman registrasi. Username dan password dimasukkan ke dalam kolom yang tersedia. Hasilnya, data sukses terkirim ke backend dan aplikasi langsung mengarahkan ke halaman login. Proses ini memastikan Pengguna baru bisa mendaftarkan diri dengan mudah.
 
-## 8. Memperbarui Item
-![alt text](../img/ui-test/image-7.png)
-![alt text](../img/ui-test/image-8.png)
-Pengujian ini dilakukan untuk memastikan pengguna dapat mengubah data item yang sudah ada. Pengguna memilih tombol Edit, mengubah data seperti nama, harga, atau stok, lalu menekan Update Item. Jika berhasil, sistem akan menyimpan perubahan tersebut dan menampilkan notifikasi bahwa data berhasil diperbarui.
+2.  **TC-02 (Login):**
+![alt text](image-1.png)
+Setelah akun berhasil dibuat, pengujian dilanjutkan dengan mencoba masuk menggunakan akun yang sama. Kredensial dimasukkan dengan benar, dan aplikasi berhasil memverifikasi data tersebut. Di balik layar, sistem menyimpan JSON Web Token (JWT) di browser agar aplikasi bisa mengenali sesi pengguna tanpa harus login berulang kali.
 
-## 9. Menghapus Item
-![alt text](../img/ui-test/image-9.png)
-![alt text](../img/ui-test/image-10.png)
-Test case ini bertujuan untuk memastikan fitur penghapusan item berjalan dengan benar. Saat pengguna menekan tombol Hapus, sistem akan menampilkan konfirmasi terlebih dahulu. Jika pengguna menekan OK, maka item akan dihapus dari daftar dan sistem menampilkan notifikasi bahwa item berhasil dihapus.
+3.  **TC-03 (Proteksi Route):**
+![alt text](image-9.png)
+Percobaan dilakukan dengan mengetik langsung alamat /dashboard di browser saat kondisi sedang logout. Hasilnya, aplikasi langsung menolak akses tersebut dan secara otomatis membuang kembali ke halaman login. Keamanan halaman utama benar-benar terjaga.
 
-## 10. Test API Get/Item/Stats
-![alt text](../img/ui-test/image-11.png)
-Pengujian ini dilakukan untuk memastikan endpoint API /item/stats dapat berjalan dengan baik. Ketika endpoint dipanggil, sistem akan mengembalikan response berupa data statistik item dalam format JSON, seperti total item, item dengan harga tertinggi, dan item dengan harga terendah. Jika response berhasil ditampilkan dengan status kode 200, maka API dianggap berjalan dengan baik
+4.  **TC-04 (Create):**
+![alt text](image-3.png)
+Fitur tambah tugas diuji dengan mengisi judul, deskripsi, dan deadline. Setelah tombol simpan ditekan, data tersebut langsung muncul di daftar tugas pada dashboard. Ini membuktikan bahwa komunikasi antara tampilan depan dan database sudah berjalan dengan sangat mulus.
+
+
+5.  **TC-05 (Validasi):**
+![alt text](image-4.png)
+Pengujian ini dilakukan untuk melihat seberapa tangguh aplikasi menghadapi kesalahan pengguna. Percobaan dilakukan dengan menekan tombol simpan saat kolom judul atau tanggal masih kosong. Hasilnya, muncul pesan peringatan agar kolom wajib diisi. Hal ini sangat membantu dalam mencegah masuknya data sampah ke dalam database.
+
+
+6.  **TC-06 (Read):**
+![alt text](image-5.png)
+Untuk memastikan data bisa dibaca kembali, halaman dashboard dimuat ulang (refresh). Aplikasi berhasil menarik data dari database dan menampilkannya dengan rapi di layar sesuai dengan apa yang sebelumnya sudah disimpan
+
+
+7.  **TC-07 (Update):**
+![alt text](image-6.png)
+Fitur edit diuji dengan mengubah status tugas yang tadinya deksripsi tugas "Membuat Video Presentasi" menjadi "Membuat Makalah". Setelah tombol simpan ditekan, perubahan data langsung terlihat di layar. Ini menunjukkan bahwa fitur edit sudah sinkron sepenuhnya antara tampilan dan database.
+
+
+8.  **TC-08 (Delete):**
+![alt text](image-7.png)
+Pengujian dilakukan dengan menghapus salah satu tugas dari daftar. Saat tombol hapus ditekan, tugas tersebut langsung hilang dari layar dan juga terhapus dari database. Aplikasi terbukti bersih dan efisien dalam mengelola data.
+
+
+9.  **TC-09 (Logout):**
+![alt text](image-2.png)
+Sesi diakhiri dengan menekan tombol logout. Aplikasi berhasil menghapus token sesi yang tersimpan di browser. Setelah itu, akses ke halaman dashboard otomatis terputus, sehingga harus login ulang jika ingin masuk kembali. Fitur keluar aplikasi terbukti berfungsi dengan benar.
+
+
+10. **TC-10 (Empty State):**
+![alt text](image-8.png)
+Terakhir, pengujian dilakukan saat database dalam kondisi kosong. Ketika dashboard dibuka, aplikasi tidak menampilkan layar error atau kosong yang membingungkan, melainkan muncul pesan ramah "Tidak ada tugas". Pengalaman pengguna jadi jauh lebih baik dan informatif.

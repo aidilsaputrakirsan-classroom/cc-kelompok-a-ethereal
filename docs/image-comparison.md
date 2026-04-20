@@ -1,7 +1,7 @@
 # **Docker Image Optimization & Multi-Stage Build Comparison Report**
 
 ## **1. Project Overview & Objectives**
-Dokumen ini menjelaskan hasil optimasi dan strategi teknis dalam proses containerization aplikasi **Kelarin**. Dengan beralih ke strategi *multi-stage build* dan penggunaan *minimal base images*, kita berhasil meningkatkan efisiensi deployment secara drastis.
+Dokumen ini menjelaskan hasil optimasi dan strategi teknis dalam proses containerization aplikasi **Kelarin**.
 
 ---
 

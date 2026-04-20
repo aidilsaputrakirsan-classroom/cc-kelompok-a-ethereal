@@ -4,17 +4,17 @@
 
 **Kelarin** adalah platform manajemen tugas akademik berbasis cloud-native yang dirancang untuk memfasilitasi kolaborasi mahasiswa secara terstruktur. Aplikasi ini mengintegrasikan:
 
-* penambahan tugas
-* penentuan deadline
-* distribusi tanggung jawab tim
+* Penambahan tugas
+* Penentuan deadline
+* Distribusi tanggung jawab tim
 
 dalam satu dashboard terpadu.
 
 Dengan arsitektur yang *scalable* dan penyimpanan terpusat, Kelarin memungkinkan:
 
-* monitoring progres secara *real-time*
-* transparansi kerja tim
-* akses data dari mana saja
+* Monitoring progres secara *real-time*
+* Transparansi kerja tim
+* Akses data dari mana saja
 
 Tujuan utama:
 
@@ -90,7 +90,37 @@ Kelarin menggunakan komunikasi **stateless berbasis JWT**.
 
 ---
 
-## **5. Struktur Proyek**
+## **5. Getting Started**
+
+### **Prasyarat**
+
+* Python 3.10+
+* Node.js 18+
+* Git CLI
+
+---
+
+### **Backend**
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+---
+
+### **Frontend**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## **6. Project Structure**
 
 ```
 cc-kelompok-ethereal_a/
@@ -123,86 +153,7 @@ cc-kelompok-ethereal_a/
 
 ---
 
-## **6. Getting Started**
-
-### **Prasyarat**
-
-* Python 3.10+
-* Node.js 18+
-* Git CLI
-
----
-
-### **Backend**
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-
----
-
-### **Frontend**
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
-
-## **7. Dokumentasi API (Endpoints)**
-
-### **System**
-
-* `GET /health` → Status server
-* `GET /team` → Info tim
-
-### **Authentication**
-
-* `POST /auth/register` → Register
-* `POST /auth/login` → Login
-* `GET /auth/me` → Profil user
-
-### **Task Management**
-
-* `GET /items` → List tasks
-
-  * `search`, `skip`, `limit`
-* `POST /items` → Create task
-* `GET /items/stats` → Statistik
-* `GET /items/{id}` → Detail
-* `PUT /items/{id}` → Update
-* `DELETE /items/{id}` → Delete
-
----
-
-## **8. Deployment**
-
-* **Railway** → Backend & PostgreSQL
-* **Netlify** → Frontend
-
----
-
-## **9. Roadmap Proyek**
-
-| Minggu | Target                 | Status |
-| ------ | ---------------------- | ------ |
-| 1      | Setup & Hello World    | ✅      |
-| 2      | REST API + Database    | ✅      |
-| 3      | React Frontend         | ✅      |
-| 4      | Full-Stack Integration | ✅      |
-| 5–7    | Docker & Compose       | ✅      |
-| 8      | UTS Demo               | ⬜      |
-| 9–11   | CI/CD Pipeline         | ⬜      |
-| 12–14  | Microservices          | ⬜      |
-| 15–16  | Final & UAS            | ⬜      |
-
----
-
-## **10. Informasi Tambahan & ERD**
+## **7. Informasi Tambahan & ERD**
 
 ### **Entitas Utama**
 
@@ -221,7 +172,154 @@ npm run dev
   → Mengatasi pembagian kerja yang tidak jelas
   → Meningkatkan transparansi tanggung jawab
 
-## **11. Diagram Deployment (Docker & Railway)**
+---
+
+## **8. Roadmap Proyek**
+
+| Minggu | Target                 | Status |
+| ------ | ---------------------- | ------ |
+| 1      | Setup & Hello World    | ✅      |
+| 2      | REST API + Database    | ✅      |
+| 3      | React Frontend         | ✅      |
+| 4      | Full-Stack Integration | ✅      |
+| 5–7    | Docker & Compose       | ✅      |
+| 8      | UTS Demo               | ⬜      |
+| 9–11   | CI/CD Pipeline         | ⬜      |
+| 12–14  | Microservices          | ⬜      |
+| 15–16  | Final & UAS            | ⬜      |
+
+
+## 9. Testing & QA Report
+Dokumen ini mencatat protokol pengujian, skenario, dan hasil verifikasi sistem untuk memastikan setiap modul aplikasi Kelarin berjalan sesuai spesifikasi teknis dan kebutuhan fungsional.
+
+### 9.1 Log Pengujian UI
+Hasil pengujian menyeluruh (10 Test Case) untuk fitur Autentikasi dan CRUD dapat dilihat pada dokumen: 
+**[👉 Lihat Laporan Lengkap Testing UI](/docs/ui-test-results.md)**
+
+---
+
+### **9.1 API Reference (Detail Endpoint)**
+
+Berikut adalah daftar lengkap endpoint yang tersedia pada aplikasi Kelarin.
+
+| Method | Endpoint | Auth | Request Body (Contoh) | Response Example (Contoh) |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/health` | No | - | `{"status": "healthy"}` |
+| **GET** | `/team` | No | - | `{"team": "Ethereal"}` |
+| **POST** | `/auth/register` | No | `{"email": "...", "password": "..."}` | `{"message": "User created"}` |
+| **POST** | `/auth/login` | No | `{"email": "...", "password": "..."}` | `{"access_token": "eyJ..."}` |
+| **GET** | `/auth/me` | Yes | - | `{"email": "user@itk.ac.id"}` |
+| **GET** | `/tasks` | Yes | - | `[{"id": 1, "title": "Tugas KBT"}]` |
+| **POST** | `/tasks` | Yes | `{"title": "...", "desc": "...", "due": "..."}` | `{"id": 2, "status": "created"}` |
+| **GET** | `/tasks/{id}` | Yes | - | `{"id": 1, "title": "Tugas KBT"}` |
+| **PUT** | `/tasks/{id}` | Yes | `{"title": "...", "status": "..."}` | `{"message": "updated"}` |
+| **DELETE** | `/tasks/{id}` | Yes | - | `{"message": "deleted"}` |
+
+> **Catatan Tambahan:**
+> - **200 OK**: Request berhasil diproses.
+> - **201 Created**: Resource baru berhasil dibuat.
+> - **404 Not Found**: Resource tidak ditemukan (misal: ID tidak ada).
+> - **422 Unprocessable Entity**: Validasi data gagal (input salah).
+
+---
+
+## **9.2 Testing Status (Hasil Pengujian)**
+Berikut adalah status hasil pengujian API:
+
+| Endpoint | Test Case | Status | Catatan |
+| :--- | :--- | :--- | :--- |
+| `/auth/register` | Input user baru | ✅ Pass | Berhasil (201) |
+| `/auth/login` | Login user valid | ✅ Pass | Berhasil (200) |
+| `/tasks` | Ambil data tanpa token | ✅ Pass | Berhasil (401 Unauthorized) |
+| `/tasks` | Ambil data dengan token | ✅ Pass | Berhasil (200) |
+
+*Untuk dokumentasi interaktif lengkap, jalankan server dan akses http://localhost:8000/docs*
+
+---
+## **10. Docker & Containerization**
+
+### Docker Build & Run Instructions
+
+### **Cara Menjalankan Aplikasi**
+
+Ikuti langkah-langkah berikut:
+
+1. Pastikan Docker sudah terinstall dan sedang berjalan
+2. Buka terminal di folder project ini
+3. Untuk menjalankan seluruh service (frontend, backend, dan database), gunakan perintah berikut:
+
+```bash
+docker compose up --build
+```
+
+4. Tunggu hingga semua service berhasil berjalan
+5. Buka browser dan akses:
+- Frontend → http://localhost:5173
+- Backend → http://localhost:8000
+
+Jika halaman berhasil terbuka, berarti aplikasi sudah berjalan dengan baik ✅
+
+### Cara Menghentikan Aplikasi
+
+Untuk menghentikan semua container, jalankan:
+
+``` bash
+docker compose down
+```
+
+### Cara Mengecek Status
+
+Untuk memastikan semua service berjalan:
+
+```bash
+docker compose ps
+```
+
+Jika statusnya Up, berarti container berjalan dengan normal.
+
+### Cara Melihat Log
+
+Jika terjadi error atau ingin melihat aktivitas aplikasi:
+
+```bash
+docker compose logs
+```
+
+Untuk melihat log secara real-time:
+
+```bash
+docker compose logs -f
+```
+
+### Perintah Penting Docker Compose
+
+Berikut beberapa perintah Docker Compose yang sering digunakan:
+
+| Perintah | Deskripsi |
+|----------|----------|
+| docker compose up | Menjalankan semua service (build jika diperlukan) |
+| docker compose up -d | Menjalankan semua service di background (detached mode) |
+| docker compose down | Menghentikan dan menghapus container serta network |
+| docker compose down -v | Menghentikan dan menghapus container beserta volume (⚠️ data akan hilang) |
+| docker compose restart | Me-restart semua service |
+| docker compose stop | Menghentikan container tanpa menghapus |
+| docker compose ps | Menampilkan status semua container |
+| docker compose logs | Menampilkan log dari semua service |
+| docker compose logs -f | Menampilkan log secara real-time |
+| docker compose exec backend bash | Masuk ke dalam container backend |
+| docker compose build | Build semua image |
+| docker compose pull | Mengambil image dari registry |
+
+---
+
+## **9. Deployment**
+
+* **Railway** → Backend & PostgreSQL
+* **Netlify** → Frontend
+
+---
+
+### **Diagram Deployment (Docker & Railway)**
 
 Diagram berikut menggambarkan bagaimana aplikasi Kelarin dideploy menggunakan Docker dan dihosting pada platform Railway, serta bagaimana interaksi antar komponen sistem terjadi.
 
@@ -253,7 +351,7 @@ Diagram berikut menggambarkan bagaimana aplikasi Kelarin dideploy menggunakan Do
 
 ---
 
-## **Penjelasan Deployment**
+### **Penjelasan Deployment**
 
 * **Frontend (Netlify)**
   Aplikasi frontend dibangun menggunakan React dan di-deploy sebagai static site di Netlify. User mengakses aplikasi melalui browser menggunakan protokol HTTPS.
@@ -276,7 +374,7 @@ Diagram berikut menggambarkan bagaimana aplikasi Kelarin dideploy menggunakan Do
 
 ---
 
-## **Alur Deployment**
+### **Alur Deployment**
 
 1. User mengakses aplikasi melalui browser (Frontend di Netlify)
 2. Frontend mengirim request ke backend melalui API
