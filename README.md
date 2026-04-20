@@ -237,17 +237,22 @@ Berikut adalah status hasil pengujian API:
 
 ---
 ## **10. Docker & Containerization**
+**Docker Compose** adalah alat yang digunakan untuk mendefinisikan dan menjalankan aplikasi *multi-container* dengan satu file konfigurasi (`docker-compose.yml`). 
+
+**Tujuan penggunaan Docker Compose dalam proyek ini:**
+1. **Konsistensi Lingkungan:** Menyamakan konfigurasi *environment* pengembangan, *testing*, dan produksi agar terhindar dari masalah *"it works on my machine"*.
+2. **Orkestrasi Otomatis:** Menjalankan layanan frontend, backend, dan database secara simultan dengan satu perintah.
+3. **Isolasi Layanan:** Memastikan setiap komponen aplikasi berjalan di dalam *container* yang terisolasi namun tetap saling terhubung dalam satu *network* yang aman.
 
 ### Docker Build & Run Instructions
 
-### **Cara Menjalankan Aplikasi**
+### Cara Menjalankan Aplikasi
 
 Ikuti langkah-langkah berikut:
 
 1. Pastikan Docker sudah terinstall dan sedang berjalan
 2. Buka terminal di folder project ini
 3. Untuk menjalankan seluruh service (frontend, backend, dan database), gunakan perintah berikut:
-
 ```bash
 docker compose up --build
 ```
@@ -384,3 +389,20 @@ Diagram berikut menggambarkan bagaimana aplikasi Kelarin dideploy menggunakan Do
 6. Database mengembalikan data ke backend
 7. Backend mengirim response ke frontend
 8. Frontend menampilkan hasil ke user
+
+---
+
+## UTS Demo Preparation Checklist
+Pastikan hal-hal berikut sudah siap sebelum memulai demonstrasi aplikasi:
+### 📋 UTS Readiness Checklist (Final Check)
+Pastikan semua poin berikut terpenuhi sebelum jadwal demo ujian:
+
+- [x] **Docker Execution:** `docker compose up -d` berjalan tanpa error.
+- [x] **Frontend Accessibility:** Aplikasi dapat diakses di `localhost:5173`.
+- [x] **Backend Accessibility:** API dapat diakses dan merespons di `localhost:8000`.
+- [x] **Authentication:** Fitur Register & Login berfungsi dengan validasi yang benar.
+- [x] **Task Management (CRUD):** Fitur Create, Read, Update, Delete, pada task berfungsi.
+- [x] **Data Persistence:** Data tetap ada setelah `docker compose down` dan `up` kembali (cek volume).
+- [x] **Documentation:** `README.md` sudah mencakup instruksi Docker yang lengkap.
+- [x] **Team Readiness:** Setiap anggota memahami alur teknis (Viva Preparation).
+- [x] **Contribution:** Semua anggota tim memiliki *commit history* yang signifikan.
