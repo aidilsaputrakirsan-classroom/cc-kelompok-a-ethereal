@@ -16,7 +16,7 @@ Dengan arsitektur yang *scalable* dan penyimpanan terpusat, Kelarin memungkinkan
 * Transparansi kerja tim
 * Akses data dari mana saja
 
-Tujuan utama:
+**Tujuan utama:**
 
 * Mengatasi dokumentasi tugas yang terfragmentasi
 * Menghilangkan pembagian peran yang tidak jelas
@@ -189,6 +189,8 @@ cc-kelompok-ethereal_a/
 | 15–16  | Final & UAS            | ⬜      |
 
 
+---
+
 ## 9. Testing & QA Report
 Dokumen ini mencatat protokol pengujian, skenario, dan hasil verifikasi sistem untuk memastikan setiap modul aplikasi Kelarin berjalan sesuai spesifikasi teknis dan kebutuhan fungsional.
 
@@ -198,7 +200,7 @@ Hasil pengujian menyeluruh (10 Test Case) untuk fitur Autentikasi dan CRUD dapat
 
 ---
 
-### **9.1 API Reference (Detail Endpoint)**
+### **9.2 API Reference (Detail Endpoint)**
 
 Berikut adalah daftar lengkap endpoint yang tersedia pada aplikasi Kelarin.
 
@@ -223,7 +225,7 @@ Berikut adalah daftar lengkap endpoint yang tersedia pada aplikasi Kelarin.
 
 ---
 
-## **9.2 Testing Status (Hasil Pengujian)**
+## **9.3 Testing Status (Hasil Pengujian)**
 Berikut adalah status hasil pengujian API:
 
 | Endpoint | Test Case | Status | Catatan |
@@ -244,7 +246,7 @@ Berikut adalah status hasil pengujian API:
 2. **Orkestrasi Otomatis:** Menjalankan layanan frontend, backend, dan database secara simultan dengan satu perintah.
 3. **Isolasi Layanan:** Memastikan setiap komponen aplikasi berjalan di dalam *container* yang terisolasi namun tetap saling terhubung dalam satu *network* yang aman.
 
-### Docker Build & Run Instructions
+## Docker Build & Run Instructions
 
 ### Cara Menjalankan Aplikasi
 
@@ -264,6 +266,8 @@ docker compose up --build
 
 Jika halaman berhasil terbuka, berarti aplikasi sudah berjalan dengan baik ✅
 
+---
+
 ### Cara Menghentikan Aplikasi
 
 Untuk menghentikan semua container, jalankan:
@@ -271,6 +275,8 @@ Untuk menghentikan semua container, jalankan:
 ``` bash
 docker compose down
 ```
+
+---
 
 ### Cara Mengecek Status
 
@@ -281,6 +287,8 @@ docker compose ps
 ```
 
 Jika statusnya Up, berarti container berjalan dengan normal.
+
+---
 
 ### Cara Melihat Log
 
@@ -295,6 +303,8 @@ Untuk melihat log secara real-time:
 ```bash
 docker compose logs -f
 ```
+
+---
 
 ### Perintah Penting Docker Compose
 
@@ -317,14 +327,14 @@ Berikut beberapa perintah Docker Compose yang sering digunakan:
 
 ---
 
-## **9. Deployment**
+## **11. Deployment**
 
 * **Railway** → Backend & PostgreSQL
 * **Netlify** → Frontend
 
 ---
 
-### **Diagram Deployment (Docker & Railway)**
+### **11.1 Diagram Deployment (Docker & Railway)**
 
 Diagram berikut menggambarkan bagaimana aplikasi Kelarin dideploy menggunakan Docker dan dihosting pada platform Railway, serta bagaimana interaksi antar komponen sistem terjadi.
 
@@ -379,7 +389,7 @@ Diagram berikut menggambarkan bagaimana aplikasi Kelarin dideploy menggunakan Do
 
 ---
 
-### **Alur Deployment**
+### **11.2 Alur Deployment**
 
 1. User mengakses aplikasi melalui browser (Frontend di Netlify)
 2. Frontend mengirim request ke backend melalui API
@@ -394,8 +404,6 @@ Diagram berikut menggambarkan bagaimana aplikasi Kelarin dideploy menggunakan Do
 
 ## UTS Demo Preparation Checklist
 Pastikan hal-hal berikut sudah siap sebelum memulai demonstrasi aplikasi:
-### 📋 UTS Readiness Checklist (Final Check)
-Pastikan semua poin berikut terpenuhi sebelum jadwal demo ujian:
 
 - [x] **Docker Execution:** `docker compose up -d` berjalan tanpa error.
 - [x] **Frontend Accessibility:** Aplikasi dapat diakses di `localhost:5173`.
