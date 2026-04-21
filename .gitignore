@@ -24,7 +24,8 @@ pip-delete-this-directory.txt
 **/.env.*
 
 # Node (Jika ada frontend/tooling node)
-node_modules/
+node_modules/\
+.vite/
 dist/
 dist-ssr/
 *.local

@@ -6,6 +6,7 @@ const TaskList = ({ token, showToast }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  //State untuk form tambah task baru
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -13,18 +14,20 @@ const TaskList = ({ token, showToast }) => {
     assigned_to: 1
   });
 
-  // 🔥 EDIT STATE
+  // 🔥 EDIT STATE (Menyimpan task yang sedang diedit)
   const [editingTask, setEditingTask] = useState(null);
 
+  //State untuk form edit task
   const [editForm, setEditForm] = useState({
     title: "",
     description: "",
     deadline: "",
   });
 
-  console.log("TOKEN:", token);
+  console.log("TOKEN:", token); //Debugging untuk cek token
 
   // ================= FETCH =================
+  // Fungsi untuk mengambil semua task dari backend (GET)
   const fetchTasks = async () => {
     try {
       const res = await fetch("http://localhost:8000/tasks", {
@@ -47,6 +50,7 @@ const TaskList = ({ token, showToast }) => {
   }, []);
 
   // ================= CREATE =================
+  // Fungsi untuk membuat task baru (POST)
   const handleCreate = async () => {
   try {
     let formattedDeadline = newTask.deadline;
@@ -103,6 +107,7 @@ const TaskList = ({ token, showToast }) => {
   };
 
   // ================= UPDATE =================
+  // Fungsi untuk update task (PUT)
   const handleUpdate = async () => {
     try {
       let formattedDeadline = editForm.deadline;
@@ -140,6 +145,7 @@ const TaskList = ({ token, showToast }) => {
   };
 
   // ================= DELETE =================
+  // Fungsi hapus task (DELETE)
   const handleDelete = async (id) => {
     try {
       await fetch(`http://localhost:8000/tasks/${id}`, {
