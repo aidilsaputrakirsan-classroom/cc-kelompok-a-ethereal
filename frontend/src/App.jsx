@@ -1,11 +1,23 @@
-import { useState } from "react";
-import LoginPage from "./pages/LoginPage"; 
+import { Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
+
+import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
+import CreateTask from "./pages/CreateTask";
+import EditTask from "./pages/EditTask";
 import Toast from "./components/ui/Toast";
 
 function App() {
   const [token, setToken] = useState(null);
   const [notification, setNotification] = useState(null);
+
+  // 🔥 SYNC TOKEN DARI LOCAL STORAGE
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+    }
+  }, []);
 
   const showToast = (message, type = "success") => {
     setNotification({ message, type });
@@ -14,28 +26,49 @@ function App() {
   const handleLogout = () => {
     setToken(null);
     localStorage.removeItem("token");
-    showToast("Logged out successfully", "info");
+    showToast("Logout berhasil", "info");
   };
+
+  if (!token) {
+    return <LoginPage setToken={setToken} showToast={showToast} />;
+  }
 
   return (
     <>
       {notification && (
-        <Toast 
-          message={notification.message} 
-          type={notification.type} 
-          onClose={() => setNotification(null)} 
+        <Toast
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
         />
       )}
 
-      {!token ? (
-        <LoginPage setToken={setToken} showToast={showToast} />
-      ) : (
-        <HomePage 
-  token={token} 
-  onLogout={handleLogout} 
-  showToast={showToast}
-/>
-      )}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomePage
+              token={token}
+              onLogout={handleLogout}
+              showToast={showToast}
+            />
+          }
+        />
+
+        <Route
+          path="/create"
+          element={
+            <CreateTask token={token} showToast={showToast} />
+          }
+        />
+
+        <Route
+          path="/edit/:id"
+          element={
+            <EditTask token={token} showToast={showToast} />
+          }
+        />
+      </Routes>
     </>
   );
 }
