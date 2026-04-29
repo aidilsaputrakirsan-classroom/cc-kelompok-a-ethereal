@@ -1,0 +1,24 @@
+# =============================================
+# CODEOWNERS — Ethereal
+# =============================================
+# Setiap baris: pola file → username GitHub reviewer
+# Reviewer otomatis ditambahkan saat PR mengubah file terkait
+
+# Backend — Lead Backend
+/backend/                @Devid1013
+
+# Frontend — Lead Frontend
+/frontend/               @Tiyamitraayu
+
+# Docker & Infrastructure — Lead DevOps
+docker-compose.yml       @dwialsha
+/backend/Dockerfile      @dwialsha
+/frontend/Dockerfile     @dwialsha
+Makefile                 @dwialsha
+
+# Documentation — Lead QA & Docs
+README.md                @gitandys
+/docs/                   @gitandys
+
+# CI/CD (jika 5 orang) — Lead CI/CD
+/.github/workflows/   @secretceremony
