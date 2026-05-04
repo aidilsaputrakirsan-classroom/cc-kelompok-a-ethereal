@@ -1,22 +1,9 @@
-import os  
-# buat ambil data dari .env
-
-from dotenv import load_dotenv  
-# biar file .env bisa dipakai
-
-from fastapi import FastAPI, Depends, HTTPException  
-# FastAPI = bikin API
-# Depends = ambil data otomatis (db, user)
-# HTTPException = error response
-
-from fastapi.middleware.cors import CORSMiddleware  
-# supaya frontend bisa akses backend
-
-from sqlalchemy.orm import Session  
-# buat koneksi database
-
-from fastapi.security import OAuth2PasswordRequestForm  
-# 🔥 penting buat login (Swagger pakai username & password form)
+import os
+from dotenv import load_dotenv
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm  # 🔥 penting
 
 from database import engine, get_db  
 # engine = koneksi database
@@ -53,16 +40,15 @@ app = FastAPI(
 )
 # bikin aplikasi FastAPI
 
-# ================= CORS =================
+# ================= CORS (FIX ERROR FETCH) =================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # semua boleh akses (sementara)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# supaya frontend bisa request ke backend
 
 # ================= HEALTH =================
 
@@ -84,7 +70,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-# 🔥 LOGIN (pakai form, bukan JSON)
+# 🔥 LOGIN FIX (OAuth2 compatible Swagger)
 @app.post("/auth/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),  
@@ -94,7 +80,7 @@ def login(
 ):
     user = crud.authenticate_user(
         db,
-        form_data.username,  # email dikirim sebagai "username"
+        form_data.username,  # Swagger kirim "username"
         form_data.password
     )
 
@@ -118,16 +104,44 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 # ================= TASK =================
 
+# 🔥 CREATE TASK + FILE UPLOAD
 @app.post("/tasks", response_model=TaskResponse)
-def create_task(
-    task: TaskCreate,
+async def create_task(
+    title: str = Form(...),
+    description: str = Form(...),
+    deadline: str = Form(...),
+    file: UploadFile = File(None),
+
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),  
     # harus login dulu
 ):
-    return crud.create_task(db=db, task=task, user_id=current_user.id)
+    file_path = None
+
+    # 👉 kalau ada file
+    if file:
+        file_location = f"{UPLOAD_DIR}/{file.filename}"
+        with open(file_location, "wb") as f:
+            f.write(await file.read())
+        file_path = file_location
+
+    task_data = {
+        "title": title,
+        "description": description,
+        "deadline": deadline,
+        "file_path": file_path
+    }
+
+    task_obj = TaskCreate(
+    title=title,
+    description=description,
+    deadline=deadline
+)
+
+return crud.create_task(db=db, task=task_obj, user_id=current_user.id)
 
 
+# 🔥 GET TASKS
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
     db: Session = Depends(get_db),
@@ -137,6 +151,7 @@ def get_tasks(
     return crud.get_tasks_by_user(db=db, user_id=current_user.id)
 
 
+# 🔥 GET DETAIL
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,
@@ -151,21 +166,26 @@ def get_task(
     return task
 
 
+# 🔥 UPDATE TASK + FILE
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
-def update_task(
+async def update_task(
     task_id: int,
-    task: TaskUpdate,
+    title: str = Form(...),
+    description: str = Form(...),
+    deadline: str = Form(...),
+    file: UploadFile = File(None),
+
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     updated = crud.update_task(db, task_id, task)
-
     if not updated:
         raise HTTPException(status_code=404, detail="Task tidak ditemukan")
 
     return updated
 
 
+# 🔥 DELETE TASK
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(
     task_id: int,

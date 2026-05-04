@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage";
 import CreateTask from "./pages/CreateTask";
 import EditTask from "./pages/EditTask";
 import Toast from "./components/ui/Toast";
+import AboutPage from "./pages/AboutPage";
 
 function App() {
   const [token, setToken] = useState(null);
@@ -67,6 +68,11 @@ function App() {
           element={
             <EditTask token={token} showToast={showToast} />
           }
+        />
+
+        <Route
+          path="/about"
+          element={<AboutPage />}
         />
       </Routes>
     </>

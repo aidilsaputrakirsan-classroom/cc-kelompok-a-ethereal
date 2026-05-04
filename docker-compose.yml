@@ -8,6 +8,7 @@ services:
     image: postgres:16-alpine
     container_name: db-kelarin
     restart: unless-stopped
+    profiles: ["dev", "prod"]  # Muncul di kedua profil
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -30,9 +31,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: dwialsha/kelarin:backend-v2  # Tag image kamu
+    image: dwialsha/kelarin:backend-v2
     container_name: backend
     restart: unless-stopped
+    profiles: ["dev", "prod"]  # Muncul di kedua profil
     env_file:
       - ./backend/.env.docker
     ports:
@@ -56,9 +58,10 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: http://localhost:8000
-    image: dwialsha/kelarin:frontend-v1  # Tag image kamu
+    image: dwialsha/kelarin:frontend-v1
     container_name: frontend
     restart: unless-stopped
+    profiles: ["dev"]  # Frontend biasanya hanya jalan di profil dev untuk tim
     ports:
       - "5173:80"
     networks:
