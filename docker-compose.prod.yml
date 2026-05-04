@@ -1,0 +1,25 @@
+# ============================================================
+# Production Overrides — Kelarin App (Team Ethereal)
+# ============================================================
+
+services:
+  # ==================== DATABASE (PROD) ====================
+  db:
+    # Menghapus eksposur port 5433 ke host laptop/publik
+    # untuk keamanan maksimal di server production.
+    ports: !reset [] 
+    restart: always
+
+  # ==================== BACKEND (PROD) ====================
+  backend:
+    environment:
+      - DEBUG=false
+      - CORS_ORIGINS=https://kelarin-app.com # Masih sementara --> Perlu mengganti sesuai domain nanti
+    restart: always
+    # Menghilangkan mounting volume kodingan jika ada (opsional)
+
+  # ==================== FRONTEND (PROD) ====================
+  frontend:
+    # Di production, frontend biasanya dilayani oleh Nginx yang stabil
+    restart: always
+    # Memastikan frontend hanya menggunakan profil prod saat di-deploy
