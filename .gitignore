@@ -1,37 +1,44 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-
-# Python (Sangat Penting!)
+# =========================
+# Python
+# =========================
 __pycache__/
 **/__pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
 
-# Environment (Sudah Bagus)
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# =========================
+# Environment Variables
+# =========================
 .env
 .env.*
 **/.env
 **/.env.*
 
-# Node (Jika ada frontend/tooling node)
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Node (Frontend)
+# =========================
 node_modules/
 dist/
 dist-ssr/
 *.local
 
-# Editor & System
+# =========================
+# Editor & OS
+# =========================
 .vscode/
-!.vscode/extensions.json
 .idea/
 .DS_Store
 Thumbs.db
