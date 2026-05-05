@@ -1,92 +1,50 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, Enum, ForeignKey  
-# Column = kolom di tabel
-# Integer, String, dll = tipe data
-# ForeignKey = relasi antar tabel
-
-from sqlalchemy.sql import func  
-# buat waktu otomatis (created_at)
-
-from sqlalchemy.orm import relationship  
-# buat hubungan antar tabel
-
-from database import Base  
-# Base = dasar semua tabel
-
-import enum  
-# buat enum (pilihan tetap)
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, Enum, ForeignKey
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+from database import Base
+import enum
 
 # ================= USER =================
 
 class User(Base):
-    __tablename__ = "users"  
-    # nama tabel di database
+    __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)  
-    # id user (unik)
-
-    email = Column(String(255), unique=True, nullable=False, index=True)  
-    # email (harus unik & tidak boleh kosong)
-
-    name = Column(String(100), nullable=False)  
-    # nama user
-
-    hashed_password = Column(String(255), nullable=False)  
-    # password yang sudah di-hash (bukan asli)
-
-    is_active = Column(Boolean, default=True)  
-    # status user (aktif / tidak)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())  
-    # waktu user dibuat otomatis
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # ================= TASK =================
 
 class TaskStatus(str, enum.Enum):
-    todo = "todo"  
-    # belum dikerjakan
-
-    in_progress = "in_progress"  
-    # sedang dikerjakan
-
-    done = "done"  
-    # sudah selesai
+    todo = "todo"
+    in_progress = "in_progress"
+    done = "done"
 
 
 class Task(Base):
-    __tablename__ = "tasks"  
-    # nama tabel task
+    __tablename__ = "tasks"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)  
-    # id task
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    title = Column(String(200), nullable=False, index=True)
+    description = Column(Text, nullable=True)
 
-    title = Column(String(200), nullable=False, index=True)  
-    # judul task
+    status = Column(Enum(TaskStatus), default=TaskStatus.todo, nullable=False)
 
-    description = Column(Text, nullable=True)  
-    # deskripsi (boleh kosong)
+    deadline = Column(DateTime(timezone=True), nullable=True)
 
-    status = Column(Enum(TaskStatus), default=TaskStatus.todo, nullable=False)  
-    # status task (todo / progress / done)
+    # 🔥 TAMBAHAN FITUR KAMU
+    category = Column(String(100), nullable=True)
 
-    deadline = Column(DateTime(timezone=True), nullable=True)  
-    # deadline (boleh kosong)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
 
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)  
-    # siapa yang buat task (relasi ke user)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)  
-    # task ditugaskan ke siapa (boleh kosong)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())  
-    # waktu dibuat otomatis
-
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())  
-    # waktu update otomatis
-
-    # relasi ke tabel user
-    creator = relationship("User", foreign_keys=[created_by])  
-    # user yang membuat task
-
-    assignee = relationship("User", foreign_keys=[assigned_to])  
-    # user yang ditugaskan
+    # relationships
+    creator = relationship("User", foreign_keys=[created_by])
+    assignee = relationship("User", foreign_keys=[assigned_to])

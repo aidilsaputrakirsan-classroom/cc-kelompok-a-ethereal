@@ -107,12 +107,14 @@ def create_task(
 
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
+    category: str = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if category:
+        return crud.get_tasks_by_category(db, current_user.id, category)
+
     return crud.get_tasks_by_user(db=db, user_id=current_user.id)
-
-
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,
