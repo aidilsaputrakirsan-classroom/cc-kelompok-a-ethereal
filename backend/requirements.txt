@@ -1,30 +1,10 @@
 fastapi==0.115.0
-# FastAPI = framework utama buat bikin backend API
-
 uvicorn==0.30.0
-# server buat jalanin FastAPI (run pakai uvicorn main:app)
-
 sqlalchemy==2.0.35
-# ORM → buat komunikasi ke database tanpa SQL manual
-
 psycopg2-binary==2.9.11
-# driver buat connect Python ke PostgreSQL
-
 python-dotenv==1.0.1
-# buat baca file .env (DATABASE_URL, SECRET_KEY, dll)
-
 pydantic[email]==2.9.0
-# buat validasi data (schema)
-# [email] = tambahan validasi email
-
 python-jose[cryptography]==3.3.0
-# buat JWT token (login & autentikasi)
-
 passlib[bcrypt]==1.7.4
-# buat hash password (pakai bcrypt)
-
 bcrypt==4.0.1
-# algoritma enkripsi password
-
 python-multipart
-# buat handle form data (dipakai di login OAuth2)

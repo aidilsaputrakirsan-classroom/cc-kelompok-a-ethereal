@@ -1,81 +1,52 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator  
-# BaseModel = dasar schema
-# Field = validasi tambahan (min, max, dll)
-# EmailStr = otomatis cek format email
-# field_validator = buat validasi custom
+from pydantic import BaseModel, Field, EmailStr, field_validator
+from typing import Optional, List
+from datetime import datetime
+from enum import Enum as PyEnum
+import re
 
-from typing import Optional, List  
-# Optional = boleh kosong
-# List = list data
-
-from datetime import datetime  
-# buat tipe tanggal
-
-from enum import Enum as PyEnum  
-# buat pilihan tetap (enum)
-
-import re  
-# buat cek pola (dipakai untuk password)
 
 # ============================================================
 # AUTH SCHEMAS
 # ============================================================
 
 class UserCreate(BaseModel):
-    email: EmailStr  
-    # email harus format valid
-
-    name: str = Field(..., min_length=2, max_length=100)  
-    # nama wajib diisi, min 2 karakter
-
-    password: str = Field(..., min_length=8)  
-    # password minimal 8 karakter
+    email: EmailStr
+    name: str = Field(..., min_length=2, max_length=100)
+    password: str = Field(..., min_length=8)
 
     @field_validator("password")
     def validate_password(cls, value):
-        # cek panjang password
         if len(value) < 8:
             raise ValueError("Password minimal 8 karakter")
-
-        # harus ada huruf besar
         if not re.search(r"[A-Z]", value):
             raise ValueError("Password harus mengandung huruf besar")
-
-        # harus ada huruf kecil
         if not re.search(r"[a-z]", value):
             raise ValueError("Password harus mengandung huruf kecil")
-
-        # harus ada angka
         if not re.search(r"[0-9]", value):
             raise ValueError("Password harus mengandung angka")
-
-        return value  
-        # kalau lolos semua → password valid
+        return value
 
 
 class UserResponse(BaseModel):
-    id: int  
-    email: EmailStr  
-    name: str  
-    is_active: bool  
-    created_at: datetime  
+    id: int
+    email: EmailStr
+    name: str
+    is_active: bool
+    created_at: datetime
 
     class Config:
-        from_attributes = True  
-        # supaya bisa ambil data langsung dari database model
+        from_attributes = True
 
 
 class LoginRequest(BaseModel):
-    email: str  
-    password: str  
-    # data login
+    email: str
+    password: str
 
 
 class TokenResponse(BaseModel):
-    access_token: str  
-    token_type: str = "bearer"  
-    user: Optional[UserResponse] = None  
-    # response setelah login
+    access_token: str
+    token_type: str = "bearer"
+    user: Optional[UserResponse] = None
 
 
 # ============================================================
@@ -83,51 +54,36 @@ class TokenResponse(BaseModel):
 # ============================================================
 
 class TaskStatus(str, PyEnum):
-    todo = "todo"  
-    # belum dikerjakan
-
-    in_progress = "in_progress"  
-    # sedang dikerjakan
-
-    done = "done"  
-    # sudah selesai
+    todo = "todo"
+    in_progress = "in_progress"
+    done = "done"
 
 
 class TaskBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=200)  
-    # judul task wajib
-
-    description: Optional[str] = None  
-    # deskripsi boleh kosong
-
-    deadline: Optional[datetime] = None  
-    # deadline boleh kosong
-
-    assigned_to: Optional[int] = None  
-    # task ditugaskan ke siapa
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    deadline: Optional[datetime] = None
+    assigned_to: Optional[int] = None
 
 
 class TaskCreate(TaskBase):
-    pass  
-    # buat task baru (pakai semua field dari TaskBase)
+    pass
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=200)  
-    description: Optional[str] = None  
-    status: Optional[TaskStatus] = None  
-    deadline: Optional[datetime] = None  
-    assigned_to: Optional[int] = None  
-    # update task (semua optional)
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = None
+    status: Optional[TaskStatus] = None
+    deadline: Optional[datetime] = None
+    assigned_to: Optional[int] = None
 
 
 class TaskResponse(TaskBase):
-    id: int  
-    status: TaskStatus  
-    created_by: int  
-    created_at: datetime  
-    updated_at: Optional[datetime] = None  
+    id: int
+    status: TaskStatus
+    created_by: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
-        from_attributes = True  
-        # supaya bisa langsung dari database
+        from_attributes = True
