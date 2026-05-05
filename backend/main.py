@@ -4,6 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Body
 
 from database import engine, get_db
 from models import Base, User
@@ -121,7 +122,7 @@ async def create_task(
     deadline=deadline
 )
 
-return crud.create_task(db=db, task=task_obj, user_id=current_user.id)
+    return crud.create_task(db=db, task=task_obj, user_id=current_user.id)
 
 
 # 🔥 GET TASKS
@@ -148,34 +149,19 @@ def get_task(
 
 # 🔥 UPDATE TASK + FILE
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
-async def update_task(
+def update_task(
     task_id: int,
-    title: str = Form(...),
-    description: str = Form(...),
-    deadline: str = Form(...),
-    file: UploadFile = File(None),
-
+    task: TaskUpdate = Body(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    file_path = None
+    updated = crud.update_task(db, task_id, task)
 
-    if file:
-        file_location = f"{UPLOAD_DIR}/{file.filename}"
-        with open(file_location, "wb") as f:
-            f.write(await file.read())
-        file_path = file_location
-
-    task_data = {
-        "title": title,
-        "description": description,
-        "deadline": deadline,
-        "file_path": file_path
-    }
-
-    updated = crud.update_task(db, task_id, task_data)
     if not updated:
-        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
+        raise HTTPException(
+            status_code=404,
+            detail="Task tidak ditemukan"
+        )
 
     return updated
 

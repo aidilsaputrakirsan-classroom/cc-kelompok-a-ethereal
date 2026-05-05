@@ -1,4 +1,6 @@
 const TaskItem = ({ task, onDelete, onEdit }) => {
+  // kalau task undefined/null → jangan render
+  if (!task) return null;
 
   const handleDeleteClick = () => {
     const confirmDelete = window.confirm("Yakin mau hapus task ini?");
@@ -8,13 +10,38 @@ const TaskItem = ({ task, onDelete, onEdit }) => {
   };
 
   return (
-    <div className="p-4 border rounded-lg flex justify-between items-center mb-3 bg-white shadow-sm">
-
+    <div
+      className="
+        p-4
+        border
+        border-gray-200
+        dark:border-gray-700
+        rounded-lg
+        flex
+        justify-between
+        items-center
+        mb-3
+        bg-white
+        dark:bg-gray-800
+        shadow-sm
+        transition-colors
+        duration-300
+      "
+    >
       <div>
-        <h3 className="font-semibold text-gray-800">{task.title}</h3>
-        <p className="text-sm text-gray-500">{task.description}</p>
+        <h3 className="font-semibold text-gray-800 dark:text-white">
+          {task.title || "-"}
+        </h3>
+
+        <p className="text-sm text-gray-500 dark:text-gray-300">
+          {task.description || "Tidak ada deskripsi"}
+        </p>
+
         <p className="text-xs text-gray-400">
-          📅 {new Date(task.deadline).toLocaleString()}
+          📅{" "}
+          {task.deadline
+            ? new Date(task.deadline).toLocaleString()
+            : "Tidak ada deadline"}
         </p>
       </div>
 
