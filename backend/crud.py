@@ -73,6 +73,11 @@ def get_tasks_by_user(db: Session, user_id: int):
         (Task.created_by == user_id) | (Task.assigned_to == user_id)
     ).all()
 
+def get_tasks_by_category(db: Session, user_id: int, category: str):
+    return db.query(Task).filter(
+        ((Task.created_by == user_id) | (Task.assigned_to == user_id)) &
+        (Task.category == category)
+    ).all()
 
 def create_task(db: Session, task: TaskCreate, user_id: int):
     # buat task baru dari data yang dikirim

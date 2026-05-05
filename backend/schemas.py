@@ -83,51 +83,43 @@ class TokenResponse(BaseModel):
 # ============================================================
 
 class TaskStatus(str, PyEnum):
-    todo = "todo"  
-    # belum dikerjakan
-
-    in_progress = "in_progress"  
-    # sedang dikerjakan
-
-    done = "done"  
-    # sudah selesai
+    todo = "todo"
+    in_progress = "in_progress"
+    done = "done"
 
 
 class TaskBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=200)  
-    # judul task wajib
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    deadline: Optional[datetime] = None
+    assigned_to: Optional[int] = None
 
-    description: Optional[str] = None  
-    # deskripsi boleh kosong
-
-    deadline: Optional[datetime] = None  
-    # deadline boleh kosong
-
-    assigned_to: Optional[int] = None  
-    # task ditugaskan ke siapa
+    # 🔥 TAMBAHAN
+    category: Optional[str] = None
 
 
 class TaskCreate(TaskBase):
-    pass  
-    # buat task baru (pakai semua field dari TaskBase)
+    pass
+    # sudah otomatis punya category dari TaskBase
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=200)  
-    description: Optional[str] = None  
-    status: Optional[TaskStatus] = None  
-    deadline: Optional[datetime] = None  
-    assigned_to: Optional[int] = None  
-    # update task (semua optional)
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = None
+    status: Optional[TaskStatus] = None
+    deadline: Optional[datetime] = None
+    assigned_to: Optional[int] = None
+
+    # 🔥 TAMBAHAN
+    category: Optional[str] = None
 
 
 class TaskResponse(TaskBase):
-    id: int  
-    status: TaskStatus  
-    created_by: int  
-    created_at: datetime  
-    updated_at: Optional[datetime] = None  
+    id: int
+    status: TaskStatus
+    created_by: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
-        from_attributes = True  
-        # supaya bisa langsung dari database
+        from_attributes = True
