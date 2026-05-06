@@ -13,101 +13,113 @@ const CreateTask = ({ token, showToast }) => {
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async () => {
-  setLoading(true);
+    setLoading(true);
 
-  console.log("TOKEN CREATE:", token); // 🔥 DEBUG
+    try {
+      console.log("TOKEN CREATE:", token);
 
-  if (!token) {
-    showToast("Token tidak ada, login ulang ya", "error");
-    navigate("/");
-    return;
-  }
+      let formattedDeadline = "";
 
-  try {
-    let deadline = form.deadline;
-    if (deadline.length === 16) {
-      deadline += ":00";
-    }
+      if (form.deadline) {
+        formattedDeadline = new Date(form.deadline).toISOString();
+      }
 
-    const res = await fetch("http://localhost:8000/tasks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+      // 🔥 pakai FormData
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("deadline", formattedDeadline);
+
+      console.log("FORM DATA:", {
         title: form.title,
         description: form.description,
-        deadline,
-      }),
-    });
+        deadline: formattedDeadline,
+      });
 
-    const data = await res.json();
+      const res = await fetch("http://localhost:8000/tasks", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // ❌ jangan pakai Content-Type
+        },
+        body: formData,
+      });
 
-    if (!res.ok) {
-      throw new Error(data.detail || "Gagal create");
+      const data = await res.json();
+      console.log("RESPONSE:", data);
+
+      if (!res.ok) {
+        throw new Error(
+          data.detail
+            ? JSON.stringify(data.detail)
+            : "Gagal membuat task"
+        );
+      }
+
+      showToast("Task berhasil dibuat!", "success");
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      showToast(err.message, "error");
+    } finally {
+      setLoading(false);
     }
-
-    showToast("Task berhasil dibuat!", "success");
-    navigate("/");
-  } catch (err) {
-    console.error(err);
-    showToast(err.message || "Gagal membuat task", "error");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-  <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
+    <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
+      <div className="w-full max-w-xl bg-white p-6 rounded-xl shadow-md border">
+        <h2 className="font-bold text-2xl mb-6 text-gray-800">
+          Tambah Task
+        </h2>
 
-    <div className="w-full max-w-xl bg-white p-6 rounded-xl shadow-md border">
+        <input
+          placeholder="Judul"
+          value={form.title}
+          onChange={(e) =>
+            setForm({ ...form, title: e.target.value })
+          }
+          className="w-full border p-3 rounded mb-3"
+        />
 
-      <h2 className="font-bold text-2xl mb-6 text-gray-800">
-        Tambah Task
-      </h2>
+        <textarea
+          placeholder="Deskripsi"
+          value={form.description}
+          onChange={(e) =>
+            setForm({ ...form, description: e.target.value })
+          }
+          className="w-full border p-3 rounded mb-3"
+          rows="4"
+        />
 
-      <input
-        placeholder="Judul"
-        value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
-        className="w-full border p-2 rounded mb-3"
-      />
+        <input
+          type="datetime-local"
+          value={form.deadline}
+          onChange={(e) =>
+            setForm({ ...form, deadline: e.target.value })
+          }
+          className="w-full border p-3 rounded mb-5"
+        />
 
-      <input
-        placeholder="Deskripsi"
-        value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-        className="w-full border p-2 rounded mb-3"
-      />
+        <div className="flex gap-3">
+          <button
+            onClick={handleCreate}
+            disabled={loading}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded"
+          >
+            {loading ? "Loading..." : "Simpan"}
+          </button>
 
-      <input
-        type="datetime-local"
-        value={form.deadline}
-        onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-        className="w-full border p-2 rounded mb-5"
-      />
-
-      <div className="flex gap-2">
-        <button
-          onClick={handleCreate}
-          disabled={loading}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          {loading ? "Loading..." : "Simpan"}
-        </button>
-
-        <button
-          onClick={() => navigate("/")}
-          className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
-        >
-          Batal
-        </button>
+          <button
+            onClick={() => navigate("/")}
+            className="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded"
+          >
+            Batal
+          </button>
+        </div>
       </div>
-
     </div>
-  </div>
-);
+  );
 };
 
 export default CreateTask;

@@ -4,8 +4,12 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
+<<<<<<< HEAD
+from fastapi import Body
+=======
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+>>>>>>> 4b16ab958e09e02cbcbe328d74605008e3ae8785
 
 from database import engine, get_db
 from models import Base, User
@@ -102,7 +106,33 @@ def create_task(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
+    file_path = None
+
+    # 👉 kalau ada file
+    if file:
+        file_location = f"{UPLOAD_DIR}/{file.filename}"
+        with open(file_location, "wb") as f:
+            f.write(await file.read())
+        file_path = file_location
+
+    task_data = {
+        "title": title,
+        "description": description,
+        "deadline": deadline,
+        "file_path": file_path
+    }
+
+    task_obj = TaskCreate(
+    title=title,
+    description=description,
+    deadline=deadline
+)
+
+    return crud.create_task(db=db, task=task_obj, user_id=current_user.id)
+=======
     return crud.create_task(db=db, task=task, user_id=current_user.id)
+>>>>>>> 4b16ab958e09e02cbcbe328d74605008e3ae8785
 
 
 @app.get("/tasks", response_model=list[TaskResponse])
@@ -130,13 +160,27 @@ def get_task(
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
 def update_task(
     task_id: int,
+<<<<<<< HEAD
+    task: TaskUpdate = Body(...),
+=======
     task: TaskUpdate,
+>>>>>>> 4b16ab958e09e02cbcbe328d74605008e3ae8785
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     updated = crud.update_task(db, task_id, task)
+<<<<<<< HEAD
+
+    if not updated:
+        raise HTTPException(
+            status_code=404,
+            detail="Task tidak ditemukan"
+        )
+
+=======
     if not updated:
         raise HTTPException(status_code=404, detail="Task tidak ditemukan")
+>>>>>>> 4b16ab958e09e02cbcbe328d74605008e3ae8785
     return updated
 
 
