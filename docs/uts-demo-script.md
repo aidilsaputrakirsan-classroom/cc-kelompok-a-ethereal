@@ -13,7 +13,7 @@ Dokumen ini disusun sebagai panduan standar operasional untuk memastikan demonst
 
 2. **Build & Start: Menjalankan seluruh stack aplikasi.**
     ```bash
-    docker compose up -d --build
+    docker compose up --build -d
     ```
 
 3. **Verify Containers: Pastikan status semua layanan adalah Up.**

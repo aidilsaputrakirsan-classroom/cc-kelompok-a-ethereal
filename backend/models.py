@@ -4,7 +4,6 @@ from sqlalchemy.orm import relationship
 from database import Base
 import enum
 
-
 # ================= USER =================
 
 class User(Base):
@@ -32,12 +31,20 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(String(200), nullable=False, index=True)
     description = Column(Text, nullable=True)
+
     status = Column(Enum(TaskStatus), default=TaskStatus.todo, nullable=False)
+
     deadline = Column(DateTime(timezone=True), nullable=True)
+
+    # 🔥 TAMBAHAN FITUR KAMU
+    category = Column(String(100), nullable=True)
+
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+    # relationships
     creator = relationship("User", foreign_keys=[created_by])
     assignee = relationship("User", foreign_keys=[assigned_to])
