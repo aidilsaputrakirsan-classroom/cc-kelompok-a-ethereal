@@ -423,4 +423,4 @@ Gunakan perintah berikut untuk standarisasi pengembangan di tim Ethereal:
 *   `make lint`: Menjalankan pengecekan kualitas kode (Linter).
 *   `make test`: Menjalankan unit testing (placeholder).
 *   `make pr-check`: Melakukan build ulang, menjalankan container, dan mengecek kesehatan layanan (Health Check) sebelum melakukan Pull Request.
-*   `make clean`: Menghapus container dan volume (Reset database ke password default `pgpg`).
+*   `make clean`: Menghapus container dan volume (Reset database ke password default).
