@@ -3,7 +3,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm  # 🔥 penting
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
 from database import engine, get_db
 from models import Base, User
@@ -38,8 +40,22 @@ app.add_middleware(
 # ================= HEALTH =================
 
 @app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+def health_check(db: Session = Depends(get_db)):
+    health = {
+        "status": "healthy",
+        "service": "backend",
+        "version": "1.0.0",
+    }
+
+    try:
+        db.execute(text("SELECT 1"))
+        health["database"] = "connected"
+    except Exception as e:
+        health["status"] = "unhealthy"
+        health["database"] = str(e)
+
+    status_code = 200 if health["status"] == "healthy" else 503
+    return JSONResponse(content=health, status_code=status_code)
 
 # ================= AUTH =================
 
@@ -51,7 +67,6 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-# 🔥 LOGIN FIX (OAuth2 compatible Swagger)
 @app.post("/auth/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -59,7 +74,7 @@ def login(
 ):
     user = crud.authenticate_user(
         db,
-        form_data.username,  # Swagger kirim "username"
+        form_data.username,
         form_data.password
     )
 
@@ -92,12 +107,14 @@ def create_task(
 
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
+    category: str = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if category:
+        return crud.get_tasks_by_category(db, current_user.id, category)
+
     return crud.get_tasks_by_user(db=db, user_id=current_user.id)
-
-
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,
