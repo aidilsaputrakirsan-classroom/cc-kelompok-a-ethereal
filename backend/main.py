@@ -1,18 +1,24 @@
 import os
 from dotenv import load_dotenv
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
+
+from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from database import engine, get_db
 from models import Base, User
 from schemas import (
-    UserCreate, UserResponse,
-    TaskCreate, TaskUpdate, TaskResponse
+    UserCreate,
+    UserResponse,
+    TaskCreate,
+    TaskUpdate,
+    TaskResponse
 )
+
 from auth import create_access_token, get_current_user
 import crud
 
@@ -41,6 +47,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
+
     health = {
         "status": "healthy",
         "service": "backend",
@@ -50,20 +57,37 @@ def health_check(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
         health["database"] = "connected"
+
     except Exception as e:
         health["status"] = "unhealthy"
         health["database"] = str(e)
 
     status_code = 200 if health["status"] == "healthy" else 503
-    return JSONResponse(content=health, status_code=status_code)
+
+    return JSONResponse(
+        content=health,
+        status_code=status_code
+    )
 
 # ================= AUTH =================
 
 @app.post("/auth/register", response_model=UserResponse, status_code=201)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    user = crud.create_user(db=db, user_data=user_data)
+def register(
+    user_data: UserCreate,
+    db: Session = Depends(get_db)
+):
+
+    user = crud.create_user(
+        db=db,
+        user_data=user_data
+    )
+
     if not user:
-        raise HTTPException(status_code=400, detail="Email sudah terdaftar")
+        raise HTTPException(
+            status_code=400,
+            detail="Email sudah terdaftar"
+        )
+
     return user
 
 
@@ -72,6 +96,7 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
+
     user = crud.authenticate_user(
         db,
         form_data.username,
@@ -79,9 +104,14 @@ def login(
     )
 
     if not user:
-        raise HTTPException(status_code=401, detail="Email atau password salah")
+        raise HTTPException(
+            status_code=401,
+            detail="Email atau password salah"
+        )
 
-    token = create_access_token(data={"sub": str(user.id)})
+    token = create_access_token(
+        data={"sub": str(user.id)}
+    )
 
     return {
         "access_token": token,
@@ -90,9 +120,10 @@ def login(
 
 
 @app.get("/auth/me", response_model=UserResponse)
-def get_me(current_user: User = Depends(get_current_user)):
+def get_me(
+    current_user: User = Depends(get_current_user)
+):
     return current_user
-
 
 # ================= TASK =================
 
@@ -102,7 +133,13 @@ def create_task(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return crud.create_task(db=db, task=task, user_id=current_user.id)
+
+    return crud.create_task(
+        db=db,
+        task=task,
+        user_id=current_user.id
+    )
+
 
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
@@ -110,20 +147,35 @@ def get_tasks(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if category:
-        return crud.get_tasks_by_category(db, current_user.id, category)
 
-    return crud.get_tasks_by_user(db=db, user_id=current_user.id)
-    
+    if category:
+        return crud.get_tasks_by_category(
+            db,
+            current_user.id,
+            category
+        )
+
+    return crud.get_tasks_by_user(
+        db=db,
+        user_id=current_user.id
+    )
+
+
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
     task = crud.get_task(db, task_id)
+
     if not task:
-        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
+        raise HTTPException(
+            status_code=404,
+            detail="Task tidak ditemukan"
+        )
+
     return task
 
 
@@ -134,9 +186,19 @@ def update_task(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    updated = crud.update_task(db, task_id, task)
+
+    updated = crud.update_task(
+        db,
+        task_id,
+        task
+    )
+
     if not updated:
-        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
+        raise HTTPException(
+            status_code=404,
+            detail="Task tidak ditemukan"
+        )
+
     return updated
 
 
@@ -146,7 +208,13 @@ def delete_task(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
     deleted = crud.delete_task(db, task_id)
+
     if not deleted:
-        raise HTTPException(status_code=404, detail="Task tidak ditemukan")
+        raise HTTPException(
+            status_code=404,
+            detail="Task tidak ditemukan"
+        )
+
     return None
