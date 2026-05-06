@@ -11,7 +11,7 @@ services:
     profiles: ["dev", "prod"]  # Muncul di kedua profil
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: pgpg
       POSTGRES_DB: kelarin
     ports:
       - "5433:5432"
