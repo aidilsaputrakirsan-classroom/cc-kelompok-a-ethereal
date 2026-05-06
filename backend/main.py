@@ -104,7 +104,6 @@ def create_task(
 ):
     return crud.create_task(db=db, task=task, user_id=current_user.id)
 
-
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
     category: str = None,
@@ -115,6 +114,7 @@ def get_tasks(
         return crud.get_tasks_by_category(db, current_user.id, category)
 
     return crud.get_tasks_by_user(db=db, user_id=current_user.id)
+    
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,

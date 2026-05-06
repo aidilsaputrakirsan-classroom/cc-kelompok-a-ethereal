@@ -28,3 +28,7 @@ bcrypt==4.0.1
 
 python-multipart
 # buat handle form data (dipakai di login OAuth2)
+
+pytest==8.3.4
+pytest-cov==6.0.0
+httpx==0.28.1
