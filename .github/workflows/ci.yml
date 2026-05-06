@@ -19,9 +19,10 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    # Perbaikan: Menambahkan env agar koneksi database tidak error saat testing
+    # UPDATE BAGIAN INI:
     env:
       DATABASE_URL: sqlite:///./test.db
+      SECRET_KEY: "kelarin_secret_key_untuk_testing_doang" # Tambahkan ini!
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
