@@ -27,10 +27,10 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session  
 # buat akses database
 
-from database import get_db  
+from app.database import get_db  
 # ambil koneksi database
 
-from models import User  
+from app.models import User  
 # ambil tabel user
 
 load_dotenv()  

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session  # buat koneksi ke database
-from models import Task, User  # ambil tabel Task & User
-from schemas import TaskCreate, TaskUpdate  # format data task
+from app.models import Task, User  # ambil tabel Task & User
+from app.schemas import TaskCreate, TaskUpdate  # format data task
 from passlib.context import CryptContext  # buat hash password
 
 # ==================== PASSWORD CONFIG ====================

@@ -9,9 +9,9 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from database import engine, get_db
-from models import Base, User
-from schemas import (
+from app.database import engine, get_db
+from app.models import Base, User
+from app.schemas import (
     UserCreate,
     UserResponse,
     TaskCreate,
@@ -19,8 +19,8 @@ from schemas import (
     TaskResponse
 )
 
-from auth import create_access_token, get_current_user
-import crud
+from app.auth import create_access_token, get_current_user
+from app import crud
 
 load_dotenv()
 
