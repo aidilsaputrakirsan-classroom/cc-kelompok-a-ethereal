@@ -10,17 +10,17 @@ services:
     restart: unless-stopped
     profiles: ["dev", "prod"]  # Muncul di kedua profil
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pgpg
-      POSTGRES_DB: kelarin
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pgpg}
+      POSTGRES_DB: ${POSTGRES_DB:-kelarin}
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT_EXTERNAL:-5433}:${POSTGRES_PORT_INTERNAL:-5432}"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - kelarin-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d kelarin"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-kelarin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,9 +36,15 @@ services:
     restart: unless-stopped
     profiles: ["dev", "prod"]  # Muncul di kedua profil
     env_file:
-      - ./backend/.env.docker
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:pgpg@db:5432/kelarin}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173}
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     networks:
       - kelarin-net
     depends_on:
@@ -57,13 +63,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:8000
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     image: dwialsha/kelarin:frontend-v1
     container_name: frontend
     restart: unless-stopped
     profiles: ["dev"]  # Frontend biasanya hanya jalan di profil dev untuk tim
     ports:
-      - "5173:80"
+      - "${FRONTEND_PORT:-5173}:80"
     networks:
       - kelarin-net
     depends_on:
