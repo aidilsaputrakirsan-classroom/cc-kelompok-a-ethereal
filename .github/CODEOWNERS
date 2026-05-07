@@ -5,10 +5,10 @@
 # Reviewer otomatis ditambahkan saat PR mengubah file terkait
 
 # Backend — Lead Backend
-/backend/                @Devid1013
+/backend/                @Tiyamitraayu
 
 # Frontend — Lead Frontend
-/frontend/               @Tiyamitraayu
+/frontend/               @Devid1013
 
 # Docker & Infrastructure — Lead DevOps
 docker-compose.yml       @dwialsha
