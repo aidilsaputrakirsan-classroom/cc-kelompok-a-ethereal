@@ -1,33 +1,34 @@
-# 🚀 Week 10 PR Template — Ethereal Team
-<!-- Template khusus untuk pengumpulan Phase 1 - 4 pada Week 10 -->
-
 ## 📝 Summary
-<!-- Ringkasan progres Phase 1 sampai Phase 4 -->
-- **Phase 1:** Global Environment & Docker Config
-- **Phase 2:** Ruff Linter Integration in CI
-- **Phase 3:** PR Template Creation (Week 10)
-- **Phase 4:** [Pending implementation]
+Implementasi konfigurasi global environment, integrasi linter backend (Ruff) pada CI pipeline, dan pembuatan template PR khusus untuk progres Week 10.
 
-## 🛠 Progress Details
-- [x] **Phase 1**: Pembuatan `.env.example` global dan update `docker-compose.yml`.
-- [x] **Phase 2**: Penambahan job `lint-backend` di `ci.yml` dan konfigurasi `ruff.toml`.
-- [x] **Phase 3**: Pembuatan template PR khusus Week 10 (`pr_week10.md`).
-- [ ] **Phase 4**: [Target Phase 4]
+## 🔗 Related Task
+- **Task Link:** Phase 1, 2, 3 - Week 10
+- **Target Branch:** `main`
 
-## 🔍 Technical Implementation
-<!-- Penjelasan singkat mengenai perubahan teknis -->
-- Penggunaan default values di `docker-compose.yml` untuk port dan db config.
-- Integrasi `ruff` dengan rule `E` dan `F` untuk menjaga kualitas kode backend.
+## 🛠 Type of Change
+- [x] ✨ **Feature**: Menambah fungsionalitas CI (Ruff) dan template baru.
+- [x] 🔧 **Chore**: Update `docker-compose.yml` dan `.env.example`.
 
-## 🧪 Verification
-- [x] `ruff check backend/` pass locally.
-- [x] `docker-compose config` valid.
-- [ ] CI Pipeline test results (Screenshot di bawah).
+## 🔍 Scope of Work
+- **Phase 1**: Reorganisasi variabel lingkungan ke `.env.example` root dan sinkronisasi `docker-compose.yml`.
+- **Phase 2**: Penambahan job `lint-backend` di `.github/workflows/ci.yml` dan konfigurasi `backend/ruff.toml`.
+- **Phase 3**: Pembuatan file `pr_week10.md` sebagai dokumentasi progres mingguan.
 
-## 📸 Screenshots / Proof of Work
-<!-- Lampirkan bukti output terminal ruff atau docker config -->
+## 🧪 Testing & Quality Assurance
+- [x] **Local Integration**: `docker-compose config` telah diverifikasi valid.
+- [x] **Linter**: `ruff check backend/` berhasil dijalankan secara lokal dan memperbaiki 2 unused imports.
 
-## 🏁 Final Checklist
-- [x] Semua phase telah di-push ke branch masing-masing.
-- [x] Tidak ada secrets yang bocor di commit history.
-- [x] Penamaan branch konsisten (`phase-x-...`).
+## 🚀 Deployment Impact
+- [x] **Env Vars**: Penambahan `.env.example` di root directory.
+- [x] **Dependencies**: Penambahan `ruff` sebagai dependency linter di CI.
+
+## 📸 Proof of Work
+- Linter output: `Found 2 errors (2 fixed, 0 remaining).`
+- Docker config: Environment variables loaded with fallback values.
+
+---
+
+## 🏁 Checklist Before Merge
+- [x] Kode sudah mengikuti standar **Conventional Commits**.
+- [x] Tidak ada **Hardcoded Secrets**.
+- [x] Dokumentasi internal telah diperbarui.
