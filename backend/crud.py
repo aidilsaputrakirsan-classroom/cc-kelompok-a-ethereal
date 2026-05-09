@@ -68,9 +68,10 @@ def get_task(db: Session, task_id: int):
 
 
 def get_tasks_by_user(db: Session, user_id: int):
-    # ambil task milik user (yang dibuat atau ditugaskan ke dia)
+
     return db.query(Task).filter(
-        (Task.created_by == user_id) | (Task.assigned_to == user_id)
+        ((Task.created_by == user_id) | (Task.assigned_to == user_id)) &
+        (Task.status != "done")
     ).all()
 
 def get_tasks_by_category(db: Session, user_id: int, category: str):

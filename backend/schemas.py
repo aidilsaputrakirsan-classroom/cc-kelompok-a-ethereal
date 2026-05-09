@@ -91,6 +91,7 @@ class TaskStatus(str, PyEnum):
 class TaskBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = None
+    attachment_url: Optional[str] = None
     deadline: Optional[datetime] = None
     assigned_to: Optional[int] = None
 
@@ -106,6 +107,7 @@ class TaskCreate(TaskBase):
 class TaskUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = None
+    attachment_url: Optional[str] = None
     status: Optional[TaskStatus] = None
     deadline: Optional[datetime] = None
     assigned_to: Optional[int] = None
