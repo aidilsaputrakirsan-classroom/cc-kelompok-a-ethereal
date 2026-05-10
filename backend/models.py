@@ -32,6 +32,8 @@ class Task(Base):
     title = Column(String(200), nullable=False, index=True)
     description = Column(Text, nullable=True)
 
+    attachment_url = Column(String(500), nullable=True)
+
     status = Column(Enum(TaskStatus), default=TaskStatus.todo, nullable=False)
 
     deadline = Column(DateTime(timezone=True), nullable=True)
