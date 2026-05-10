@@ -8,49 +8,54 @@ const CreateTask = ({ token, showToast }) => {
     title: "",
     description: "",
     deadline: "",
+    attachment_url: "", // pakai backend field asli
   });
 
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      const savedToken = localStorage.getItem("token");
 
-    const payload = {
-      title: form.title,
-      description: form.description,
-      deadline: form.deadline,
-    };
+      const payload = {
+        title: form.title,
+        description: form.description,
+        deadline: form.deadline,
+        attachment_url: form.attachment_url, // sinkron dengan backend
+      };
 
-    console.log("TOKEN CREATE:", token);
-    console.log("FORM DATA:", payload);
+      console.log("TOKEN CREATE:", savedToken);
+      console.log("FORM DATA:", payload);
 
-    const response = await fetch("http://localhost:8000/tasks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+      const response = await fetch("http://localhost:8000/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${savedToken}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    console.log("RESPONSE:", data);
+      console.log("RESPONSE:", data);
 
-    if (!response.ok) {
-      throw new Error(JSON.stringify(data.detail));
+      if (!response.ok) {
+        throw new Error(JSON.stringify(data.detail));
+      }
+
+      showToast("Task berhasil dibuat!", "success");
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Terjadi kesalahan", "error");
+    } finally {
+      setLoading(false);
     }
-
-    showToast("Task berhasil dibuat!", "success");
-    navigate("/");
-  } catch (err) {
-    console.error(err);
-    showToast(err.message, "error");
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
@@ -59,35 +64,62 @@ const CreateTask = ({ token, showToast }) => {
           Tambah Task
         </h2>
 
+        {/* Judul */}
         <input
           placeholder="Judul"
           value={form.title}
           onChange={(e) =>
-            setForm({ ...form, title: e.target.value })
+            setForm({
+              ...form,
+              title: e.target.value,
+            })
           }
           className="w-full border p-3 rounded mb-3"
         />
 
+        {/* Deskripsi */}
         <textarea
           placeholder="Deskripsi"
           value={form.description}
           onChange={(e) =>
-            setForm({ ...form, description: e.target.value })
+            setForm({
+              ...form,
+              description: e.target.value,
+            })
           }
           className="w-full border p-3 rounded mb-3"
           rows="4"
         />
 
+        {/* Link Referensi */}
+        <input
+          type="url"
+          placeholder="Link Referensi (Opsional)"
+          value={form.attachment_url}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              attachment_url: e.target.value,
+            })
+          }
+          className="w-full border p-3 rounded mb-3"
+        />
+
+        {/* Deadline */}
         <input
           type="datetime-local"
           value={form.deadline}
           onChange={(e) =>
-            setForm({ ...form, deadline: e.target.value })
+            setForm({
+              ...form,
+              deadline: e.target.value,
+            })
           }
           className="w-full border p-3 rounded mb-5"
         />
 
         <div className="flex gap-3">
+          {/* Simpan */}
           <button
             onClick={handleCreate}
             disabled={loading}
@@ -96,6 +128,7 @@ const CreateTask = ({ token, showToast }) => {
             {loading ? "Loading..." : "Simpan"}
           </button>
 
+          {/* Batal */}
           <button
             onClick={() => navigate("/")}
             className="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded"
