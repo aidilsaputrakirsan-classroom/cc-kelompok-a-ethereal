@@ -12,7 +12,9 @@ const TaskList = ({ token, showToast }) => {
   const fetchTasks = async () => {
     try {
       const res = await fetch("http://localhost:8000/tasks", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data = await res.json();
@@ -34,7 +36,9 @@ const TaskList = ({ token, showToast }) => {
     try {
       await fetch(`http://localhost:8000/tasks/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       setTasks(tasks.filter((t) => t.id !== id));
@@ -45,14 +49,39 @@ const TaskList = ({ token, showToast }) => {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  // COMPLETE TASK (hapus otomatis saat selesai)
+  const handleComplete = async (id) => {
+    try {
+      await fetch(`http://localhost:8000/tasks/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setTasks(tasks.filter((t) => t.id !== id));
+      showToast("Tugas telah selesai!", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal menyelesaikan tugas", "error");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div>
-
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-bold text-gray-700">Daftar Task</h2>
+        <h2 className="font-bold text-gray-700">
+          Daftar Task
+        </h2>
       </div>
 
       {/* LIST */}
@@ -62,11 +91,14 @@ const TaskList = ({ token, showToast }) => {
             key={task.id}
             task={task}
             onDelete={handleDelete}
+            onComplete={handleComplete}
             onEdit={(task) => navigate(`/edit/${task.id}`)}
           />
         ))
       ) : (
-        <div className="text-center text-gray-400">Tidak ada tugas</div>
+        <div className="text-center text-gray-400">
+          Tidak ada tugas
+        </div>
       )}
     </div>
   );
