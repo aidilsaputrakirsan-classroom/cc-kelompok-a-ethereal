@@ -58,6 +58,8 @@ const LoginPage = ({ setToken, showToast }) => {
 
       const data = await response.json();
 
+      console.log("LOGIN RESPONSE:", data);
+
       if (!response.ok) {
         throw new Error(data.detail || "Authentication failed");
       }
@@ -74,8 +76,18 @@ const LoginPage = ({ setToken, showToast }) => {
           password: "",
         });
       } else {
-        localStorage.setItem("token", data.access_token);
-        setToken(data.access_token);
+        // 🔥 lebih aman untuk semua kemungkinan response backend
+        const token =
+          data.access_token ||
+          data.token ||
+          data;
+
+        if (!token) {
+          throw new Error("Token tidak ditemukan dari backend");
+        }
+
+        localStorage.setItem("token", token);
+        setToken(token);
 
         showToast("Login berhasil!", "success");
       }

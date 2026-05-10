@@ -12,59 +12,45 @@ const CreateTask = ({ token, showToast }) => {
 
   const [loading, setLoading] = useState(false);
 
-  const handleCreate = async () => {
-    setLoading(true);
+  const handleCreate = async (e) => {
+  e.preventDefault();
 
-    try {
-      console.log("TOKEN CREATE:", token);
+  try {
+    const token = localStorage.getItem("token");
 
-      let formattedDeadline = "";
+    const payload = {
+      title: form.title,
+      description: form.description,
+      deadline: form.deadline,
+    };
 
-      if (form.deadline) {
-        formattedDeadline = new Date(form.deadline).toISOString();
-      }
+    console.log("TOKEN CREATE:", token);
+    console.log("FORM DATA:", payload);
 
-      // 🔥 pakai FormData
-      const formData = new FormData();
-      formData.append("title", form.title);
-      formData.append("description", form.description);
-      formData.append("deadline", formattedDeadline);
+    const response = await fetch("http://localhost:8000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      console.log("FORM DATA:", {
-        title: form.title,
-        description: form.description,
-        deadline: formattedDeadline,
-      });
+    const data = await response.json();
 
-      const res = await fetch("http://localhost:8000/tasks", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // ❌ jangan pakai Content-Type
-        },
-        body: formData,
-      });
+    console.log("RESPONSE:", data);
 
-      const data = await res.json();
-      console.log("RESPONSE:", data);
-
-      if (!res.ok) {
-        throw new Error(
-          data.detail
-            ? JSON.stringify(data.detail)
-            : "Gagal membuat task"
-        );
-      }
-
-      showToast("Task berhasil dibuat!", "success");
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-      showToast(err.message, "error");
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error(JSON.stringify(data.detail));
     }
-  };
+
+    showToast("Task berhasil dibuat!", "success");
+    navigate("/");
+  } catch (err) {
+    console.error(err);
+    showToast(err.message, "error");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
