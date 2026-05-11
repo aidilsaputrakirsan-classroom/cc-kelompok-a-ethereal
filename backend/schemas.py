@@ -4,9 +4,8 @@ from pydantic import BaseModel, Field, EmailStr, field_validator
 # EmailStr = otomatis cek format email
 # field_validator = buat validasi custom
 
-from typing import Optional, List  
+from typing import Optional
 # Optional = boleh kosong
-# List = list data
 
 from datetime import datetime  
 # buat tipe tanggal
