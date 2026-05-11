@@ -1,5 +1,7 @@
 # ☁️ **Cloud App - Kelarin**
 
+![CI Pipeline](https://github.com/aidilsaputrakirsan-classroom/cc-kelompok-a-ethereal/actions/workflows/ci.yml/badge.svg)
+
 ## **1. Deskripsi Proyek**
 
 **Kelarin** adalah platform manajemen tugas akademik berbasis cloud-native yang dirancang untuk memfasilitasi kolaborasi mahasiswa secara terstruktur. Aplikasi ini mengintegrasikan:
