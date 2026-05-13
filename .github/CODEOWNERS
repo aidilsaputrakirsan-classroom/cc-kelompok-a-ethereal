@@ -4,21 +4,33 @@
 # Setiap baris: pola file → username GitHub reviewer
 # Reviewer otomatis ditambahkan saat PR mengubah file terkait
 
-# Backend — Lead Backend
-/backend/                @Devid1013
+# Global — Semua anggota
+# * @Tiyamitraayu @Devid1013 @dwialsha @gitandys @secretceremony
 
-# Frontend — Lead Frontend
-/frontend/               @Tiyamitraayu
+# Backend — Lead Backend (Tiya Mitra Ayu)
+/backend/                @Tiyamitraayu
 
-# Docker & Infrastructure — Lead DevOps
+# Frontend — Lead Frontend (Amazia Devid Saputra)
+/frontend/               @Devid1013
+
+# Docker & Infrastructure — Lead Container (Alsha Dwi Cahya)
 docker-compose.yml       @dwialsha
+docker-compose.prod.yml  @dwialsha
 /backend/Dockerfile      @dwialsha
 /frontend/Dockerfile     @dwialsha
+.dockerignore            @dwialsha
+/backend/.dockerignore   @dwialsha
+/frontend/.dockerignore  @dwialsha
 Makefile                 @dwialsha
 
-# Documentation — Lead QA & Docs
+# Documentation — Lead QA & Docs (Andini Permata Sari)
 README.md                @gitandys
+CHANGELOG.md             @gitandys
 /docs/                   @gitandys
 
-# CI/CD (jika 5 orang) — Lead CI/CD
-/.github/workflows/   @secretceremony
+# CI/CD — Lead CI/CD (Ansellma Tita Pakartiwuri Putri)
+/.github/workflows/      @secretceremony
+/.github/CODEOWNERS      @secretceremony
+/scripts/                @secretceremony
+/backend/ruff.toml       @secretceremony
+/backend/pytest.ini      @secretceremony

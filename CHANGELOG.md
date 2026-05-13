@@ -4,6 +4,26 @@ Semua perubahan penting dalam proyek ini akan dicatat dalam file ini.
 
 Format ini didasarkan pada [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-05-13
+
+### Added
+- Integrasi **Ruff Linter** pada backend dengan file konfigurasi `backend/ruff.toml`.
+- Penambahan fitur **Task Completion** (tombol selesaikan tugas) pada frontend.
+- Fitur **Task Attachment** dan **Category** untuk manajemen tugas yang lebih terorganisir.
+- Fitur **Reference Link** pada detail tugas.
+- Badge status CI Pipeline pada `README.md`.
+
+### Changed
+- **Enforced Linting**: Linter sekarang wajib *pass* agar CI Pipeline berhasil (menghapus `continue-on-error`).
+- Pembaruan file `CODEOWNERS` untuk akurasi peran tim (Lead Backend, Frontend, DevOps, QA, dan CI/CD).
+- Optimasi CI Pipeline: Implementasi *Concurrency*, *Timeouts*, dan notifikasi kegagalan via PR comment.
+- Peningkatan cakupan pengujian (*test coverage*) untuk frontend dan backend.
+
+### Fixed
+- Perbaikan *syntax error* (trailing comma) pada `schemas.py`.
+- Pembersihan *unused imports* pada file `main.py` dan `schemas.py`.
+- Sinkronisasi izin (*permissions*) pada GitHub Actions agar bot dapat memberikan komentar di PR.
+
 ## [0.15.0] - 2026-05-06
 
 ### Added
