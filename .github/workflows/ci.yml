@@ -3,6 +3,12 @@ name: Railway Deployment
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
   deploy:
@@ -27,3 +33,28 @@ jobs:
         run: |
           cd frontend
           railway up --service frontend --detach
+
+      - name: Set Deployment Info
+        id: info
+        run: echo "timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_OUTPUT
+
+      - name: Deployment Summary (Job Summary)
+        if: success()
+        run: |
+          echo "### 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend URL:** [https://cc-kelompok-a-ethereal-production.up.railway.app](https://cc-kelompok-a-ethereal-production.up.railway.app)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend URL:** [https://kelarin.up.railway.app](https://kelarin.up.railway.app)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** ${{ steps.info.outputs.timestamp }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && success()
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ### 🚀 Deployment Summary
+            - **Frontend URL:** [https://cc-kelompok-a-ethereal-production.up.railway.app](https://cc-kelompok-a-ethereal-production.up.railway.app)
+            - **Backend URL:** [https://kelarin.up.railway.app](https://kelarin.up.railway.app)
+            - **Commit SHA:** `${{ github.sha }}`
+            - **Timestamp:** ${{ steps.info.outputs.timestamp }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
