@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const EditTask = ({ token, showToast }) => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -9,15 +11,15 @@ const EditTask = ({ token, showToast }) => {
     title: "",
     description: "",
     deadline: "",
+    attachment_url: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // ================= GET DETAIL TASK =================
   const fetchTask = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/tasks/${id}`, {
+      const res = await fetch(`${API_URL}/tasks/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -32,6 +34,7 @@ const EditTask = ({ token, showToast }) => {
       setForm({
         title: data.title || "",
         description: data.description || "",
+        attachment_url: data.attachment_url || "",
         deadline: data.deadline
           ? new Date(data.deadline).toISOString().slice(0, 16)
           : "",
@@ -49,27 +52,26 @@ const EditTask = ({ token, showToast }) => {
     fetchTask();
   }, []);
 
-  // ================= UPDATE TASK =================
   const handleUpdate = async () => {
     setLoading(true);
 
     try {
       let formattedDeadline = form.deadline;
 
-      // fix datetime-local → backend
-      if (formattedDeadline.length === 16) {
+      if (formattedDeadline && formattedDeadline.length === 16) {
         formattedDeadline += ":00";
       }
 
       const payload = {
         title: form.title,
         description: form.description,
+        attachment_url: form.attachment_url,
         deadline: formattedDeadline,
       };
 
       console.log("UPDATE PAYLOAD:", payload);
 
-      const res = await fetch(`http://localhost:8000/tasks/${id}`, {
+      const res = await fetch(`${API_URL}/tasks/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +100,6 @@ const EditTask = ({ token, showToast }) => {
     }
   };
 
-  // ================= LOADING =================
   if (fetching) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -118,16 +119,36 @@ const EditTask = ({ token, showToast }) => {
           placeholder="Judul"
           value={form.title}
           onChange={(e) =>
-            setForm({ ...form, title: e.target.value })
+            setForm({
+              ...form,
+              title: e.target.value,
+            })
           }
           className="w-full border p-2 rounded mb-3"
         />
 
-        <input
+        <textarea
           placeholder="Deskripsi"
           value={form.description}
           onChange={(e) =>
-            setForm({ ...form, description: e.target.value })
+            setForm({
+              ...form,
+              description: e.target.value,
+            })
+          }
+          className="w-full border p-2 rounded mb-3"
+          rows="4"
+        />
+
+        <input
+          type="url"
+          placeholder="Link Referensi (Opsional)"
+          value={form.attachment_url}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              attachment_url: e.target.value,
+            })
           }
           className="w-full border p-2 rounded mb-3"
         />
@@ -136,7 +157,10 @@ const EditTask = ({ token, showToast }) => {
           type="datetime-local"
           value={form.deadline}
           onChange={(e) =>
-            setForm({ ...form, deadline: e.target.value })
+            setForm({
+              ...form,
+              deadline: e.target.value,
+            })
           }
           className="w-full border p-2 rounded mb-5"
         />

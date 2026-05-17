@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const CreateTask = ({ token, showToast }) => {
   const navigate = useNavigate();
 
@@ -8,7 +10,7 @@ const CreateTask = ({ token, showToast }) => {
     title: "",
     description: "",
     deadline: "",
-    attachment_url: "", // pakai backend field asli
+    attachment_url: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -24,13 +26,13 @@ const CreateTask = ({ token, showToast }) => {
         title: form.title,
         description: form.description,
         deadline: form.deadline,
-        attachment_url: form.attachment_url, // sinkron dengan backend
+        attachment_url: form.attachment_url,
       };
 
       console.log("TOKEN CREATE:", savedToken);
       console.log("FORM DATA:", payload);
 
-      const response = await fetch("http://localhost:8000/tasks", {
+      const response = await fetch(`${API_URL}/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +66,6 @@ const CreateTask = ({ token, showToast }) => {
           Tambah Task
         </h2>
 
-        {/* Judul */}
         <input
           placeholder="Judul"
           value={form.title}
@@ -77,7 +78,6 @@ const CreateTask = ({ token, showToast }) => {
           className="w-full border p-3 rounded mb-3"
         />
 
-        {/* Deskripsi */}
         <textarea
           placeholder="Deskripsi"
           value={form.description}
@@ -91,7 +91,6 @@ const CreateTask = ({ token, showToast }) => {
           rows="4"
         />
 
-        {/* Link Referensi */}
         <input
           type="url"
           placeholder="Link Referensi (Opsional)"
@@ -105,7 +104,6 @@ const CreateTask = ({ token, showToast }) => {
           className="w-full border p-3 rounded mb-3"
         />
 
-        {/* Deadline */}
         <input
           type="datetime-local"
           value={form.deadline}
@@ -119,7 +117,6 @@ const CreateTask = ({ token, showToast }) => {
         />
 
         <div className="flex gap-3">
-          {/* Simpan */}
           <button
             onClick={handleCreate}
             disabled={loading}
@@ -128,7 +125,6 @@ const CreateTask = ({ token, showToast }) => {
             {loading ? "Loading..." : "Simpan"}
           </button>
 
-          {/* Batal */}
           <button
             onClick={() => navigate("/")}
             className="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded"

@@ -2,16 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskItem from "./TaskItem";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const TaskList = ({ token, showToast }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
-  // FETCH
   const fetchTasks = async () => {
     try {
-      const res = await fetch("http://localhost:8000/tasks", {
+      const res = await fetch(`${API_URL}/tasks`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -31,10 +32,9 @@ const TaskList = ({ token, showToast }) => {
     fetchTasks();
   }, []);
 
-  // DELETE
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:8000/tasks/${id}`, {
+      await fetch(`${API_URL}/tasks/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -49,10 +49,9 @@ const TaskList = ({ token, showToast }) => {
     }
   };
 
-  // COMPLETE TASK (hapus otomatis saat selesai)
   const handleComplete = async (id) => {
     try {
-      await fetch(`http://localhost:8000/tasks/${id}`, {
+      await fetch(`${API_URL}/tasks/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -77,14 +76,12 @@ const TaskList = ({ token, showToast }) => {
 
   return (
     <div>
-      {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-bold text-gray-700">
           Daftar Task
         </h2>
       </div>
 
-      {/* LIST */}
       {tasks.length > 0 ? (
         tasks.map((task) => (
           <TaskItem
