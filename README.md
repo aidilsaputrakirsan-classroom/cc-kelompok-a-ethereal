@@ -1,6 +1,24 @@
 # ☁️ **Cloud App - Kelarin**
 
+## 🌐 Live Demo
+
+| Service | URL |
+|---------|-----|
+| Frontend | [https://cc-kelompok-a-ethereal-production.up.railway.app/](https://cc-kelompok-a-ethereal-production.up.railway.app/) |
+| Backend API | [https://kelarin.up.railway.app/](https://kelarin.up.railway.app/) |
+| API Docs (Swagger) | [https://cc-kelompok-a-ethereal-production.up.railway.app/docs](https://cc-kelompok-a-ethereal-production.up.railway.app/docs) |
+
+## 🔄 CI/CD
+
 ![CI Pipeline](https://github.com/aidilsaputrakirsan-classroom/cc-kelompok-a-ethereal/actions/workflows/ci.yml/badge.svg)
+
+Pipeline otomatis berjalan saat push ke main:
+1. ✅ Test backend (pytest)
+2. ✅ Test frontend (Vitest)
+3. ✅ Build Docker images
+4. 🚀 Deploy ke Railway
+
+---
 
 ## **1. Deskripsi Proyek**
 
@@ -426,3 +444,4 @@ Gunakan perintah berikut untuk standarisasi pengembangan di tim Ethereal:
 *   `make test`: Menjalankan unit testing (placeholder).
 *   `make pr-check`: Melakukan build ulang, menjalankan container, dan mengecek kesehatan layanan (Health Check) sebelum melakukan Pull Request.
 *   `make clean`: Menghapus container dan volume (Reset database ke password default).
+
