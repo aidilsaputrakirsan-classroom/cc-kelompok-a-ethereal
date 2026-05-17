@@ -19,6 +19,8 @@ from schemas import (
 )
 
 from auth import create_access_token, get_current_user
+from config import settings
+
 import crud
 
 load_dotenv()
@@ -34,9 +36,11 @@ app = FastAPI(
 
 # ================= CORS =================
 
+origins = settings.CORS_ORIGINS
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +55,7 @@ def health_check(db: Session = Depends(get_db)):
         "status": "healthy",
         "service": "backend",
         "version": "1.0.0",
+        "environment": settings.ENVIRONMENT,
     }
 
     try:
