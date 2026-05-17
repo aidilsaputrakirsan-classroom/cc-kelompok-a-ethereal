@@ -6,10 +6,23 @@ Dokumen ini berisi panduan deployment aplikasi Kelarin menggunakan Railway sebag
 1. Login ke Railway menggunakan akun GitHub.
 2. Buat project baru pada dashboard Railway.
 3. Tambahkan service PostgreSQL untuk database aplikasi.
-4. Deploy backend dengan memilih root directory `/backend`.
-5. Deploy frontend dengan memilih root directory `/frontend`.
-6. Pastikan deployment berhasil dan service berstatus aktif.
-7. Salin URL deployment frontend dan backend untuk digunakan pada environment variables.
+4. Deploy backend dan frontend menggunakan Dockerfile yang terhubung dengan GitHub repository atau image Docker yang telah tersedia di Docker Hub.
+5. Pastikan proses build dan deployment berhasil tanpa error.
+6. Salin URL deployment frontend dan backend untuk digunakan pada environment variables.
+7. Verifikasi bahwa seluruh service berjalan dengan normal pada Railway dashboard.
+
+---
+
+## Manual Rollback Procedure
+
+Jika deployment versi terbaru menyebabkan aplikasi mengalami error, unhealthy status, atau crash di production, lakukan langkah rollback berikut:
+
+1. Buka Railway Dashboard dan pilih service yang bermasalah (backend atau frontend).
+2. Masuk ke tab **Deployments**.
+3. Cari deployment versi stabil sebelumnya yang berhasil berjalan dengan baik.
+4. Klik menu titik tiga pada deployment tersebut lalu pilih **Rollback** atau **Redeploy to this commit**.
+5. Tunggu proses deployment selesai.
+6. Lakukan pengecekan ulang pada endpoint `/health` untuk memastikan aplikasi kembali stabil dan dapat diakses dengan normal.
 
 ---
 
