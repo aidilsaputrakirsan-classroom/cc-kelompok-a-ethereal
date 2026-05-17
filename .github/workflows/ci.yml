@@ -118,14 +118,43 @@ jobs:
       - name: 🐳 Build Kelarin Frontend Image
         run: docker build -t kelarin-frontend:ci ./frontend
 
+  # =========================================================================
+  # JOB 4: Automated Production Health Check (Tugas Lead DevOps - Tugas 11)
+  # =========================================================================
+  deploy-health-check:
+    name: 🏥 Deploy & Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Menunggu proses build docker lokal selesai sebelum memverifikasi versi deploy cloud
+    needs: [build-docker]
+    steps:
+      - name: 🏥 Automated Production Health Check
+        run: |
+          echo "Waiting for Railway deployment to be ready..."
+          # Memberikan jeda 30 detik agar container selesai cold start di produksi
+          sleep 30
+          
+          HEALTH_URL="https://kelarin.up.railway.app/health"
+          echo "Checking health status via: $HEALTH_URL"
+          
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+          
+          if [ "$HTTP_STATUS" == "200" ]; then
+            echo "✅ Health check passed! Production app is healthy (HTTP $HTTP_STATUS)."
+          else
+            echo "❌ Health check FAILED! Server returned HTTP $HTTP_STATUS."
+            echo "Deployment might be crash looping. Check Railway dashboard logs immediately."
+            exit 1
+          fi
+
   # -------------------------------------------------------------------------
   # OPTIMASI 3: Notifikasi PR Comment saat CI Gagal
   # -------------------------------------------------------------------------
   notify-failure:
     name: 📢 Notify Failure
     runs-on: ubuntu-latest
-    # Menunggu semua job selesai untuk mengecek apakah ada yang gagal
-    needs: [lint, test-backend, test-frontend, build-docker]
+    # PERBAIKAN DEVOPS: Tambahkan deploy-health-check ke daftar pantauan kegagalan
+    needs: [lint, test-backend, test-frontend, build-docker, deploy-health-check]
     # Hanya jalan jika ada yang fail DAN ini adalah Pull Request
     if: failure() && github.event_name == 'pull_request'
     steps:
@@ -134,6 +163,6 @@ jobs:
         with:
           message: |
             ⚠️ **CI Pipeline Gagal!** ⚠️
-            Halo tim **Ethereal**, pemeriksaan otomatis mendeteksi kegagalan pada tahap testing atau build.
+            Halo tim **Ethereal**, pemeriksaan otomatis mendeteksi kegagalan pada tahap testing, build, atau health check produksi.
             Mohon cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})** untuk perbaikan.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
