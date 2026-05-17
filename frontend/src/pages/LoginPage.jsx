@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const LoginPage = ({ setToken, showToast }) => {
   const [isRegister, setIsRegister] = useState(false);
+
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -18,13 +21,12 @@ const LoginPage = ({ setToken, showToast }) => {
 
     try {
       const endpoint = isRegister
-        ? "http://localhost:8000/auth/register"
-        : "http://localhost:8000/auth/login";
+        ? `${API_URL}/auth/register`
+        : `${API_URL}/auth/login`;
 
       let body;
       let headers = {};
 
-      // ================= REGISTER =================
       if (isRegister) {
         body = JSON.stringify({
           email: formData.email,
@@ -35,12 +37,10 @@ const LoginPage = ({ setToken, showToast }) => {
         headers = {
           "Content-Type": "application/json",
         };
-      }
-
-      // ================= LOGIN =================
-      else {
+      } else {
         const params = new URLSearchParams();
-        params.append("username", formData.email); // backend pakai username = email
+
+        params.append("username", formData.email);
         params.append("password", formData.password);
 
         body = params.toString();
@@ -64,9 +64,11 @@ const LoginPage = ({ setToken, showToast }) => {
         throw new Error(data.detail || "Authentication failed");
       }
 
-      // ================= SUCCESS =================
       if (isRegister) {
-        showToast("Registrasi berhasil! Silakan login.", "success");
+        showToast(
+          "Registrasi berhasil! Silakan login.",
+          "success"
+        );
 
         setIsRegister(false);
 
@@ -76,7 +78,6 @@ const LoginPage = ({ setToken, showToast }) => {
           password: "",
         });
       } else {
-        // 🔥 lebih aman untuk semua kemungkinan response backend
         const token =
           data.access_token ||
           data.token ||
@@ -93,7 +94,10 @@ const LoginPage = ({ setToken, showToast }) => {
       }
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Terjadi kesalahan", "error");
+      showToast(
+        err.message || "Terjadi kesalahan",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -179,7 +183,6 @@ const LoginPage = ({ setToken, showToast }) => {
               : "Belum punya akun? Register"}
           </Button>
         </div>
-
       </div>
     </div>
   );
