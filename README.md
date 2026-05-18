@@ -6,7 +6,7 @@
 |---------|-----|
 | Frontend | [https://cc-kelompok-a-ethereal-production.up.railway.app/](https://cc-kelompok-a-ethereal-production.up.railway.app/) |
 | Backend API | [https://kelarin.up.railway.app/](https://kelarin.up.railway.app/) |
-| API Docs (Swagger) | [https://cc-kelompok-a-ethereal-production.up.railway.app/docs](https://cc-kelompok-a-ethereal-production.up.railway.app/docs) |
+| API Docs (Swagger) | [https://kelarin.up.railway.app/docs](https://kelarin.up.railway.app/docs) |
 
 ## 🔄 CI/CD
 
