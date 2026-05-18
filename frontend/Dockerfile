@@ -12,7 +12,11 @@ RUN npm install
 # Copy semua file kodingan terbaru
 COPY . .
 
-# RUN: Proses kompilasi Tailwind & Vite (Ini yang tadi error di versi 18)
+# 🔥 LANGKAH DEVOPS KRUSIAL: Tangkap argumen dari docker-compose SEBELUM proses compile!
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+# RUN: Proses kompilasi Tailwind & Vite (Sekarang VITE_API_URL dijamin terbaca!)
 RUN npm run build
 
 # Stage 2: Serve with Nginx
