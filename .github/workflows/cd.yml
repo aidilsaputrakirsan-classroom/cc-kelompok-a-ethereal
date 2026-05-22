@@ -1,0 +1,43 @@
+name: Multi-Service CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    name: Build Docker for ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend, frontend]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Setup Docker Buildx untuk build yang lebih cepat & efisien
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Placeholder: Login ke Docker Registry (misal: DockerHub atau GHCR)
+      # - name: Login to DockerHub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Load Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
+          push: false # Ubah ke true setelah setup login registry
+          tags: my-app-${{ matrix.service }}:latest
+          # Menggunakan cache Docker GitHub Actions agar build berikutnya lebih cepat
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Health Check Build
+        run: echo "Docker image for ${{ matrix.service }} built successfully."
