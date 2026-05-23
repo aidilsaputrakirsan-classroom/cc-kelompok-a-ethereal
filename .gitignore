@@ -45,3 +45,4 @@ dist-ssr/
 Thumbs.db
 test.db
 .pytest_cache/
+*.db
