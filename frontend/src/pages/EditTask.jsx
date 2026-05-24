@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const EditTask = ({ token, showToast }) => {
   const navigate = useNavigate();
+
   const { id } = useParams();
 
   const [form, setForm] = useState({
@@ -17,6 +18,7 @@ const EditTask = ({ token, showToast }) => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
+  // ================= FETCH TASK DETAIL =================
   const fetchTask = async () => {
     try {
       const res = await fetch(`${API_URL}/tasks/${id}`, {
@@ -24,6 +26,10 @@ const EditTask = ({ token, showToast }) => {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (res.status >= 500) {
+        throw new Error("Service temporarily unavailable");
+      }
 
       const data = await res.json();
 
@@ -36,12 +42,29 @@ const EditTask = ({ token, showToast }) => {
         description: data.description || "",
         attachment_url: data.attachment_url || "",
         deadline: data.deadline
-          ? new Date(data.deadline).toISOString().slice(0, 16)
+          ? new Date(data.deadline)
+              .toISOString()
+              .slice(0, 16)
           : "",
       });
     } catch (err) {
       console.error(err);
-      showToast("Gagal mengambil data task", "error");
+
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("Service temporarily unavailable")
+      ) {
+        showToast(
+          "Service temporarily unavailable",
+          "error"
+        );
+      } else {
+        showToast(
+          "Gagal mengambil data task",
+          "error"
+        );
+      }
+
       navigate("/");
     } finally {
       setFetching(false);
@@ -52,13 +75,17 @@ const EditTask = ({ token, showToast }) => {
     fetchTask();
   }, []);
 
+  // ================= UPDATE TASK =================
   const handleUpdate = async () => {
     setLoading(true);
 
     try {
       let formattedDeadline = form.deadline;
 
-      if (formattedDeadline && formattedDeadline.length === 16) {
+      if (
+        formattedDeadline &&
+        formattedDeadline.length === 16
+      ) {
         formattedDeadline += ":00";
       }
 
@@ -80,6 +107,10 @@ const EditTask = ({ token, showToast }) => {
         body: JSON.stringify(payload),
       });
 
+      if (res.status >= 500) {
+        throw new Error("Service temporarily unavailable");
+      }
+
       const data = await res.json();
 
       if (!res.ok) {
@@ -90,16 +121,32 @@ const EditTask = ({ token, showToast }) => {
         );
       }
 
-      showToast("Task berhasil diupdate!", "success");
+      showToast(
+        "Task berhasil diupdate!",
+        "success"
+      );
+
       navigate("/");
     } catch (err) {
       console.error(err);
-      showToast("Gagal update task", "error");
+
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("Service temporarily unavailable")
+      ) {
+        showToast(
+          "Service temporarily unavailable",
+          "error"
+        );
+      } else {
+        showToast("Gagal update task", "error");
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // ================= LOADING =================
   if (fetching) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -111,6 +158,7 @@ const EditTask = ({ token, showToast }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
       <div className="w-full max-w-xl bg-white p-6 rounded-xl shadow-md border">
+
         <h2 className="font-bold text-2xl mb-6 text-gray-800">
           Edit Task
         </h2>
@@ -181,6 +229,7 @@ const EditTask = ({ token, showToast }) => {
             Batal
           </button>
         </div>
+
       </div>
     </div>
   );
