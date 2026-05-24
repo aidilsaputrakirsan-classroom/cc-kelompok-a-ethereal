@@ -27,6 +27,7 @@ const LoginPage = ({ setToken, showToast }) => {
       let body;
       let headers = {};
 
+      // ================= REGISTER =================
       if (isRegister) {
         body = JSON.stringify({
           email: formData.email,
@@ -37,7 +38,10 @@ const LoginPage = ({ setToken, showToast }) => {
         headers = {
           "Content-Type": "application/json",
         };
-      } else {
+      }
+
+      // ================= LOGIN =================
+      else {
         const params = new URLSearchParams();
 
         params.append("username", formData.email);
@@ -56,6 +60,11 @@ const LoginPage = ({ setToken, showToast }) => {
         body,
       });
 
+      // ================= SERVICE DOWN =================
+      if (response.status >= 500) {
+        throw new Error("Service temporarily unavailable");
+      }
+
       const data = await response.json();
 
       console.log("LOGIN RESPONSE:", data);
@@ -64,6 +73,7 @@ const LoginPage = ({ setToken, showToast }) => {
         throw new Error(data.detail || "Authentication failed");
       }
 
+      // ================= REGISTER SUCCESS =================
       if (isRegister) {
         showToast(
           "Registrasi berhasil! Silakan login.",
@@ -77,7 +87,10 @@ const LoginPage = ({ setToken, showToast }) => {
           name: "",
           password: "",
         });
-      } else {
+      }
+
+      // ================= LOGIN SUCCESS =================
+      else {
         const token =
           data.access_token ||
           data.token ||
@@ -88,16 +101,28 @@ const LoginPage = ({ setToken, showToast }) => {
         }
 
         localStorage.setItem("token", token);
+
         setToken(token);
 
         showToast("Login berhasil!", "success");
       }
     } catch (err) {
       console.error(err);
-      showToast(
-        err.message || "Terjadi kesalahan",
-        "error"
-      );
+
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("Service temporarily unavailable")
+      ) {
+        showToast(
+          "Service temporarily unavailable",
+          "error"
+        );
+      } else {
+        showToast(
+          err.message || "Terjadi kesalahan",
+          "error"
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -183,6 +208,7 @@ const LoginPage = ({ setToken, showToast }) => {
               : "Belum punya akun? Register"}
           </Button>
         </div>
+
       </div>
     </div>
   );
