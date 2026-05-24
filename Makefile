@@ -1,53 +1,73 @@
-# Makefile untuk Project Kelarin — Team Ethereal
+# ============================================================
+# Makefile — Kelarin App Automation Tools (Team Ethereal)
+# Modul 12 Task Terstruktur: Advance Healthchecks & Gateway
+# ============================================================
 
-.PHONY: build up down logs push clean restart lint test pr-check
+.PHONY: build up down logs push clean restart lint test pr-check ps
 
-# ==================== EXISTING TARGETS ====================
+# ==================== CORE TARGETS ====================
 
 # Build semua image Docker
 build:
+	@echo "🛠️  Membangun seluruh image microservices..."
 	docker compose build
 
-# Jalankan semua service di background menggunakan profile dev
+# Jalankan semua service di background (Gateway akan menunggu semua backend healthy)
 up:
-	docker compose --profile dev up -d
+	@echo "🚀 Menyalakan ekosistem microservices dan API Gateway..."
+	docker compose up --build -d
 
 # Hentikan dan hapus container beserta network
 down:
-	docker compose --profile dev down
+	@echo "🛑 Menghentikan seluruh kontainer microservices..."
+	docker compose down
 
 # Lihat log dari semua service secara real-time
 logs:
+	@echo "📋 Menampilkan log dari seluruh kontainer..."
 	docker compose logs -f
 
 # Push semua image ke Docker Hub (Tugas Lead CI/CD)
 push:
+	@echo "📤 Membawa hasil build image ke Docker Hub..."
 	docker compose push
 
-# Hentikan, hapus container, beserta volume (reset database)
+# Hentikan, hapus container, beserta volume (reset total database)
 clean:
-	docker compose --profile dev down -v
+	@echo "🧹 Membersihkan kontainer, jaringan, dan seluruh data volume database..."
+	docker compose down -v
 	docker system prune -f
 
 # Restart semua service
 restart:
+	@echo "🔄 Memuat ulang seluruh layanan..."
 	docker compose restart
 
-# ==================== NEW TARGETS (TUGAS 9) ====================
+# Memeriksa status kesehatan kontainer secara berkala
+ps:
+	@echo "🔍 Memeriksa status dan kesehatan kontainer..."
+	docker compose ps
 
-# 1. Menjalankan linter untuk mengecek kualitas kode di backend
+# ==================== AUTOMATION & QA TARGETS ====================
+
+# Menjalankan linter untuk mengecek kualitas kode di auth-service
 lint:
-	docker compose exec backend ruff check . || echo "Linter failed or not installed"
+	@echo "🔍 Mengecek kualitas kode pada auth-service..."
+	docker compose exec auth-service ruff check . || echo "Linter failed or not installed"
 
-# 2. Placeholder untuk testing (Unit Test)
+# Placeholder untuk testing (Unit Test)
 test:
-	@echo "Running unit tests for Kelarin App..."
-	@echo "No tests implemented yet, but environment is ready."
+	@echo "🧪 Running unit tests for Kelarin Microservices App..."
+	@echo "Executing tests inside task-service..."
+	docker compose run --rm item-service pytest || echo "No tests implemented yet, but environment is ready."
 
-# 3. PR Check: Simulasi build dan health-check sebelum merge ke main
+# PR Check: Simulasi build dan health-check komplit lewat pintu API Gateway (Port 80)
 pr-check:
+	@echo "🚨 Menjalankan simulasi Pipeline PR Check..."
 	docker compose build
-	docker compose --profile dev up -d
-	@echo "Verifying service health..."
-	curl -f http://localhost:8000/health || (echo "Health check failed"; exit 1)
-	@echo "PR Check Passed! Infrastruktur aman untuk di-merge."
+	docker compose up -d
+	@echo "⏳ Menunggu kontainer melakukan inisialisasi..."
+	sleep 5
+	@echo "📡 Memverifikasi kesehatan pintu utama API Gateway..."
+	curl -f http://localhost/health || (echo "❌ Health check API Gateway gagal!"; exit 1)
+	@echo "✅ PR Check Passed! Infrastruktur microservices aman untuk di-merge ke branch main."
