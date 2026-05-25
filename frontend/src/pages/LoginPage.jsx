@@ -42,15 +42,13 @@ const LoginPage = ({ setToken, showToast }) => {
 
       // ================= LOGIN =================
       else {
-        const params = new URLSearchParams();
-
-        params.append("username", formData.email);
-        params.append("password", formData.password);
-
-        body = params.toString();
+        body = JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        });
 
         headers = {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
         };
       }
 
