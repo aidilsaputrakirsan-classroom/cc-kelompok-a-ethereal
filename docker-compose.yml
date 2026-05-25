@@ -1,81 +1,133 @@
 # ============================================================
-# Docker Compose — Kelarin App (Team Ethereal)
+# Docker Compose — Kelarin Microservices App (Team Ethereal)
+# Task Terstruktur: Advance Healthchecks & Gateway Lock
 # ============================================================
 
 services:
-  # ==================== DATABASE ====================
-  db:
+  # ==================== DATABASES ====================
+  auth-db:
     image: postgres:16-alpine
-    container_name: db-kelarin
+    container_name: auth-db-kelarin
     restart: unless-stopped
-    profiles: ["dev", "prod"]  # Muncul di kedua profil
     environment:
+      POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: pgpg
-      POSTGRES_DB: kelarin
-    ports:
-      - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - auth_db_data:/var/lib/postgresql/data
     networks:
       - kelarin-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d kelarin"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth_db"]
+      interval: 5s
+      timeout: 3s
       retries: 5
-      start_period: 10s
 
-  # ==================== BACKEND ====================
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    image: dwialsha/kelarin:backend-v2
-    container_name: backend
+  item-db:
+    image: postgres:16-alpine
+    container_name: item-db-kelarin
     restart: unless-stopped
-    profiles: ["dev", "prod"]  # Muncul di kedua profil
-    env_file:
-      - ./backend/.env.docker
-    ports:
-      - "8000:8000"
+    environment:
+      POSTGRES_DB: item_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pgpg
+    volumes:
+      - item_db_data:/var/lib/postgresql/data
+    networks:
+      - kelarin-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d item_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ==================== BACKEND SERVICES ====================
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:pgpg@auth-db:5432/auth_db
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      CORS_ORIGINS: "http://localhost"
     networks:
       - kelarin-net
     depends_on:
-      db:
+      auth-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 10s
+
+  item-service:
+    build:
+      context: ./services/task-service
+      dockerfile: Dockerfile
+    container_name: item-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:pgpg@item-db:5432/item_db
+      AUTH_SERVICE_URL: http://auth-service:8001
+      CORS_ORIGINS: "http://localhost"
+    networks:
+      - kelarin-net
+    depends_on:
+      item-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy  # Mengunci dependency agar auth-service wajib sehat dulu
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # ==================== FRONTEND ====================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://localhost:8000
-    image: dwialsha/kelarin:frontend-v1
-    container_name: frontend
+    container_name: frontend-kelarin
     restart: unless-stopped
-    profiles: ["dev"]  # Frontend biasanya hanya jalan di profil dev untuk tim
+    environment:
+      VITE_API_URL: http://localhost
+    networks:
+      - kelarin-net
+
+  # ==================== API GATEWAY ====================
+  gateway:
+    image: nginx:alpine
+    container_name: gateway-nginx
+    restart: unless-stopped
     ports:
-      - "5173:80"
+      - "80:80"
+    volumes:
+      - ./services/gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - kelarin-net
     depends_on:
-      - backend
+      auth-service:
+        condition: service_healthy  # TUGAS TERSTRUKTUR: Hanya start setelah auth-service healthy
+      item-service:
+        condition: service_healthy  # TUGAS TERSTRUKTUR: Hanya start setelah item-service healthy
+      frontend:
+        condition: service_started
 
-# ==================== VOLUMES ====================
+# ==================== VOLUMES & NETWORKS ====================
 volumes:
-  pgdata:
-    name: kelarin-pgdata
+  auth_db_data:
+    name: kelarin-auth-dbdata
+  item_db_data:
+    name: kelarin-item-dbdata
 
-# ==================== NETWORKS ====================
 networks:
   kelarin-net:
     name: kelarin-net
     driver: bridge
+    
