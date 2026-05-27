@@ -4,6 +4,21 @@ Semua perubahan penting dalam proyek ini akan dicatat dalam file ini.
 
 Format ini didasarkan pada [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-05-22
+
+### Added
+- Implementasi **Multi-Service CI/CD Pipeline** yang modular.
+- Pemisahan workflow menjadi `ci.yml` (PR/Feature validation) dan `cd.yml` (Main branch deployment).
+- Strategi **Parallel Matrix Build** untuk menjalankan pengujian backend dan frontend secara bersamaan.
+- Optimasi build Docker menggunakan **Docker Buildx** dan **GHA Caching** (3x lebih cepat).
+
+### Changed
+- Reorganisasi struktur repositori: Memindahkan script utilitas (`dev.sh`, `docker.sh`, `setup.sh`) dari root ke folder `scripts/`.
+- Pembaruan konfigurasi CI untuk mendukung environment testing (variabel rahasia untuk backend).
+
+### Removed
+- Penghapusan file binary PDF dari repositori untuk optimasi ukuran repositori (best practice).
+
 ## [0.16.0] - 2026-05-13
 
 ### Added

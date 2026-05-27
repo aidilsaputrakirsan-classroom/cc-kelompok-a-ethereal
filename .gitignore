@@ -17,9 +17,9 @@ env/
 # Environment Variables
 # =========================
 .env
-.env.production
-**/.env
-**/.env.production
+.env.*
+!.env.example
+**/!.env.example
 
 # =========================
 # Logs
