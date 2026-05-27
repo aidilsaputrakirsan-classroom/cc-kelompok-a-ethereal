@@ -34,23 +34,46 @@ jobs:
   notify-failure:
     name: 📢 Notify Failure
     runs-on: ubuntu-latest
-    if: failure()
+    if: failure() && github.event_name == 'pull_request'
     steps:
       - name: 💬 Leave PR Comment
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
             ⚠️ **CI/CD Pipeline Gagal!** ⚠️
+            Halo tim **Ethereal**, pemeriksaan otomatis mendeteksi kegagalan pada tahap testing, build, atau health check produksi.
+            Mohon cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})** untuk perbaikan.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   notify-success:
     name: 🚀 Notify Success
     runs-on: ubuntu-latest
-    if: success()
+    if: success() && github.event_name == 'pull_request'
     steps:
+      - name: 🕒 Set Timestamp
+        id: info
+        run: echo "timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_OUTPUT
+
       - name: 🚀 Leave Deployment Summary Comment
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
             ### 🚀 Deployment Berhasil!
+            Halo tim **Ethereal**, aplikasi telah berhasil dideploy dan melewati health check.
+
+            **Detail Deployment:**
+            - **Frontend URL:** [https://cc-kelompok-a-ethereal-production.up.railway.app](https://cc-kelompok-a-ethereal-production.up.railway.app)
+            - **Backend URL:** [https://kelarin.up.railway.app](https://kelarin.up.railway.app)
+            - **Commit SHA:** `${{ github.sha }}`
+            - **Timestamp:** `${{ steps.info.outputs.timestamp }}`
+
+            Cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📊 Add Job Summary
+        run: |
+          echo "### 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend URL:** https://cc-kelompok-a-ethereal-production.up.railway.app" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend URL:** https://kelarin.up.railway.app" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** ${{ steps.info.outputs.timestamp }}" >> $GITHUB_STEP_SUMMARY
