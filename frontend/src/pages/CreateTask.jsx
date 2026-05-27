@@ -129,6 +129,7 @@ const CreateTask = ({ token, showToast }) => {
 
         <input
           type="datetime-local"
+          aria-label="Deadline"
           value={form.deadline}
           onChange={(e) =>
             setForm({
