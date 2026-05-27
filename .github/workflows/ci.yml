@@ -28,7 +28,7 @@ jobs:
   # JOB: Linting (Tugas Lead CI/CD - Ruff Linter)
   # =============================================================
   lint:
-    name: 🔍 Lint Backend
+    name: 🔍 Lint All Services
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -38,17 +38,21 @@ jobs:
           python-version: "3.12"
       - name: Install ruff
         run: pip install ruff
-      - name: Run linter
+      - name: Run linter on backend
         run: ruff check backend/
+      - name: Run linter on auth-service
+        run: ruff check services/auth-service/
+      - name: Run linter on task-service
+        run: ruff check services/task-service/
 
   # ================================
-  # JOB 1: Test Backend (FastAPI)
+  # JOB 1: Test Backend Monolith
   # ================================
   test-backend:
-    name: 🐍 Test Backend
+    name: 🐍 Test Monolith
     runs-on: ubuntu-latest
-    needs: [lint] # Menunggu linter selesai (wajib pass)
-    timeout-minutes: 10 # OPTIMASI 2: Timeout per job
+    needs: [lint]
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./backend
@@ -58,65 +62,96 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: 📥 Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
       - name: 🧪 Run tests
-        # Lead DevOps mengaktifkan coverage report untuk monitoring target >= 60%
         run: pytest --cov=. --cov-report=term-missing
 
   # ================================
-  # JOB 2: Test Frontend (React)
+  # JOB 2: Test Auth Service
+  # ================================
+  test-auth-service:
+    name: 🔐 Test Auth Service
+    runs-on: ubuntu-latest
+    needs: [lint]
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./services/auth-service
+    env:
+      DATABASE_URL: sqlite:///./test_auth.db
+      SECRET_KEY: "auth_service_secret_key_test"
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 📥 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov httpx
+      - name: 🧪 Run tests
+        run: pytest --cov=. --cov-report=term-missing
+
+  # ================================
+  # JOB 3: Test Frontend (React)
   # ================================
   test-frontend:
     name: ⚛️ Test Frontend
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # OPTIMASI 2: Timeout per job
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./frontend
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
-
       - name: 📥 Install dependencies
         run: npm ci
-
       - name: 🏗️ Build frontend
         run: npm run build
 
   # ================================
-  # JOB 3: Build Docker Images
+  # JOB 4: Build Docker Images
   # ================================
   build-docker:
-    name: 🐳 Build Docker
+    name: 🐳 Build Multi-Service Docker
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # OPTIMASI 2: Timeout per job
-    needs: [test-backend, test-frontend] 
+    timeout-minutes: 15
+    needs: [test-backend, test-auth-service, test-frontend] 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐳 Build Kelarin Backend Image
+      - name: 🐳 Build Monolith Image
         run: docker build -t kelarin-backend:ci ./backend
 
-      - name: 🐳 Build Kelarin Frontend Image
+      - name: 🐳 Build Auth Service Image
+        run: docker build -t kelarin-auth-service:ci ./services/auth-service
+
+      - name: 🐳 Build Task Service Image
+        run: docker build -t kelarin-task-service:ci ./services/task-service
+
+      - name: 🐳 Build Frontend Image
         run: docker build -t kelarin-frontend:ci ./frontend
+
+      - name: 🛠️ Verify Docker Compose Config
+        run: docker-compose config
 
   # =========================================================================
   # JOB 4: Automated Production Health Check (Tugas Lead DevOps - Tugas 11)
@@ -154,7 +189,7 @@ jobs:
     name: 📢 Notify Failure
     runs-on: ubuntu-latest
     # PERBAIKAN DEVOPS: Tambahkan deploy-health-check ke daftar pantauan kegagalan
-    needs: [lint, test-backend, test-frontend, build-docker, deploy-health-check]
+    needs: [lint, test-backend, test-auth-service, test-frontend, build-docker, deploy-health-check]
     # Hanya jalan jika ada yang fail DAN ini adalah Pull Request
     if: failure() && github.event_name == 'pull_request'
     steps:
@@ -166,3 +201,40 @@ jobs:
             Halo tim **Ethereal**, pemeriksaan otomatis mendeteksi kegagalan pada tahap testing, build, atau health check produksi.
             Mohon cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})** untuk perbaikan.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # -------------------------------------------------------------------------
+  # TUGAS: Notifikasi Deployment Berhasil (Lead CI/CD - Week 11 Revised)
+  # -------------------------------------------------------------------------
+  notify-success:
+    name: 🚀 Notify Success
+    runs-on: ubuntu-latest
+    needs: [deploy-health-check]
+    if: success() && github.event_name == 'pull_request'
+    steps:
+      - name: 🕒 Set Timestamp
+        id: info
+        run: echo "timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Leave Deployment Summary Comment
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ### 🚀 Deployment Berhasil!
+            Halo tim **Ethereal**, aplikasi telah berhasil dideploy dan melewati health check.
+
+            **Detail Deployment:**
+            - **Frontend URL:** [https://cc-kelompok-a-ethereal-production.up.railway.app](https://cc-kelompok-a-ethereal-production.up.railway.app)
+            - **Backend URL:** [https://kelarin.up.railway.app](https://kelarin.up.railway.app)
+            - **Commit SHA:** `${{ github.sha }}`
+            - **Timestamp:** `${{ steps.info.outputs.timestamp }}`
+
+            Cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📊 Add Job Summary
+        run: |
+          echo "### 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend URL:** https://cc-kelompok-a-ethereal-production.up.railway.app" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend URL:** https://kelarin.up.railway.app" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** ${{ steps.info.outputs.timestamp }}" >> $GITHUB_STEP_SUMMARY
