@@ -1,0 +1,55 @@
+name: Deploy Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CD Pipeline"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  deploy-health-check:
+    name: 🏥 Deploy & Health Check
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 5
+    steps:
+      - name: 🏥 Automated Production Health Check
+        run: |
+          echo "Waiting for Railway deployment to be ready..."
+          sleep 30
+          HEALTH_URL="https://kelarin.up.railway.app/health"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+          if [ "$HTTP_STATUS" == "200" ]; then
+            echo "✅ Health check passed!"
+          else
+            echo "❌ Health check FAILED! HTTP $HTTP_STATUS."
+            exit 1
+          fi
+
+  notify-failure:
+    name: 📢 Notify Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: 💬 Leave PR Comment
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ⚠️ **CI/CD Pipeline Gagal!** ⚠️
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-success:
+    name: 🚀 Notify Success
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: 🚀 Leave Deployment Summary Comment
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ### 🚀 Deployment Berhasil!
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -46,3 +46,7 @@ Thumbs.db
 test.db
 .pytest_cache/
 *.db
+
+# Internal files
+draft.md
+AGENTS.md
