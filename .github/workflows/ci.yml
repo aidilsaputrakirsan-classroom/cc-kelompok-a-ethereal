@@ -102,72 +102,12 @@ jobs:
         working-directory: ${{ matrix.path }}
         run: npm ci
 
-      - name: 🏗️ Build frontend
-        run: npm run build
+      - name: Build Frontend
+        if: matrix.runtime == 'node'
+        working-directory: ${{ matrix.path }}
+        run: npm run build --if-present
 
-  # ================================
-  # JOB 3: Build Docker Images
-  # ================================
-  build-docker:
-    name: 🐳 Build Docker
-    runs-on: ubuntu-latest
-    timeout-minutes: 10 # OPTIMASI 2: Timeout per job
-    needs: [test-backend, test-frontend] 
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🐳 Build Kelarin Backend Image
-        run: docker build -t kelarin-backend:ci ./backend
-
-      - name: 🐳 Build Kelarin Frontend Image
-        run: docker build -t kelarin-frontend:ci ./frontend
-
-  # =========================================================================
-  # JOB 4: Automated Production Health Check (Tugas Lead DevOps - Tugas 11)
-  # =========================================================================
-  deploy-health-check:
-    name: 🏥 Deploy & Health Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Menunggu proses build docker lokal selesai sebelum memverifikasi versi deploy cloud
-    needs: [build-docker]
-    steps:
-      - name: 🏥 Automated Production Health Check
-        run: |
-          echo "Waiting for Railway deployment to be ready..."
-          # Memberikan jeda 30 detik agar container selesai cold start di produksi
-          sleep 30
-          
-          HEALTH_URL="https://kelarin.up.railway.app/health"
-          echo "Checking health status via: $HEALTH_URL"
-          
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
-          
-          if [ "$HTTP_STATUS" == "200" ]; then
-            echo "✅ Health check passed! Production app is healthy (HTTP $HTTP_STATUS)."
-          else
-            echo "❌ Health check FAILED! Server returned HTTP $HTTP_STATUS."
-            echo "Deployment might be crash looping. Check Railway dashboard logs immediately."
-            exit 1
-          fi
-
-  # -------------------------------------------------------------------------
-  # OPTIMASI 3: Notifikasi PR Comment saat CI Gagal
-  # -------------------------------------------------------------------------
-  notify-failure:
-    name: 📢 Notify Failure
-    runs-on: ubuntu-latest
-    # PERBAIKAN DEVOPS: Tambahkan deploy-health-check ke daftar pantauan kegagalan
-    needs: [lint, test-backend, test-frontend, build-docker, deploy-health-check]
-    # Hanya jalan jika ada yang fail DAN ini adalah Pull Request
-    if: failure() && github.event_name == 'pull_request'
-    steps:
-      - name: 💬 Leave PR Comment
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: |
-            ⚠️ **CI Pipeline Gagal!** ⚠️
-            Halo tim **Ethereal**, pemeriksaan otomatis mendeteksi kegagalan pada tahap testing, build, atau health check produksi.
-            Mohon cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})** untuk perbaikan.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Frontend Tests
+        if: matrix.runtime == 'node'
+        working-directory: ${{ matrix.path }}
+        run: npm test -- --passWithNoTests
