@@ -18,8 +18,8 @@ env/
 # =========================
 .env
 .env.*
-**/.env
-**/.env.*
+!.env.example
+**/!.env.example
 
 # =========================
 # Logs
@@ -46,3 +46,7 @@ Thumbs.db
 test.db
 .pytest_cache/
 *.db
+
+# Internal files
+draft.md
+AGENTS.md

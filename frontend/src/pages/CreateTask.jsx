@@ -15,13 +15,13 @@ const CreateTask = ({ token, showToast }) => {
 
   const [loading, setLoading] = useState(false);
 
+  // ================= CREATE TASK =================
   const handleCreate = async (e) => {
     e.preventDefault();
+
     setLoading(true);
 
     try {
-      const savedToken = localStorage.getItem("token");
-
       const payload = {
         title: form.title,
         description: form.description,
@@ -29,31 +29,53 @@ const CreateTask = ({ token, showToast }) => {
         attachment_url: form.attachment_url,
       };
 
-      console.log("TOKEN CREATE:", savedToken);
       console.log("FORM DATA:", payload);
 
       const response = await fetch(`${API_URL}/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${savedToken}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
+
+      if (response.status >= 500) {
+        throw new Error("Service temporarily unavailable");
+      }
 
       const data = await response.json();
 
       console.log("RESPONSE:", data);
 
       if (!response.ok) {
-        throw new Error(JSON.stringify(data.detail));
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : JSON.stringify(data.detail)
+        );
       }
 
       showToast("Task berhasil dibuat!", "success");
+
       navigate("/");
     } catch (err) {
       console.error(err);
-      showToast(err.message || "Terjadi kesalahan", "error");
+
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("Service temporarily unavailable")
+      ) {
+        showToast(
+          "Service temporarily unavailable",
+          "error"
+        );
+      } else {
+        showToast(
+          err.message || "Terjadi kesalahan",
+          "error"
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -62,6 +84,7 @@ const CreateTask = ({ token, showToast }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
       <div className="w-full max-w-xl bg-white p-6 rounded-xl shadow-md border">
+
         <h2 className="font-bold text-2xl mb-6 text-gray-800">
           Tambah Task
         </h2>
@@ -106,6 +129,7 @@ const CreateTask = ({ token, showToast }) => {
 
         <input
           type="datetime-local"
+          aria-label="Deadline"
           value={form.deadline}
           onChange={(e) =>
             setForm({
@@ -132,6 +156,7 @@ const CreateTask = ({ token, showToast }) => {
             Batal
           </button>
         </div>
+
       </div>
     </div>
   );

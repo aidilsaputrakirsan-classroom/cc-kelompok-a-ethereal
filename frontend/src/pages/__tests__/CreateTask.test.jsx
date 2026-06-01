@@ -52,7 +52,7 @@ describe("CreateTask Page", () => {
       target: { value: "Deskripsi tugas" },
     });
 
-    const deadlineInput = screen.getByDisplayValue("");
+    const deadlineInput = screen.getByLabelText(/deadline/i);
 
     fireEvent.change(deadlineInput, {
       target: { value: "2026-05-11T10:00" },
