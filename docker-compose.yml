@@ -1,6 +1,6 @@
 # ============================================================
 # Docker Compose — Kelarin Microservices App (Team Ethereal)
-# Task Terstruktur: Advance Healthchecks & Gateway Lock
+# Task Terstruktur Modul 13: Resilience & Resource Limits
 # ============================================================
 
 services:
@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pgpg
+      POSTGRES_PASSWORD: pgpg      # <-- Tetap menggunakan pgpg
     volumes:
       - auth_db_data:/var/lib/postgresql/data
     networks:
@@ -22,6 +22,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    deploy:                        # TUGAS DEV-OPS: Membatasi resource DB Auth
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   item-db:
     image: postgres:16-alpine
@@ -30,7 +35,7 @@ services:
     environment:
       POSTGRES_DB: item_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pgpg
+      POSTGRES_PASSWORD: pgpg      # <-- Tetap menggunakan pgpg
     volumes:
       - item_db_data:/var/lib/postgresql/data
     networks:
@@ -40,6 +45,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    deploy:                        # TUGAS DEV-OPS: Membatasi resource DB Item
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   # ==================== BACKEND SERVICES ====================
   auth-service:
@@ -49,9 +59,9 @@ services:
     container_name: auth-service
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:pgpg@auth-db:5432/auth_db
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
-      CORS_ORIGINS: "http://localhost"
+      DATABASE_URL: postgresql://postgres:pgpg@auth-db:5432/auth_db  # <-- Tetap menggunakan pgpg
+      SECRET_KEY: ${SECRET_KEY:-30a3199c2825ae46bf71a34324fe9cc21f438d8a07f04d3a7aa8c7948f36a337}
+      CORS_ORIGINS: "http://localhost,http://localhost:5173"
     networks:
       - kelarin-net
     depends_on:
@@ -63,6 +73,11 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    deploy:                        # TUGAS DEV-OPS: Membatasi resource Auth Service
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   item-service:
     build:
@@ -71,22 +86,27 @@ services:
     container_name: item-service
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:pgpg@item-db:5432/item_db
+      DATABASE_URL: postgresql://postgres:pgpg@item-db:5432/item_db  # <-- Tetap menggunakan pgpg
       AUTH_SERVICE_URL: http://auth-service:8001
-      CORS_ORIGINS: "http://localhost"
+      CORS_ORIGINS: "http://localhost,http://localhost:5173"
     networks:
       - kelarin-net
     depends_on:
       item-db:
         condition: service_healthy
       auth-service:
-        condition: service_healthy  # Mengunci dependency agar auth-service wajib sehat dulu
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
+    deploy:                        # TUGAS DEV-OPS: Membatasi resource Item Service
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   # ==================== FRONTEND ====================
   frontend:
@@ -99,6 +119,11 @@ services:
       VITE_API_URL: http://localhost
     networks:
       - kelarin-net
+    deploy:                        # TUGAS DEV-OPS: Membatasi resource Frontend
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   # ==================== API GATEWAY ====================
   gateway:
@@ -113,11 +138,16 @@ services:
       - kelarin-net
     depends_on:
       auth-service:
-        condition: service_healthy  # TUGAS TERSTRUKTUR: Hanya start setelah auth-service healthy
+        condition: service_healthy
       item-service:
-        condition: service_healthy  # TUGAS TERSTRUKTUR: Hanya start setelah item-service healthy
+        condition: service_healthy
       frontend:
         condition: service_started
+    deploy:                        # TUGAS DEV-OPS: Membatasi resource Gateway
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
 
 # ==================== VOLUMES & NETWORKS ====================
 volumes:
@@ -130,4 +160,3 @@ networks:
   kelarin-net:
     name: kelarin-net
     driver: bridge
-    
