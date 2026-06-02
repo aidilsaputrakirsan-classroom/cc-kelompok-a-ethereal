@@ -32,17 +32,21 @@ app = FastAPI(
 
 # ================= CORS =================
 
-CORS_ORIGINS = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:5173"
-).split(",")
+# Domain di bawah ini mencakup lokal development DAN domain produksi Railway kelompokmu
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "https://kelarin.up.railway.app"  # <-- LANGSUNG DIKUNCI DI SINI UNTUK PRODUCTION RAILWAY
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=origins,        
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],          
+    allow_headers=["*"],          
 )
 
 # ================= HEALTH =================
@@ -51,13 +55,18 @@ app.add_middleware(
 async def health_check():
 
     auth_status = "healthy"
+    
+    # Ambil base URL auth-service dari docker-compose. 
+    # Jika tidak diset, gunakan default internal docker network 'http://auth-service:8001'
+    auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
+    
+    # Bersihkan sisa trailing slash jika ada, lalu arahkan pas ke endpoint /health
+    auth_health_url = f"{auth_base_url.rstrip('/')}/health"
 
     try:
-
         async with httpx.AsyncClient() as client:
-
             response = await client.get(
-                "http://localhost:8001/health",
+                auth_health_url,
                 timeout=3.0
             )
 
