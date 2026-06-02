@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pgpg      # <-- Tetap menggunakan pgpg
+      POSTGRES_PASSWORD: pgpg
     volumes:
       - auth_db_data:/var/lib/postgresql/data
     networks:
@@ -22,7 +22,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-    deploy:                        # TUGAS DEV-OPS: Membatasi resource DB Auth
+    deploy:
       resources:
         limits:
           cpus: '0.25'
@@ -35,7 +35,7 @@ services:
     environment:
       POSTGRES_DB: item_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pgpg      # <-- Tetap menggunakan pgpg
+      POSTGRES_PASSWORD: pgpg
     volumes:
       - item_db_data:/var/lib/postgresql/data
     networks:
@@ -45,7 +45,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-    deploy:                        # TUGAS DEV-OPS: Membatasi resource DB Item
+    deploy:
       resources:
         limits:
           cpus: '0.25'
@@ -59,7 +59,7 @@ services:
     container_name: auth-service
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:pgpg@auth-db:5432/auth_db  # <-- Tetap menggunakan pgpg
+      DATABASE_URL: postgresql://postgres:pgpg@auth-db:5432/auth_db
       SECRET_KEY: ${SECRET_KEY:-30a3199c2825ae46bf71a34324fe9cc21f438d8a07f04d3a7aa8c7948f36a337}
       CORS_ORIGINS: "http://localhost,http://localhost:5173"
     networks:
@@ -73,7 +73,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    deploy:                        # TUGAS DEV-OPS: Membatasi resource Auth Service
+    deploy:
       resources:
         limits:
           cpus: '0.50'
@@ -86,7 +86,8 @@ services:
     container_name: item-service
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:pgpg@item-db:5432/item_db  # <-- Tetap menggunakan pgpg
+      DATABASE_URL: postgresql://postgres:pgpg@item-db:5432/item_db
+      # FIX SINKRONISASI: Diarahkan ke domain internal container, bukan localhost/host luar lagi
       AUTH_SERVICE_URL: http://auth-service:8001
       CORS_ORIGINS: "http://localhost,http://localhost:5173"
     networks:
@@ -95,14 +96,14 @@ services:
       item-db:
         condition: service_healthy
       auth-service:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
-    deploy:                        # TUGAS DEV-OPS: Membatasi resource Item Service
+    deploy:
       resources:
         limits:
           cpus: '0.50'
@@ -119,7 +120,7 @@ services:
       VITE_API_URL: http://localhost
     networks:
       - kelarin-net
-    deploy:                        # TUGAS DEV-OPS: Membatasi resource Frontend
+    deploy:
       resources:
         limits:
           cpus: '0.25'
@@ -138,12 +139,12 @@ services:
       - kelarin-net
     depends_on:
       auth-service:
-        condition: service_healthy
+        condition: service_started
       item-service:
-        condition: service_healthy
+        condition: service_started
       frontend:
         condition: service_started
-    deploy:                        # TUGAS DEV-OPS: Membatasi resource Gateway
+    deploy:
       resources:
         limits:
           cpus: '0.25'

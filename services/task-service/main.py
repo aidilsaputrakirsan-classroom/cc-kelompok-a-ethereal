@@ -51,13 +51,18 @@ app.add_middleware(
 async def health_check():
 
     auth_status = "healthy"
+    
+    # Ambil base URL auth-service dari docker-compose. 
+    # Jika tidak diset, gunakan default internal docker network 'http://auth-service:8001'
+    auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
+    
+    # Bersihkan sisa trailing slash jika ada, lalu arahkan pas ke endpoint /health
+    auth_health_url = f"{auth_base_url.rstrip('/')}/health"
 
     try:
-
         async with httpx.AsyncClient() as client:
-
             response = await client.get(
-                "http://localhost:8001/health",
+                auth_health_url,
                 timeout=3.0
             )
 
