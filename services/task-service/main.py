@@ -1,9 +1,9 @@
 import os
+import httpx
 
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, Depends, HTTPException
-
 from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.orm import Session
@@ -48,11 +48,42 @@ app.add_middleware(
 # ================= HEALTH =================
 
 @app.get("/health")
-def health_check():
+async def health_check():
+
+    auth_status = "healthy"
+    
+    # Ambil base URL auth-service dari docker-compose. 
+    # Jika tidak diset, gunakan default internal docker network 'http://auth-service:8001'
+    auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
+    
+    # Bersihkan sisa trailing slash jika ada, lalu arahkan pas ke endpoint /health
+    auth_health_url = f"{auth_base_url.rstrip('/')}/health"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                auth_health_url,
+                timeout=3.0
+            )
+
+            if response.status_code != 200:
+                auth_status = "unhealthy"
+
+    except Exception:
+        auth_status = "unhealthy"
+
+    overall_status = (
+        "healthy"
+        if auth_status == "healthy"
+        else "degraded"
+    )
 
     return {
-        "status": "healthy",
-        "service": "task-service"
+        "status": overall_status,
+        "service": "task-service",
+        "dependencies": {
+            "auth-service": auth_status
+        }
     }
 
 # ================= CREATE TASK =================
@@ -78,6 +109,7 @@ async def create_task(
     db.add(task)
     db.commit()
     db.refresh(task)
+
     return task
 
 # ================= GET TASKS =================
@@ -126,6 +158,7 @@ async def update_task(
 
     db.commit()
     db.refresh(task)
+
     return task
 
 # ================= DELETE TASK =================
@@ -169,10 +202,12 @@ async def task_stats(
     ).all()
 
     total_tasks = len(tasks)
+
     completed_tasks = len([
         task for task in tasks
         if task.completed
     ])
+
     pending_tasks = total_tasks - completed_tasks
 
     return {
