@@ -59,7 +59,7 @@ lint:
 test:
 	@echo "🧪 Running unit tests for Kelarin Microservices App..."
 	@echo "Executing tests inside task-service..."
-	docker compose run --rm item-service pytest || echo "No tests implemented yet, but environment is ready."
+	docker compose run --rm task-service pytest || echo "No tests implemented yet, but environment is ready."
 
 # PR Check: Simulasi build dan health-check komplit lewat pintu API Gateway (Port 80)
 pr-check:

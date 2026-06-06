@@ -66,7 +66,7 @@ ItemService --> ItemDB
 | POST | `/items` | Menambahkan item baru |
 | PUT | `/items/{id}` | Mengubah item |
 | DELETE | `/items/{id}` | Menghapus item |
-| GET | `/health` | Healthcheck item-service |
+| GET | `/health` | Healthcheck task-service |
 
 ---
 
@@ -78,7 +78,7 @@ ItemService --> ItemDB
 | `docker compose down` | Menghentikan seluruh container |
 | `docker compose ps` | Melihat status container |
 | `docker compose logs auth-service` | Melihat logs auth-service |
-| `docker compose logs item-service` | Melihat logs item-service |
+| `docker compose logs task-service` | Melihat logs task-service |
 
 ---
 
@@ -98,7 +98,7 @@ ItemService --> ItemDB
 | Command | Function |
 |----------|----------|
 | `docker compose logs auth-service` | Monitoring auth-service |
-| `docker compose logs item-service` | Monitoring item-service |
+| `docker compose logs task-service` | Monitoring task-service |
 
 ---
 
@@ -109,9 +109,9 @@ ItemService --> ItemDB
 | Service | Status |
 |----------|--------|
 | auth-service | ✅ Healthy |
-| item-service | ✅ Healthy |
+| task-service | ✅ Healthy |
 | auth-db | ✅ Healthy |
-| item-db | ✅ Healthy |
+| task-db | ✅ Healthy |
 | frontend | ✅ Running |
 | gateway-nginx | ✅ Running |
 
@@ -175,10 +175,10 @@ ItemService --> ItemDB
 |------------------|----------|-------------|
 | Docker Compose Validation | ![Docker Compose](assets/docker-compose-ps.png) | Pengujian dilakukan menggunakan perintah `docker compose ps` untuk memastikan seluruh container microservices berjalan dengan status running dan healthy. |
 | Auth Service Healthcheck | ![Auth Health](assets/auth-health.png) | Pengujian dilakukan pada endpoint `/health` auth-service melalui Swagger untuk memastikan service authentication berjalan normal dengan response `200 OK`. |
-| Item Service Healthcheck | ![Item Health](assets/item-health.png) | Pengujian dilakukan pada endpoint `/health` item-service untuk memastikan service item management berjalan normal tanpa error. |
+| Item Service Healthcheck | ![Item Health](assets/item-health.png) | Pengujian dilakukan pada endpoint `/health` task-service untuk memastikan service item management berjalan normal tanpa error. |
 | User Registration Testing | ![Register Testing](assets/register-testing.png) | Pengujian dimulai dengan membuat akun baru melalui halaman registrasi untuk memastikan auth-service dapat menyimpan data user dengan baik. |
 | User Login Testing | ![Login Testing](assets/login-testing.png) | Pengujian dilakukan menggunakan akun yang telah terdaftar untuk memastikan proses authentication dan JWT token berjalan normal. |
-| Create Item Testing | ![Create Item](assets/create-item.png) | Pengujian dilakukan dengan menambahkan item baru pada aplikasi untuk memastikan item-service dapat menerima dan menyimpan data dengan baik. |
+| Create Item Testing | ![Create Item](assets/create-item.png) | Pengujian dilakukan dengan menambahkan item baru pada aplikasi untuk memastikan task-service dapat menerima dan menyimpan data dengan baik. |
 | Read Item Testing | ![Read Item](assets/read-item.png) | Pengujian dilakukan untuk memastikan item yang telah dibuat berhasil ditampilkan pada frontend application. |
 | Update Item Testing | ![Update Item](assets/update-item.png) | Pengujian dilakukan dengan mengubah data item untuk memastikan fitur update berjalan normal pada microservices architecture. |
 | Delete Item Testing | ![Delete Item](assets/delete-item.png) | Pengujian dilakukan dengan menghapus item dari sistem untuk memastikan delete endpoint berjalan dengan baik tanpa error. |

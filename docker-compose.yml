@@ -28,9 +28,9 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  item-db:
+  task-db:
     image: postgres:16-alpine
-    container_name: item-db-kelarin
+    container_name: task-db-kelarin
     restart: unless-stopped
     environment:
       POSTGRES_DB: item_db
@@ -79,21 +79,21 @@ services:
           cpus: '0.50'
           memory: 512M
 
-  item-service:
+  task-service:
     build:
       context: ./services/task-service
       dockerfile: Dockerfile
-    container_name: item-service
+    container_name: task-service
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:pgpg@item-db:5432/item_db
+      DATABASE_URL: postgresql://postgres:pgpg@task-db:5432/item_db
       # FIX SINKRONISASI: Diarahkan ke domain internal container, bukan localhost/host luar lagi
       AUTH_SERVICE_URL: http://auth-service:8001
       CORS_ORIGINS: "http://localhost,http://localhost:5173"
     networks:
       - kelarin-net
     depends_on:
-      item-db:
+      task-db:
         condition: service_healthy
       auth-service:
         condition: service_started
@@ -140,7 +140,7 @@ services:
     depends_on:
       auth-service:
         condition: service_started
-      item-service:
+      task-service:
         condition: service_started
       frontend:
         condition: service_started
@@ -155,7 +155,7 @@ volumes:
   auth_db_data:
     name: kelarin-auth-dbdata
   item_db_data:
-    name: kelarin-item-dbdata
+    name: kelarin-task-dbdata
 
 networks:
   kelarin-net:
