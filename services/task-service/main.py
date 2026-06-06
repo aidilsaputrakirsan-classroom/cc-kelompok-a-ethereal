@@ -132,6 +132,30 @@ async def get_tasks(
 
     return tasks
 
+# ================= GET TASK DETAIL =================
+
+@app.get(
+    "/tasks/{task_id}",
+    response_model=TaskResponse
+)
+async def get_task(
+    task_id: int,
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.owner_id == user["user_id"]
+    ).first()
+
+    if not task:
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found"
+        )
+
+    return task
+
 # ================= UPDATE TASK =================
 
 @app.put(

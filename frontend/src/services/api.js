@@ -237,3 +237,27 @@ export const api = {
     }
   },
 };
+
+updateTask: async (taskId, taskData, token) => {
+  try {
+    const res = await fetch(`${API_URL}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(taskData),
+    });
+
+    // Tambahkan pengecekan ini:
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP Error: ${res.status}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error("Update task error:", err);
+    return { error: err.message || "Gagal update task" };
+  }
+};
