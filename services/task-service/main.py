@@ -32,17 +32,21 @@ app = FastAPI(
 
 # ================= CORS =================
 
-CORS_ORIGINS = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:5173"
-).split(",")
+# Domain di bawah ini mencakup lokal development DAN domain produksi Railway kelompokmu
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "https://kelarin.up.railway.app"  # <-- LANGSUNG DIKUNCI DI SINI UNTUK PRODUCTION RAILWAY
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=origins,        
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],          
+    allow_headers=["*"],          
 )
 
 # ================= HEALTH =================
@@ -127,6 +131,30 @@ async def get_tasks(
     ).all()
 
     return tasks
+
+# ================= GET TASK DETAIL =================
+
+@app.get(
+    "/tasks/{task_id}",
+    response_model=TaskResponse
+)
+async def get_task(
+    task_id: int,
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.owner_id == user["user_id"]
+    ).first()
+
+    if not task:
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found"
+        )
+
+    return task
 
 # ================= UPDATE TASK =================
 

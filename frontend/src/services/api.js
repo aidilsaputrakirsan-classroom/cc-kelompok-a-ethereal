@@ -1,7 +1,10 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+/**
+ * Enhanced API client dengan response structure yang consistent
+ * Semua responses return: { status, data, error }
+ */
 export const api = {
-
   login: async ({ email, password }) => {
     try {
       const formData = new URLSearchParams();
@@ -16,10 +19,39 @@ export const api = {
         body: formData,
       });
 
-      return await res.json();
+      const data = await res.json();
+
+      // Handle 503 Service Unavailable
+      if (res.status === 503) {
+        return {
+          status: 503,
+          data: null,
+          error: "Service temporarily unavailable",
+          serviceUnavailable: true,
+        };
+      }
+
+      if (!res.ok) {
+        return {
+          status: res.status,
+          data: null,
+          error: data.detail || "Login gagal",
+        };
+      }
+
+      return {
+        status: res.status,
+        data,
+        error: null,
+      };
     } catch (err) {
       console.error("Login error:", err);
-      return { error: "Login gagal" };
+      return {
+        status: 0,
+        data: null,
+        error: err.message || "Network error",
+        networkError: true,
+      };
     }
   },
 
@@ -31,10 +63,39 @@ export const api = {
         },
       });
 
-      return await res.json();
+      const data = await res.json();
+
+      // Handle 503 Service Unavailable
+      if (res.status === 503) {
+        return {
+          status: 503,
+          data: null,
+          error: "Task service temporarily unavailable",
+          serviceUnavailable: true,
+        };
+      }
+
+      if (!res.ok) {
+        return {
+          status: res.status,
+          data: null,
+          error: data.detail || "Gagal mengambil tasks",
+        };
+      }
+
+      return {
+        status: res.status,
+        data,
+        error: null,
+      };
     } catch (err) {
       console.error("Get tasks error:", err);
-      return [];
+      return {
+        status: 0,
+        data: [],
+        error: err.message || "Network error",
+        networkError: true,
+      };
     }
   },
 
@@ -49,10 +110,154 @@ export const api = {
         body: JSON.stringify(taskData),
       });
 
-      return await res.json();
+      const data = await res.json();
+
+      // Handle 503 Service Unavailable
+      if (res.status === 503) {
+        return {
+          status: 503,
+          data: null,
+          error: "Service temporarily unavailable",
+          serviceUnavailable: true,
+        };
+      }
+
+      if (!res.ok) {
+        return {
+          status: res.status,
+          data: null,
+          error: data.detail || "Gagal membuat task",
+        };
+      }
+
+      return {
+        status: res.status,
+        data,
+        error: null,
+      };
     } catch (err) {
       console.error("Create task error:", err);
-      return { error: "Gagal membuat task" };
+      return {
+        status: 0,
+        data: null,
+        error: err.message || "Network error",
+        networkError: true,
+      };
     }
   },
+
+  updateTask: async (taskId, taskData, token) => {
+    try {
+      const res = await fetch(`${API_URL}/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(taskData),
+      });
+
+      const data = await res.json();
+
+      // Handle 503 Service Unavailable
+      if (res.status === 503) {
+        return {
+          status: 503,
+          data: null,
+          error: "Service temporarily unavailable",
+          serviceUnavailable: true,
+        };
+      }
+
+      if (!res.ok) {
+        return {
+          status: res.status,
+          data: null,
+          error: data.detail || "Gagal update task",
+        };
+      }
+
+      return {
+        status: res.status,
+        data,
+        error: null,
+      };
+    } catch (err) {
+      console.error("Update task error:", err);
+      return {
+        status: 0,
+        data: null,
+        error: err.message || "Network error",
+        networkError: true,
+      };
+    }
+  },
+
+  deleteTask: async (taskId, token) => {
+    try {
+      const res = await fetch(`${API_URL}/tasks/${taskId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Handle 503 Service Unavailable
+      if (res.status === 503) {
+        return {
+          status: 503,
+          data: null,
+          error: "Service temporarily unavailable",
+          serviceUnavailable: true,
+        };
+      }
+
+      if (!res.ok) {
+        const data = await res.json();
+        return {
+          status: res.status,
+          data: null,
+          error: data.detail || "Gagal hapus task",
+        };
+      }
+
+      return {
+        status: res.status,
+        data: null,
+        error: null,
+      };
+    } catch (err) {
+      console.error("Delete task error:", err);
+      return {
+        status: 0,
+        data: null,
+        error: err.message || "Network error",
+        networkError: true,
+      };
+    }
+  },
+};
+
+updateTask: async (taskId, taskData, token) => {
+  try {
+    const res = await fetch(`${API_URL}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(taskData),
+    });
+
+    // Tambahkan pengecekan ini:
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP Error: ${res.status}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error("Update task error:", err);
+    return { error: err.message || "Gagal update task" };
+  }
 };

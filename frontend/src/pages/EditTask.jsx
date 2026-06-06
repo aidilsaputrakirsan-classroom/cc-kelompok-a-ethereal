@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import ServiceStatusBanner from "../components/ServiceStatusBanner";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -17,15 +18,25 @@ const EditTask = ({ token, showToast }) => {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [serviceUnavailable, setServiceUnavailable] =
+    useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   // ================= FETCH TASK DETAIL =================
   const fetchTask = async () => {
     try {
+      setFetching(true);
+      setServiceUnavailable(false);
+
       const res = await fetch(`${API_URL}/tasks/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (res.status === 503) {
+        throw new Error("Service temporarily unavailable");
+      }
 
       if (res.status >= 500) {
         throw new Error("Service temporarily unavailable");
@@ -54,6 +65,7 @@ const EditTask = ({ token, showToast }) => {
         err.message.includes("Failed to fetch") ||
         err.message.includes("Service temporarily unavailable")
       ) {
+        setServiceUnavailable(true);
         showToast(
           "Service temporarily unavailable",
           "error"
@@ -73,11 +85,12 @@ const EditTask = ({ token, showToast }) => {
 
   useEffect(() => {
     fetchTask();
-  }, []);
+  }, [retryAttempt]);
 
   // ================= UPDATE TASK =================
   const handleUpdate = async () => {
     setLoading(true);
+    setServiceUnavailable(false);
 
     try {
       let formattedDeadline = form.deadline;
@@ -107,6 +120,10 @@ const EditTask = ({ token, showToast }) => {
         body: JSON.stringify(payload),
       });
 
+      if (res.status === 503) {
+        throw new Error("Service temporarily unavailable");
+      }
+
       if (res.status >= 500) {
         throw new Error("Service temporarily unavailable");
       }
@@ -134,6 +151,7 @@ const EditTask = ({ token, showToast }) => {
         err.message.includes("Failed to fetch") ||
         err.message.includes("Service temporarily unavailable")
       ) {
+        setServiceUnavailable(true);
         showToast(
           "Service temporarily unavailable",
           "error"
@@ -144,6 +162,10 @@ const EditTask = ({ token, showToast }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setRetryAttempt((prev) => prev + 1);
   };
 
   // ================= LOADING =================
@@ -157,6 +179,14 @@ const EditTask = ({ token, showToast }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
+      {/* Service Status Banner */}
+      <ServiceStatusBanner
+        isVisible={serviceUnavailable}
+        message="Task service is temporarily unavailable"
+        onRetry={handleRetry}
+        serviceType="task"
+      />
+
       <div className="w-full max-w-xl bg-white p-6 rounded-xl shadow-md border">
 
         <h2 className="font-bold text-2xl mb-6 text-gray-800">
@@ -172,6 +202,7 @@ const EditTask = ({ token, showToast }) => {
               title: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-2 rounded mb-3"
         />
 
@@ -184,6 +215,7 @@ const EditTask = ({ token, showToast }) => {
               description: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-2 rounded mb-3"
           rows="4"
         />
@@ -198,6 +230,7 @@ const EditTask = ({ token, showToast }) => {
               attachment_url: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-2 rounded mb-3"
         />
 
@@ -210,6 +243,7 @@ const EditTask = ({ token, showToast }) => {
               deadline: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-2 rounded mb-5"
         />
 
@@ -217,14 +251,15 @@ const EditTask = ({ token, showToast }) => {
           <button
             onClick={handleUpdate}
             disabled={loading}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded"
           >
             {loading ? "Loading..." : "Simpan"}
           </button>
 
           <button
             onClick={() => navigate("/")}
-            className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+            disabled={loading}
+            className="bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 text-white px-4 py-2 rounded"
           >
             Batal
           </button>

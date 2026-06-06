@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const Header = ({ onLogout }) => {
   const [darkMode, setDarkMode] = useState(
@@ -6,7 +7,10 @@ const Header = ({ onLogout }) => {
   );
 
   useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+    localStorage.setItem(
+      "darkMode",
+      JSON.stringify(darkMode)
+    );
 
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -40,6 +44,14 @@ const Header = ({ onLogout }) => {
           </span>
 
           <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
+
+          {/* Status Dashboard */}
+          <Link
+            to="/status"
+            className="text-sm font-medium text-gray-700 dark:text-white hover:text-[#2E75B6] transition-colors"
+          >
+            📊 Status
+          </Link>
 
           {/* Dark Mode Toggle */}
           <button
