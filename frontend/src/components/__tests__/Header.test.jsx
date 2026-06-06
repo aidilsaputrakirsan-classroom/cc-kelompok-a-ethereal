@@ -1,34 +1,71 @@
 import { render, screen } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
 import { describe, it, expect, vi } from "vitest";
 import Header from "../Header";
 
 describe("Header Component", () => {
   it("menampilkan nama aplikasi Kelarin", () => {
-    render(<Header onLogout={() => {}} />);
+    render(
+      <BrowserRouter>
+        <Header onLogout={() => {}} />
+      </BrowserRouter>
+    );
 
-    expect(screen.getByText(/Kelarin/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Kelarin/i)
+    ).toBeInTheDocument();
   });
 
   it("menampilkan text Ethereal Team Workspace", () => {
-    render(<Header onLogout={() => {}} />);
+    render(
+      <BrowserRouter>
+        <Header onLogout={() => {}} />
+      </BrowserRouter>
+    );
 
     expect(
-      screen.getByText(/Ethereal Team Workspace/i)
+      screen.getByText(
+        /Ethereal Team Workspace/i
+      )
     ).toBeInTheDocument();
   });
 
   it("menampilkan tombol Logout", () => {
-    render(<Header onLogout={() => {}} />);
+    render(
+      <BrowserRouter>
+        <Header onLogout={() => {}} />
+      </BrowserRouter>
+    );
 
-    expect(screen.getByText(/Logout/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Logout/i)
+    ).toBeInTheDocument();
+  });
+
+  it("menampilkan tombol Status", () => {
+    render(
+      <BrowserRouter>
+        <Header onLogout={() => {}} />
+      </BrowserRouter>
+    );
+
+    expect(
+      screen.getByText(/Status/i)
+    ).toBeInTheDocument();
   });
 
   it("menjalankan fungsi logout saat tombol logout diklik", () => {
     const mockLogout = vi.fn();
 
-    render(<Header onLogout={mockLogout} />);
+    render(
+      <BrowserRouter>
+        <Header onLogout={mockLogout} />
+      </BrowserRouter>
+    );
 
-    const logoutButton = screen.getByText(/Logout/i);
+    const logoutButton =
+      screen.getByText(/Logout/i);
+
     logoutButton.click();
 
     expect(mockLogout).toHaveBeenCalled();
