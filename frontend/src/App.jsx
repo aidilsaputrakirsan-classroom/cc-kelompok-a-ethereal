@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import CreateTask from "./pages/CreateTask";
 import EditTask from "./pages/EditTask";
+import StatusPage from "./pages/StatusPage";
 import Toast from "./components/ui/Toast";
 import AboutPage from "./pages/AboutPage";
 import ServiceStatusBanner from "./components/ServiceStatusBanner";
@@ -18,6 +19,7 @@ function App() {
   // 🔥 SYNC TOKEN DARI LOCAL STORAGE
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
+
     if (savedToken) {
       setToken(savedToken);
     }
@@ -31,10 +33,12 @@ function App() {
           import.meta.env.VITE_API_URL ||
           "http://localhost:8000";
 
-        // Try to call a simple endpoint to check service
-        const res = await fetch(`${API_URL}/health`, {
-          signal: AbortSignal.timeout(5000),
-        });
+        const res = await fetch(
+          `${API_URL}/health`,
+          {
+            signal: AbortSignal.timeout(5000),
+          }
+        );
 
         if (res.status === 503) {
           setIsAuthServiceDown(true);
@@ -42,7 +46,6 @@ function App() {
           setIsAuthServiceDown(false);
         }
       } catch (err) {
-        // If health check fails, assume service might be down
         setIsAuthServiceDown(true);
       }
     };
@@ -52,6 +55,7 @@ function App() {
 
     // Check every 30 seconds when user is logged in
     let interval;
+
     if (token) {
       interval = setInterval(() => {
         checkAuthServiceHealth();
@@ -63,7 +67,10 @@ function App() {
     };
   }, [token]);
 
-  const showToast = (message, type = "success") => {
+  const showToast = (
+    message,
+    type = "success"
+  ) => {
     setNotification({ message, type });
   };
 
@@ -74,7 +81,12 @@ function App() {
   };
 
   if (!token) {
-    return <LoginPage setToken={setToken} showToast={showToast} />;
+    return (
+      <LoginPage
+        setToken={setToken}
+        showToast={showToast}
+      />
+    );
   }
 
   return (
@@ -90,7 +102,9 @@ function App() {
         <Toast
           message={notification.message}
           type={notification.type}
-          onClose={() => setNotification(null)}
+          onClose={() =>
+            setNotification(null)
+          }
         />
       )}
 
@@ -109,20 +123,32 @@ function App() {
         <Route
           path="/create"
           element={
-            <CreateTask token={token} showToast={showToast} />
+            <CreateTask
+              token={token}
+              showToast={showToast}
+            />
           }
         />
 
         <Route
           path="/edit/:id"
           element={
-            <EditTask token={token} showToast={showToast} />
+            <EditTask
+              token={token}
+              showToast={showToast}
+            />
           }
         />
 
         <Route
           path="/about"
           element={<AboutPage />}
+        />
+
+        {/* Workshop 14.4 */}
+        <Route
+          path="/status"
+          element={<StatusPage />}
         />
       </Routes>
     </>
