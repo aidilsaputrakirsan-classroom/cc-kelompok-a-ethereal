@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
+import { api } from "../services/api";
+import ServiceStatusBanner from "../components/ServiceStatusBanner";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,58 +16,70 @@ const LoginPage = ({ setToken, showToast }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [serviceUnavailable, setServiceUnavailable] =
+    useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setServiceUnavailable(false);
 
     try {
-      const endpoint = isRegister
-        ? `${API_URL}/auth/register`
-        : `${API_URL}/auth/login`;
-
-      let body;
-      let headers = {};
+      let response;
 
       // ================= REGISTER =================
       if (isRegister) {
-        body = JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          password: formData.password,
-        });
-
-        headers = {
-          "Content-Type": "application/json",
-        };
+        response = await fetch(
+          `${API_URL}/auth/register`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: formData.email,
+              name: formData.name,
+              password: formData.password,
+            }),
+          }
+        );
       }
 
       // ================= LOGIN =================
       else {
-        body = JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        headers = {
-          "Content-Type": "application/json",
-        };
+        response = await fetch(
+          `${API_URL}/auth/login`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              username: formData.email,
+              password: formData.password,
+            }),
+          }
+        );
       }
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        body,
-      });
-
       // ================= SERVICE DOWN =================
+      if (response.status === 503) {
+        setServiceUnavailable(true);
+        showToast(
+          "Service temporarily unavailable. Please try again later.",
+          "error"
+        );
+        setLoading(false);
+        return;
+      }
+
+      // ================= NETWORK ERROR =================
       if (response.status >= 500) {
-        throw new Error("Service temporarily unavailable");
+        throw new Error("Service error");
       }
 
       const data = await response.json();
-
-      console.log("LOGIN RESPONSE:", data);
 
       if (!response.ok) {
         throw new Error(data.detail || "Authentication failed");
@@ -95,7 +109,9 @@ const LoginPage = ({ setToken, showToast }) => {
           data;
 
         if (!token) {
-          throw new Error("Token tidak ditemukan dari backend");
+          throw new Error(
+            "Token tidak ditemukan dari backend"
+          );
         }
 
         localStorage.setItem("token", token);
@@ -105,29 +121,42 @@ const LoginPage = ({ setToken, showToast }) => {
         showToast("Login berhasil!", "success");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Auth error:", err);
+
+      const errorMsg = err.message || "Terjadi kesalahan";
 
       if (
-        err.message.includes("Failed to fetch") ||
-        err.message.includes("Service temporarily unavailable")
+        errorMsg.includes("Failed to fetch") ||
+        errorMsg.includes("Service error")
       ) {
+        setServiceUnavailable(true);
         showToast(
-          "Service temporarily unavailable",
+          "Service temporarily unavailable. Please try again later.",
           "error"
         );
       } else {
-        showToast(
-          err.message || "Terjadi kesalahan",
-          "error"
-        );
+        showToast(errorMsg, "error");
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetry = () => {
+    setRetryAttempt((prev) => prev + 1);
+    setServiceUnavailable(false);
+  };
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
+      {/* Service Status Banner */}
+      <ServiceStatusBanner
+        isVisible={serviceUnavailable}
+        message="Authentication service is temporarily unavailable"
+        onRetry={handleRetry}
+        serviceType="auth"
+      />
+
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-100">
 
         <header className="text-center mb-8">
@@ -155,6 +184,7 @@ const LoginPage = ({ setToken, showToast }) => {
                   name: e.target.value,
                 })
               }
+              disabled={loading}
             />
           )}
 
@@ -170,6 +200,7 @@ const LoginPage = ({ setToken, showToast }) => {
                 email: e.target.value,
               })
             }
+            disabled={loading}
           />
 
           <Input
@@ -184,6 +215,7 @@ const LoginPage = ({ setToken, showToast }) => {
                 password: e.target.value,
               })
             }
+            disabled={loading}
           />
 
           <Button type="submit" disabled={loading}>
@@ -200,6 +232,7 @@ const LoginPage = ({ setToken, showToast }) => {
             variant="link"
             type="button"
             onClick={() => setIsRegister(!isRegister)}
+            disabled={loading}
           >
             {isRegister
               ? "Sudah punya akun? Login"

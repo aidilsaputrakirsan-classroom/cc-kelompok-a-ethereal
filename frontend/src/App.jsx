@@ -7,10 +7,13 @@ import CreateTask from "./pages/CreateTask";
 import EditTask from "./pages/EditTask";
 import Toast from "./components/ui/Toast";
 import AboutPage from "./pages/AboutPage";
+import ServiceStatusBanner from "./components/ServiceStatusBanner";
 
 function App() {
   const [token, setToken] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [isAuthServiceDown, setIsAuthServiceDown] =
+    useState(false);
 
   // 🔥 SYNC TOKEN DARI LOCAL STORAGE
   useEffect(() => {
@@ -19,6 +22,46 @@ function App() {
       setToken(savedToken);
     }
   }, []);
+
+  // 🔥 CHECK AUTH SERVICE HEALTH PERIODICALLY
+  useEffect(() => {
+    const checkAuthServiceHealth = async () => {
+      try {
+        const API_URL =
+          import.meta.env.VITE_API_URL ||
+          "http://localhost:8000";
+
+        // Try to call a simple endpoint to check service
+        const res = await fetch(`${API_URL}/health`, {
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (res.status === 503) {
+          setIsAuthServiceDown(true);
+        } else {
+          setIsAuthServiceDown(false);
+        }
+      } catch (err) {
+        // If health check fails, assume service might be down
+        setIsAuthServiceDown(true);
+      }
+    };
+
+    // Check on mount
+    checkAuthServiceHealth();
+
+    // Check every 30 seconds when user is logged in
+    let interval;
+    if (token) {
+      interval = setInterval(() => {
+        checkAuthServiceHealth();
+      }, 30000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [token]);
 
   const showToast = (message, type = "success") => {
     setNotification({ message, type });
@@ -36,6 +79,13 @@ function App() {
 
   return (
     <>
+      {/* Global Auth Service Status Banner */}
+      <ServiceStatusBanner
+        isVisible={isAuthServiceDown}
+        message="Authentication service is temporarily unavailable. Some features may be limited."
+        serviceType="auth"
+      />
+
       {notification && (
         <Toast
           message={notification.message}

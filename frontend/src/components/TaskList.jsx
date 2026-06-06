@@ -1,23 +1,34 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskItem from "./TaskItem";
+import ServiceStatusBanner from "./ServiceStatusBanner";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const TaskList = ({ token, showToast }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [serviceUnavailable, setServiceUnavailable] =
+    useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   const navigate = useNavigate();
 
   // ================= FETCH TASKS =================
   const fetchTasks = async () => {
     try {
+      setLoading(true);
+      setServiceUnavailable(false);
+
       const res = await fetch(`${API_URL}/tasks`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (res.status === 503) {
+        throw new Error("Service temporarily unavailable");
+      }
 
       if (res.status >= 500) {
         throw new Error("Service temporarily unavailable");
@@ -37,6 +48,7 @@ const TaskList = ({ token, showToast }) => {
         err.message.includes("Failed to fetch") ||
         err.message.includes("Service temporarily unavailable")
       ) {
+        setServiceUnavailable(true);
         showToast(
           "Service temporarily unavailable",
           "error"
@@ -51,11 +63,13 @@ const TaskList = ({ token, showToast }) => {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [retryAttempt]);
 
   // ================= DELETE TASK =================
   const handleDelete = async (id) => {
     try {
+      setServiceUnavailable(false);
+
       const res = await fetch(`${API_URL}/tasks/${id}`, {
         method: "DELETE",
         headers: {
@@ -63,8 +77,12 @@ const TaskList = ({ token, showToast }) => {
         },
       });
 
-      if (res.status >= 500) {
+      if (res.status === 503) {
         throw new Error("Service temporarily unavailable");
+      }
+
+      if (res.status >= 500) {
+        throw new Error("Service error");
       }
 
       setTasks(tasks.filter((t) => t.id !== id));
@@ -75,8 +93,10 @@ const TaskList = ({ token, showToast }) => {
 
       if (
         err.message.includes("Failed to fetch") ||
-        err.message.includes("Service temporarily unavailable")
+        err.message.includes("Service temporarily unavailable") ||
+        err.message.includes("Service error")
       ) {
+        setServiceUnavailable(true);
         showToast(
           "Service temporarily unavailable",
           "error"
@@ -90,6 +110,8 @@ const TaskList = ({ token, showToast }) => {
   // ================= COMPLETE TASK =================
   const handleComplete = async (id) => {
     try {
+      setServiceUnavailable(false);
+
       const res = await fetch(`${API_URL}/tasks/${id}`, {
         method: "DELETE",
         headers: {
@@ -97,8 +119,12 @@ const TaskList = ({ token, showToast }) => {
         },
       });
 
-      if (res.status >= 500) {
+      if (res.status === 503) {
         throw new Error("Service temporarily unavailable");
+      }
+
+      if (res.status >= 500) {
+        throw new Error("Service error");
       }
 
       setTasks(tasks.filter((t) => t.id !== id));
@@ -109,8 +135,10 @@ const TaskList = ({ token, showToast }) => {
 
       if (
         err.message.includes("Failed to fetch") ||
-        err.message.includes("Service temporarily unavailable")
+        err.message.includes("Service temporarily unavailable") ||
+        err.message.includes("Service error")
       ) {
+        setServiceUnavailable(true);
         showToast(
           "Service temporarily unavailable",
           "error"
@@ -119,6 +147,10 @@ const TaskList = ({ token, showToast }) => {
         showToast("Gagal menyelesaikan tugas", "error");
       }
     }
+  };
+
+  const handleRetry = () => {
+    setRetryAttempt((prev) => prev + 1);
   };
 
   // ================= LOADING =================
@@ -132,6 +164,14 @@ const TaskList = ({ token, showToast }) => {
 
   return (
     <div>
+      {/* Service Status Banner */}
+      <ServiceStatusBanner
+        isVisible={serviceUnavailable}
+        message="Task service is temporarily unavailable"
+        onRetry={handleRetry}
+        serviceType="task"
+      />
+
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-bold text-gray-700">
           Daftar Task
