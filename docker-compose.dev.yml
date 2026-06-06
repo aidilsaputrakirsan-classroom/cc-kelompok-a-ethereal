@@ -10,7 +10,7 @@ services:
     environment:
       - DEBUG=True
 
-  item-service:
+  task-service:
     volumes:
       - ./services/task-service:/app  # Mirror folder task-service lokal ke kontainer
     environment:
