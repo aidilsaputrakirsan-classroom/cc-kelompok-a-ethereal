@@ -1,5 +1,11 @@
 import os
 import httpx
+from logging_config import setup_logging
+from logging_middleware import RequestLoggingMiddleware
+
+from metrics import record_request
+from metrics import record_error
+from metrics import get_metrics
 
 from dotenv import load_dotenv
 
@@ -25,10 +31,14 @@ load_dotenv()
 
 Base.metadata.create_all(bind=engine)
 
+setup_logging()
+
 app = FastAPI(
     title="Kelarin Task Service",
     version="1.0.0"
 )
+
+app.add_middleware(RequestLoggingMiddleware)
 
 # ================= CORS =================
 
@@ -89,6 +99,10 @@ async def health_check():
             "auth-service": auth_status
         }
     }
+@app.get("/metrics")
+async def metrics():
+
+    return get_metrics()
 
 # ================= CREATE TASK =================
 
