@@ -132,6 +132,20 @@ async def get_tasks(
 
     return tasks
 
+# ================= PUBLIC TASKS =================
+
+@app.get(
+    "/tasks/public",
+    response_model=list[TaskResponse]
+)
+async def get_public_tasks(
+    db: Session = Depends(get_db)
+):
+    tasks = db.query(Task).all()
+
+    return tasks
+
+
 # ================= GET TASK DETAIL =================
 
 @app.get(
@@ -214,6 +228,7 @@ async def delete_task(
     return {
         "message": "Task deleted"
     }
+
 
 # ================= TASK STATS =================
 
