@@ -3,6 +3,7 @@ import logging
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from metrics import record_request
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 "correlation_id": correlation_id
             }
         )
+
+        record_request()
 
         response = await call_next(request)
 

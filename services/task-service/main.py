@@ -1,11 +1,7 @@
 import os
-import httpx
-from logging_config import setup_logging
-from logging_middleware import RequestLoggingMiddleware
+import logging
 
-from metrics import record_request
-from metrics import record_error
-from metrics import get_metrics
+import httpx
 
 from dotenv import load_dotenv
 
@@ -20,12 +16,25 @@ from database import get_db
 
 from models import Task
 
-from schemas import TaskCreate
-from schemas import TaskUpdate
-from schemas import TaskResponse
-from schemas import TaskStatsResponse
+from schemas import (
+    TaskCreate,
+    TaskUpdate,
+    TaskResponse,
+    TaskStatsResponse
+)
 
 from auth_client import get_current_user
+
+from logging_config import setup_logging
+from logging_middleware import RequestLoggingMiddleware
+
+from metrics import (
+    get_metrics,
+    record_error,
+    check_error_alert
+)
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -176,11 +185,7 @@ async def get_task(
         Task.owner_id == user["user_id"]
     ).first()
 
-    if not task:
-        raise HTTPException(
-            status_code=404,
-            detail="Task not found"
-        )
+    
 
     return task
 
@@ -202,6 +207,10 @@ async def update_task(
     ).first()
 
     if not task:
+
+        record_error()
+        check_error_alert()
+
         raise HTTPException(
             status_code=404,
             detail="Task not found"
@@ -231,6 +240,10 @@ async def delete_task(
     ).first()
 
     if not task:
+
+        record_error()
+        check_error_alert()
+
         raise HTTPException(
             status_code=404,
             detail="Task not found"
