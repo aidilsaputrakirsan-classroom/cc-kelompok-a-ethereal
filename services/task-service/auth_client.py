@@ -5,7 +5,7 @@ import logging
 import httpx
 from circuit_breaker import CircuitBreaker
 
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 AUTH_SERVICE_URL = os.getenv(
@@ -143,6 +143,7 @@ async def _call_auth_service(headers: dict) -> dict:
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> dict:
     """
@@ -152,8 +153,15 @@ async def get_current_user(
 
     token = credentials.credentials
 
+    correlation_id = getattr(
+        request.state,
+        "correlation_id",
+        "unknown"
+    )
+
     headers = {
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {token}",
+        "X-Correlation-ID": correlation_id
     }
 
     return await _call_auth_service(headers)
