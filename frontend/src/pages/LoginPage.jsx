@@ -47,21 +47,19 @@ const LoginPage = ({ setToken, showToast }) => {
       }
 
       // ================= LOGIN =================
-      else {
-        response = await fetch(
-          `${API_URL}/auth/login`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: formData.email,
-              password: formData.password,
-            }),
-          }
-        );
-      }
+else {
+  const formData2 = new URLSearchParams();
+  formData2.append("username", formData.email); // key "username", isi email
+  formData2.append("password", formData.password);
+
+  response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: formData2,
+  });
+}
 
       // ================= SERVICE DOWN =================
       if (response.status === 503) {
