@@ -49,8 +49,13 @@ const LoginPage = ({ setToken, showToast }) => {
       // ================= LOGIN =================
 else {
   const formData2 = new URLSearchParams();
-  formData2.append("username", formData.email); // key "username", isi email
+  formData2.append("username", formData.email);
   formData2.append("password", formData.password);
+
+  // TAMBAH INI untuk debug
+  console.log("Sending:", formData2.toString());
+  console.log("email value:", formData.email);
+  console.log("password value:", formData.password);
 
   response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
