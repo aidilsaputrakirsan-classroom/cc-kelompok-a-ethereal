@@ -47,21 +47,24 @@ const LoginPage = ({ setToken, showToast }) => {
       }
 
       // ================= LOGIN =================
-      else {
-        response = await fetch(
-          `${API_URL}/auth/login`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: formData.email,
-              password: formData.password,
-            }),
-          }
-        );
-      }
+else {
+  const formData2 = new URLSearchParams();
+  formData2.append("username", formData.email);
+  formData2.append("password", formData.password);
+
+  // TAMBAH INI untuk debug
+  console.log("Sending:", formData2.toString());
+  console.log("email value:", formData.email);
+  console.log("password value:", formData.password);
+
+  response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: formData2,
+  });
+}
 
       // ================= SERVICE DOWN =================
       if (response.status === 503) {
