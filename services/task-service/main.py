@@ -1,9 +1,9 @@
 import os
+import httpx
 
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, Depends, HTTPException
-
 from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.orm import Session
@@ -32,27 +32,62 @@ app = FastAPI(
 
 # ================= CORS =================
 
-CORS_ORIGINS = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:5173"
-).split(",")
+# Domain di bawah ini mencakup lokal development DAN domain produksi Railway kelompokmu
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "https://kelarin.up.railway.app"  # <-- LANGSUNG DIKUNCI DI SINI UNTUK PRODUCTION RAILWAY
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=origins,        
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],          
+    allow_headers=["*"],          
 )
 
 # ================= HEALTH =================
 
 @app.get("/health")
-def health_check():
+async def health_check():
+
+    auth_status = "healthy"
+    
+    # Ambil base URL auth-service dari docker-compose. 
+    # Jika tidak diset, gunakan default internal docker network 'http://auth-service:8001'
+    auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
+    
+    # Bersihkan sisa trailing slash jika ada, lalu arahkan pas ke endpoint /health
+    auth_health_url = f"{auth_base_url.rstrip('/')}/health"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                auth_health_url,
+                timeout=3.0
+            )
+
+            if response.status_code != 200:
+                auth_status = "unhealthy"
+
+    except Exception:
+        auth_status = "unhealthy"
+
+    overall_status = (
+        "healthy"
+        if auth_status == "healthy"
+        else "degraded"
+    )
 
     return {
-        "status": "healthy",
-        "service": "task-service"
+        "status": overall_status,
+        "service": "task-service",
+        "dependencies": {
+            "auth-service": auth_status
+        }
     }
 
 # ================= CREATE TASK =================
@@ -78,6 +113,7 @@ async def create_task(
     db.add(task)
     db.commit()
     db.refresh(task)
+
     return task
 
 # ================= GET TASKS =================
@@ -95,6 +131,30 @@ async def get_tasks(
     ).all()
 
     return tasks
+
+# ================= GET TASK DETAIL =================
+
+@app.get(
+    "/tasks/{task_id}",
+    response_model=TaskResponse
+)
+async def get_task(
+    task_id: int,
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.owner_id == user["user_id"]
+    ).first()
+
+    if not task:
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found"
+        )
+
+    return task
 
 # ================= UPDATE TASK =================
 
@@ -126,6 +186,7 @@ async def update_task(
 
     db.commit()
     db.refresh(task)
+
     return task
 
 # ================= DELETE TASK =================
@@ -169,10 +230,12 @@ async def task_stats(
     ).all()
 
     total_tasks = len(tasks)
+
     completed_tasks = len([
         task for task in tasks
         if task.completed
     ])
+
     pending_tasks = total_tasks - completed_tasks
 
     return {

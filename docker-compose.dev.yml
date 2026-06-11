@@ -1,0 +1,17 @@
+# ============================================================
+# Docker Compose Override — Development (Team Ethereal)
+# Task Terstruktur Modul 13: Hot-Reload (Volume Mirroring)
+# ============================================================
+
+services:
+  auth-service:
+    volumes:
+      - ./services/auth-service:/app  # Mirror folder lokal ke kontainer
+    environment:
+      - DEBUG=True
+
+  item-service:
+    volumes:
+      - ./services/task-service:/app  # Mirror folder task-service lokal ke kontainer
+    environment:
+      - DEBUG=True

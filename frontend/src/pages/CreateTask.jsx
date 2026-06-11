@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ServiceStatusBanner from "../components/ServiceStatusBanner";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,12 +15,15 @@ const CreateTask = ({ token, showToast }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [serviceUnavailable, setServiceUnavailable] =
+    useState(false);
 
   // ================= CREATE TASK =================
   const handleCreate = async (e) => {
     e.preventDefault();
 
     setLoading(true);
+    setServiceUnavailable(false);
 
     try {
       const payload = {
@@ -40,8 +44,18 @@ const CreateTask = ({ token, showToast }) => {
         body: JSON.stringify(payload),
       });
 
+      if (response.status === 503) {
+        setServiceUnavailable(true);
+        showToast(
+          "Service temporarily unavailable. Please try again later.",
+          "error"
+        );
+        setLoading(false);
+        return;
+      }
+
       if (response.status >= 500) {
-        throw new Error("Service temporarily unavailable");
+        throw new Error("Service error");
       }
 
       const data = await response.json();
@@ -64,10 +78,11 @@ const CreateTask = ({ token, showToast }) => {
 
       if (
         err.message.includes("Failed to fetch") ||
-        err.message.includes("Service temporarily unavailable")
+        err.message.includes("Service error")
       ) {
+        setServiceUnavailable(true);
         showToast(
-          "Service temporarily unavailable",
+          "Service temporarily unavailable. Please try again later.",
           "error"
         );
       } else {
@@ -81,8 +96,20 @@ const CreateTask = ({ token, showToast }) => {
     }
   };
 
+  const handleRetry = () => {
+    setServiceUnavailable(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
+      {/* Service Status Banner */}
+      <ServiceStatusBanner
+        isVisible={serviceUnavailable}
+        message="Task service is temporarily unavailable"
+        onRetry={handleRetry}
+        serviceType="task"
+      />
+
       <div className="w-full max-w-xl bg-white p-6 rounded-xl shadow-md border">
 
         <h2 className="font-bold text-2xl mb-6 text-gray-800">
@@ -98,6 +125,7 @@ const CreateTask = ({ token, showToast }) => {
               title: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-3 rounded mb-3"
         />
 
@@ -110,6 +138,7 @@ const CreateTask = ({ token, showToast }) => {
               description: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-3 rounded mb-3"
           rows="4"
         />
@@ -124,6 +153,7 @@ const CreateTask = ({ token, showToast }) => {
               attachment_url: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-3 rounded mb-3"
         />
 
@@ -137,6 +167,7 @@ const CreateTask = ({ token, showToast }) => {
               deadline: e.target.value,
             })
           }
+          disabled={loading}
           className="w-full border p-3 rounded mb-5"
         />
 
@@ -144,14 +175,15 @@ const CreateTask = ({ token, showToast }) => {
           <button
             onClick={handleCreate}
             disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded"
+            className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white px-5 py-2 rounded"
           >
             {loading ? "Loading..." : "Simpan"}
           </button>
 
           <button
             onClick={() => navigate("/")}
-            className="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded"
+            disabled={loading}
+            className="bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 text-white px-5 py-2 rounded"
           >
             Batal
           </button>
