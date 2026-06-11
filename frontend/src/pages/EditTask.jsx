@@ -171,14 +171,14 @@ const EditTask = ({ token, showToast }) => {
   // ================= LOADING =================
   if (fetching) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading task...
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-300">
+        <p className="text-gray-800 dark:text-white">Loading task...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-16 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-start justify-center pt-16 px-4 transition-colors duration-300">
       {/* Service Status Banner */}
       <ServiceStatusBanner
         isVisible={serviceUnavailable}
@@ -187,9 +187,9 @@ const EditTask = ({ token, showToast }) => {
         serviceType="task"
       />
 
-      <div className="w-full max-w-xl bg-white p-6 rounded-xl shadow-md border">
+      <div className="w-full max-w-xl bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition-colors duration-300">
 
-        <h2 className="font-bold text-2xl mb-6 text-gray-800">
+        <h2 className="font-bold text-2xl mb-6 text-gray-800 dark:text-white transition-colors duration-300">
           Edit Task
         </h2>
 
@@ -203,7 +203,7 @@ const EditTask = ({ token, showToast }) => {
             })
           }
           disabled={loading}
-          className="w-full border p-2 rounded mb-3"
+          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
         />
 
         <textarea
@@ -216,7 +216,7 @@ const EditTask = ({ token, showToast }) => {
             })
           }
           disabled={loading}
-          className="w-full border p-2 rounded mb-3"
+          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
           rows="4"
         />
 
@@ -231,7 +231,7 @@ const EditTask = ({ token, showToast }) => {
             })
           }
           disabled={loading}
-          className="w-full border p-2 rounded mb-3"
+          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
         />
 
         <input
@@ -244,14 +244,14 @@ const EditTask = ({ token, showToast }) => {
             })
           }
           disabled={loading}
-          className="w-full border p-2 rounded mb-5"
+          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-2 rounded mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
         />
 
         <div className="flex gap-2">
           <button
             onClick={handleUpdate}
             disabled={loading}
-            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded"
+            className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white px-4 py-2 rounded transition-colors duration-300"
           >
             {loading ? "Loading..." : "Simpan"}
           </button>
@@ -259,7 +259,7 @@ const EditTask = ({ token, showToast }) => {
           <button
             onClick={() => navigate("/")}
             disabled={loading}
-            className="bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 text-white px-4 py-2 rounded"
+            className="bg-gray-400 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white px-4 py-2 rounded transition-colors duration-300"
           >
             Batal
           </button>

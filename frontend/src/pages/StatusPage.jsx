@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 const API_URL =
@@ -257,13 +256,6 @@ export default function StatusPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
-      <Header
-        onLogout={() => {
-          localStorage.removeItem("token");
-          window.location.reload();
-        }}
-      />
-
       <main className="flex-grow max-w-6xl w-full mx-auto py-8 px-4">
 
         <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
@@ -299,24 +291,23 @@ export default function StatusPage() {
 
         <div className="grid gap-6 md:grid-cols-2">
           <ServiceCard
-            name="Authentication Service"
-            icon="🔐"
-            healthUrl={`${API_URL}/auth/health`}
-            metricsUrl={`${API_URL}/auth/metrics`}
-          />
+  name="Authentication Service"
+  icon="🔐"
+  healthUrl={`${API_URL}/auth/health`}
+/>
 
-          <ServiceCard
-            name="Task Service"
-            icon="📋"
-            healthUrl={`${API_URL}/items/health`}
-            metricsUrl={`${API_URL}/items/metrics`}
-          />
+<ServiceCard
+  name="Task Service"
+  icon="📋"
+  healthUrl={`${API_URL}/tasks/health`}
+  metricsUrl={`${API_URL}/tasks/metrics`}
+/>
 
-          <ServiceCard
-            name="API Gateway"
-            icon="🚪"
-            healthUrl={`${API_URL}/health`}
-          />
+<ServiceCard
+  name="API Gateway"
+  icon="🚪"
+  healthUrl={`${API_URL}/health`}
+/>
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
