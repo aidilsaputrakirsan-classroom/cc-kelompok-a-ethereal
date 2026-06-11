@@ -151,7 +151,7 @@ else {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Service Status Banner */}
       <ServiceStatusBanner
         isVisible={serviceUnavailable}
@@ -160,14 +160,14 @@ else {
         serviceType="auth"
       />
 
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300">
 
         <header className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white transition-colors duration-300">
             Kelarin 📋
           </h2>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-500 dark:text-gray-400 mt-2 transition-colors duration-300">
             {isRegister
               ? "Create your student account"
               : "Welcome back!"}
@@ -230,7 +230,7 @@ else {
           </Button>
         </form>
 
-        <div className="mt-6 text-center border-t border-gray-100 pt-4">
+        <div className="mt-6 text-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors duration-300">
           <Button
             variant="link"
             type="button"
