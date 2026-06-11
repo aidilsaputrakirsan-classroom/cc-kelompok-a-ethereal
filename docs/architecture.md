@@ -78,7 +78,7 @@ TaskService --> TaskDB
 | `docker compose down` | Menghentikan seluruh container |
 | `docker compose ps` | Melihat status container |
 | `docker compose logs auth-service` | Melihat logs auth-service |
-| `docker compose logs item-service` | Melihat logs item-service |
+| `docker compose logs task-service` | Melihat logs task-service |
 
 ---
 
@@ -123,7 +123,7 @@ Saat terjadi kegagalan komunikasi, sistem akan mencoba kembali request beberapa 
 ### Workflow
 
 ```text
-Item Service
+Task Service
       |
       v
 Auth Service
@@ -190,10 +190,10 @@ graph TD
 
 Frontend --> Gateway
 
-Gateway --> ItemService
+Gateway --> TaskService
 Gateway --> AuthService
 
-ItemService --> RetryLogic
+TaskService --> RetryLogic
 RetryLogic --> CircuitBreaker
 CircuitBreaker --> AuthService
 
@@ -276,7 +276,7 @@ HealthAggregation --> TaskService
 |------------------|----------|-------------|
 | Docker Compose Validation | ![Docker Compose](assets/docker-compose-ps.png) | Pengujian dilakukan menggunakan perintah `docker compose ps` untuk memastikan seluruh container microservices berjalan dengan status running dan healthy. |
 | Auth Service Healthcheck | ![Auth Health](assets/auth-health.png) | Pengujian dilakukan pada endpoint `/health` auth-service melalui Swagger untuk memastikan service authentication berjalan normal dengan response `200 OK`. |
-| Item Service Healthcheck | ![Task Health](assets/item-health.png) | Pengujian dilakukan pada endpoint `/health` tasks-service untuk memastikan service item management berjalan normal tanpa error. |
+| Task Service Healthcheck | ![Task Health](assets/item-health.png) | Pengujian dilakukan pada endpoint `/health` tasks-service untuk memastikan service item management berjalan normal tanpa error. |
 | User Registration Testing | ![Register Testing](assets/register-testing.png) | Pengujian dimulai dengan membuat akun baru melalui halaman registrasi untuk memastikan auth-service dapat menyimpan data user dengan baik. |
 | User Login Testing | ![Login Testing](assets/login-testing.png) | Pengujian dilakukan menggunakan akun yang telah terdaftar untuk memastikan proses authentication dan JWT token berjalan normal. |
 | Create Task Testing | ![Create Task](assets/create-item.png) | Pengujian dilakukan dengan menambahkan task baru pada aplikasi untuk memastikan task-service dapat menerima dan menyimpan data dengan baik. |
