@@ -50,7 +50,7 @@ const TaskItem = ({ task, onDelete, onEdit, onComplete }) => {
         </p>
 
         {/* DEADLINE */}
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           📅{" "}
           {task.deadline
             ? new Date(task.deadline).toLocaleString()
@@ -63,7 +63,7 @@ const TaskItem = ({ task, onDelete, onEdit, onComplete }) => {
             href={task.attachment_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-blue-500 hover:underline block mt-2"
+            className="text-sm text-blue-500 dark:text-blue-400 hover:underline dark:hover:text-blue-300 block mt-2 transition-colors"
           >
             🔗 Buka Link Referensi
           </a>
@@ -74,7 +74,7 @@ const TaskItem = ({ task, onDelete, onEdit, onComplete }) => {
         {/* BUTTON SELESAI */}
         <button
           onClick={handleCompleteClick}
-          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+          className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-3 py-1 rounded transition-colors duration-300"
         >
           Selesai
         </button>
@@ -82,7 +82,7 @@ const TaskItem = ({ task, onDelete, onEdit, onComplete }) => {
         {/* BUTTON EDIT */}
         <button
           onClick={() => onEdit(task)}
-          className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded"
+          className="bg-yellow-400 hover:bg-yellow-500 dark:bg-yellow-600 dark:hover:bg-yellow-700 text-white px-3 py-1 rounded transition-colors duration-300"
         >
           Edit
         </button>
@@ -90,7 +90,7 @@ const TaskItem = ({ task, onDelete, onEdit, onComplete }) => {
         {/* BUTTON DELETE */}
         <button
           onClick={handleDeleteClick}
-          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+          className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-3 py-1 rounded transition-colors duration-300"
         >
           Delete
         </button>

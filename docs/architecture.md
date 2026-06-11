@@ -98,7 +98,7 @@ TaskService --> TaskDB
 | Command | Function |
 |----------|----------|
 | `docker compose logs auth-service` | Monitoring auth-service |
-| `docker compose logs task-service` | Monitoring item-service |
+| `docker compose logs task-service` | Monitoring task-service |
 
 ---
 

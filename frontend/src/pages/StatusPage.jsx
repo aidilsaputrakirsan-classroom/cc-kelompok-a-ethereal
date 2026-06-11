@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 const API_URL =
@@ -38,6 +37,8 @@ function ServiceCard({
         if (metricsRes.ok) {
           const metricsData = await metricsRes.json();
           setMetrics(metricsData);
+        } else {
+          setMetrics(null);
         }
       } catch {
         setMetrics(null);
@@ -83,6 +84,9 @@ function ServiceCard({
     },
   };
 
+  const errorRate =
+    metrics?.error_rate_percent ?? 0;
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
       <div className="flex justify-between items-center mb-4">
@@ -125,9 +129,28 @@ function ServiceCard({
             <p className="text-gray-500 dark:text-gray-400">
               Error Rate
             </p>
-            <p className="font-semibold text-gray-900 dark:text-white">
-              {metrics.error_rate_percent ?? 0}%
+
+            <p className="font-semibold text-gray-900 dark:text-white mb-2">
+              {errorRate}%
             </p>
+
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  errorRate > 10
+                    ? "bg-red-500"
+                    : errorRate > 5
+                    ? "bg-yellow-500"
+                    : "bg-green-500"
+                }`}
+                style={{
+                  width: `${Math.min(
+                    errorRate,
+                    100
+                  )}%`,
+                }}
+              />
+            </div>
           </div>
 
           <div>
@@ -160,9 +183,49 @@ function ServiceCard({
           </div>
         </div>
       ) : (
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Metrics unavailable
-        </p>
+        <div className="space-y-4">
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-500 dark:text-gray-400">
+                Requests
+              </p>
+              <p className="font-bold text-lg text-gray-400">
+                -
+              </p>
+            </div>
+
+            <div>
+              <p className="text-gray-500 dark:text-gray-400">
+                Errors
+              </p>
+              <p className="font-bold text-lg text-gray-400">
+                -
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-gray-500 dark:text-gray-400 mb-2">
+              Error Rate
+            </p>
+
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-gray-400 h-full rounded-full"
+                style={{ width: "0%" }}
+              />
+            </div>
+
+            <p className="text-xs text-gray-500 mt-1">
+              0%
+            </p>
+          </div>
+
+          <div className="text-xs text-gray-400 italic">
+            Waiting for metrics service...
+          </div>
+        </div>
       )}
     </div>
   );
@@ -193,16 +256,8 @@ export default function StatusPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
-      <Header
-        onLogout={() => {
-          localStorage.removeItem("token");
-          window.location.reload();
-        }}
-      />
-
       <main className="flex-grow max-w-6xl w-full mx-auto py-8 px-4">
 
-        {/* Header Section */}
         <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -222,7 +277,6 @@ export default function StatusPage() {
           </button>
         </div>
 
-        {/* Overview */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
           <h2 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">
             System Overview
@@ -235,34 +289,43 @@ export default function StatusPage() {
           </p>
         </div>
 
-        {/* Service Cards */}
         <div className="grid gap-6 md:grid-cols-2">
           <ServiceCard
-            name="Authentication Service"
-            icon="🔐"
-            healthUrl={`${API_URL}/auth/health`}
-            metricsUrl={`${API_URL}/auth/metrics`}
-          />
+  name="Authentication Service"
+  icon="🔐"
+  healthUrl={`${API_URL}/auth/health`}
+/>
 
-          <ServiceCard
-            name="Task Service"
-            icon="📋"
-            healthUrl={`${API_URL}/items/health`}
-            metricsUrl={`${API_URL}/items/metrics`}
-          />
+<ServiceCard
+  name="Task Service"
+  icon="📋"
+  healthUrl={`${API_URL}/tasks/health`}
+  metricsUrl={`${API_URL}/tasks/metrics`}
+/>
 
-          <ServiceCard
-            name="API Gateway"
-            icon="🚪"
-            healthUrl={`${API_URL}/health`}
-          />
+<ServiceCard
+  name="API Gateway"
+  icon="🚪"
+  healthUrl={`${API_URL}/health`}
+/>
         </div>
 
-        {/* Footer Info */}
-        <div className="mt-8 text-sm text-gray-500 dark:text-gray-400">
-          Last Updated: {lastChecked}
-          <br />
-          Auto-refresh setiap 10 detik
+        <div className="mt-8 flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-green-500 animate-pulse"></span>
+
+            <span className="text-sm font-medium text-green-600 dark:text-green-400">
+              Live Monitoring Active
+            </span>
+          </div>
+
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Last Checked: {lastChecked}
+          </div>
+
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Auto-refresh every 10 seconds
+          </div>
         </div>
 
       </main>

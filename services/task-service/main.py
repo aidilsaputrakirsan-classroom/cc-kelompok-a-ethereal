@@ -1,4 +1,6 @@
 import os
+import logging
+
 import httpx
 
 from dotenv import load_dotenv
@@ -14,21 +16,38 @@ from database import get_db
 
 from models import Task
 
-from schemas import TaskCreate
-from schemas import TaskUpdate
-from schemas import TaskResponse
-from schemas import TaskStatsResponse
+from schemas import (
+    TaskCreate,
+    TaskUpdate,
+    TaskResponse,
+    TaskStatsResponse
+)
 
 from auth_client import get_current_user
+
+from logging_config import setup_logging
+from logging_middleware import RequestLoggingMiddleware
+
+from metrics import (
+    get_metrics,
+    record_error,
+    check_error_alert
+)
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 Base.metadata.create_all(bind=engine)
 
+setup_logging()
+
 app = FastAPI(
     title="Kelarin Task Service",
     version="1.0.0"
 )
+
+app.add_middleware(RequestLoggingMiddleware)
 
 # ================= CORS =================
 
@@ -89,6 +108,10 @@ async def health_check():
             "auth-service": auth_status
         }
     }
+@app.get("/metrics")
+async def metrics():
+
+    return get_metrics()
 
 # ================= CREATE TASK =================
 
@@ -117,20 +140,44 @@ async def create_task(
     return task
 
 # ================= GET TASKS =================
-
 @app.get(
-    "/tasks",
-    response_model=list[TaskResponse]
+    "/tasks/{task_id}",
+    response_model=TaskResponse
 )
-async def get_tasks(
+async def get_task(
+    task_id: int,
     user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    tasks = db.query(Task).filter(
+    task = db.query(Task).filter(
+        Task.id == task_id,
         Task.owner_id == user["user_id"]
-    ).all()
+    ).first()
+
+    if not task:
+
+        record_error()
+        check_error_alert()
+
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found"
+        )
+
+    return task
+# ================= PUBLIC TASKS =================
+
+@app.get(
+    "/tasks/public",
+    response_model=list[TaskResponse]
+)
+async def get_public_tasks(
+    db: Session = Depends(get_db)
+):
+    tasks = db.query(Task).all()
 
     return tasks
+
 
 # ================= GET TASK DETAIL =================
 
@@ -148,11 +195,7 @@ async def get_task(
         Task.owner_id == user["user_id"]
     ).first()
 
-    if not task:
-        raise HTTPException(
-            status_code=404,
-            detail="Task not found"
-        )
+    
 
     return task
 
@@ -174,6 +217,10 @@ async def update_task(
     ).first()
 
     if not task:
+
+        record_error()
+        check_error_alert()
+
         raise HTTPException(
             status_code=404,
             detail="Task not found"
@@ -203,6 +250,10 @@ async def delete_task(
     ).first()
 
     if not task:
+
+        record_error()
+        check_error_alert()
+
         raise HTTPException(
             status_code=404,
             detail="Task not found"
@@ -214,6 +265,7 @@ async def delete_task(
     return {
         "message": "Task deleted"
     }
+
 
 # ================= TASK STATS =================
 

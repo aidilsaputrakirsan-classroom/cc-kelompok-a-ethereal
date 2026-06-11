@@ -22,6 +22,7 @@ from auth import create_access_token, get_current_user
 from config import settings
 
 import crud
+import httpx
 
 load_dotenv()
 
@@ -151,6 +152,69 @@ def create_task(
         user_id=current_user.id
     )
 
+# ================= MICROSERVICE HEALTH =================
+
+@app.get("/auth/health")
+async def auth_service_health():
+
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8001/health",
+                timeout=5.0
+            )
+
+            return response.json()
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Auth Service unavailable: {str(e)}"
+        )
+
+
+@app.get("/tasks/health")
+async def task_service_health():
+
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8002/health",
+                timeout=5.0
+            )
+
+            return response.json()
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Task Service unavailable: {str(e)}"
+        )
+
+
+@app.get("/tasks/metrics")
+async def task_service_metrics():
+
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8002/metrics",
+                timeout=5.0
+            )
+
+            return response.json()
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Metrics Service unavailable: {str(e)}"
+        )
 
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
