@@ -140,21 +140,31 @@ async def create_task(
     return task
 
 # ================= GET TASKS =================
-
 @app.get(
-    "/tasks",
-    response_model=list[TaskResponse]
+    "/tasks/{task_id}",
+    response_model=TaskResponse
 )
-async def get_tasks(
+async def get_task(
+    task_id: int,
     user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    tasks = db.query(Task).filter(
+    task = db.query(Task).filter(
+        Task.id == task_id,
         Task.owner_id == user["user_id"]
-    ).all()
+    ).first()
 
-    return tasks
+    if not task:
 
+        record_error()
+        check_error_alert()
+
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found"
+        )
+
+    return task
 # ================= PUBLIC TASKS =================
 
 @app.get(
