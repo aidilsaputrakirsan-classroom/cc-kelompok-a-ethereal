@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 const API_URL =
@@ -113,13 +112,6 @@ export default function StatusPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
-      <Header
-        onLogout={() => {
-          localStorage.removeItem("token");
-          window.location.reload();
-        }}
-      />
-
       <main className="flex-grow max-w-6xl w-full mx-auto py-8 px-4">
 
         <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">

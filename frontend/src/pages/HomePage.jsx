@@ -1,4 +1,3 @@
-import Header from "../components/Header";
 import TaskList from "../components/TaskList";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
@@ -9,8 +8,6 @@ const HomePage = ({ token, onLogout, showToast }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
       
-      <Header onLogout={onLogout} />
-
       <main className="flex-grow max-w-6xl w-full mx-auto py-8 px-4">
 
         {/* HEADER DASHBOARD */}

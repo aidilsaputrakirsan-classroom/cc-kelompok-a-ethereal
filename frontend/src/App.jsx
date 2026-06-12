@@ -8,6 +8,7 @@ import EditTask from "./pages/EditTask";
 import StatusPage from "./pages/StatusPage";
 import Toast from "./components/ui/Toast";
 import AboutPage from "./pages/AboutPage";
+import Header from "./components/Header";
 import ServiceStatusBanner from "./components/ServiceStatusBanner";
 
 function App() {
@@ -15,6 +16,15 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [isAuthServiceDown, setIsAuthServiceDown] =
     useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Initialize dark mode from localStorage with proper null handling
+    try {
+      const saved = localStorage.getItem("darkMode");
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
 
   // 🔥 SYNC TOKEN DARI LOCAL STORAGE
   useEffect(() => {
@@ -24,6 +34,16 @@ function App() {
       setToken(savedToken);
     }
   }, []);
+
+  // 🔥 MANAGE DARK MODE
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   // 🔥 CHECK AUTH SERVICE HEALTH PERIODICALLY
   useEffect(() => {
@@ -80,6 +100,11 @@ function App() {
     showToast("Logout berhasil", "info");
   };
 
+  // 🔥 Allow access to /status without token
+  if (window.location.pathname === '/status') {
+    return <StatusPage />;
+  }
+
   if (!token) {
     return (
       <LoginPage
@@ -96,6 +121,13 @@ function App() {
         isVisible={isAuthServiceDown}
         message="Authentication service is temporarily unavailable. Some features may be limited."
         serviceType="auth"
+      />
+
+      {/* Header with Dark Mode Toggle */}
+      <Header 
+        onLogout={handleLogout}
+        darkMode={darkMode}
+        onDarkModeChange={setDarkMode}
       />
 
       {notification && (
