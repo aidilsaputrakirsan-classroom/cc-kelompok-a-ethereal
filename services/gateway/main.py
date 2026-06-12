@@ -39,6 +39,13 @@ def health():
         "service": "api-gateway"
     }
 
+@app.get("/")
+def root():
+    return {
+        "status": "healthy",
+        "message": "Kelarin API Gateway is running"
+    }
+
 @app.get("/status")
 async def get_status():
     """
