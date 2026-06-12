@@ -1,55 +1,36 @@
-# Pull Request Draft: Total Repository Refactor & Service Integration
-
 ## 📝 Summary
-Integrasi menyeluruh dari semua fitur tertunda, transisi arsitektur microservices, optimalisasi pipeline CI/CD modular, serta standarisasi struktur repositori dan kontribusi.
+Implementasi Central API Gateway menggunakan FastAPI dan refaktorisasi Frontend untuk mendukung arsitektur layanan terpusat. Mengganti direct call ke microservices menjadi melalui Gateway.
 
 ## 🔗 Related Task
-- **Task Link:** N/A (Consolidated PR)
+- **Task Link:** N/A
 - **Target Branch:** `main`
 
 ## 🛠 Type of Change
-- [x] ✨ **Feature**: Fitur Category pada Task, Error Handling Frontend, Integrasi Multi-Service.
-- [x] ♻️ **Refactor**: Pemisahan monolithic CI workflow, modularitas Docker build, reorganisasi folder asset & script.
-- [x] 📝 **Docs**: Re-linking dokumentasi, update asset path, penambahan PR template bilingual.
-- [x] 🔧 **Chore**: Optimalisasi `.gitignore`, integrasi environment variables (non-hardcoded).
+- [x] ✨ **Feature**: Menambah fungsionalitas baru (API Gateway).
+- [x] ♻️ **Refactor**: Perubahan kode pada Frontend untuk integrasi Gateway.
+- [x] 🔧 **Chore**: Update docker-compose dan environment variables.
 
 ## 🔍 Scope of Work
-### 1. Functional Features (Business Logic)
-- **Task Category**: Implementasi kolom kategori pada Backend (Models, CRUD, Schemas) dan Frontend (UI components).
-- **Frontend Resilience**: Penambahan error handling untuk kondisi service unavailable dan validasi token yang lebih robust.
-- **Microservices Transition**: Penyiapan direktori `services/` (auth-service, task-service, gateway) untuk migrasi dari monolith.
-
-### 2. Infrastructure & DevOps Optimization
-- **Modular CI/CD**: Pemecahan workflow menjadi `ci.yml` (Lint/Test), `cd.yml` (Build/Integration), dan `deploy.yml` (Health/Notify).
-- **Parallel Testing**: Implementasi matrix testing untuk Backend Monolith, Frontend, Auth Service, dan Task Service.
-- **Matrix Docker Builds**: Otomatisasi build image untuk 4 service sekaligus secara paralel.
-- **Automated Integration Tests**: Penambahan tahap pengujian cross-service menggunakan `docker-compose` dalam pipeline.
-- **Security**: Penghapusan URL hardcoded, digantikan dengan GitHub Action Variables (`HEALTH_URL`).
-
-### 3. Repository Cleanup & Standardization
-- **Script Management**: Relokasi script root (`dev.sh`, `docker.sh`, `setup.sh`) ke folder `scripts/`.
-- **Asset Consolidation**: Penyatuan semua gambar dokumentasi ke `docs/assets/` dan update referensi di semua file `.md`.
-- **Contribution Standards**: Implementasi `.github/pull_request_template.md` dengan struktur detail dan bilingual.
-- **Git Hygiene**: Update `.gitignore` untuk melindungi file internal (`draft.md`, `AGENTS.md`) dan merapikan pengecualian environment.
+- **Backend/Gateway**: Membuat service gateway baru menggunakan FastAPI untuk mem-proxy request ke Auth dan Task service.
+- **Frontend**: Mengupdate `api.js`, `LoginPage.jsx`, dan `StatusPage.jsx` untuk berkomunikasi melalui endpoint tunggal di Gateway.
+- **Infrastructure**: Menambahkan konfigurasi build gateway di `docker-compose.yml` dan `docker-compose.prod.yml`, serta mengupdate environment variables.
 
 ## 🧪 Testing & Quality Assurance
-- [x] **Unit Tests**: Pass untuk Backend dan Frontend (diperluas ke Microservices).
-- [x] **Integration Tests**: Verifikasi interoperabilitas antar layanan via Docker Compose dalam pipeline.
-- [x] **Local Integration**: Seluruh script operasional di folder `scripts/` telah diverifikasi.
-- [x] **Visual Check**: UI task category sudah sesuai.
+- [ ] **Unit Tests**: N/A
+- [x] **Local Integration**: Struktur folder dan konfigurasi Docker telah diverifikasi.
+- [x] **Visual Check**: Logic pada StatusPage telah disesuaikan untuk menampilkan status agregat dari Gateway.
 
 ## 🚀 Deployment Impact
-- [ ] **Migrations**: Penambahan kolom `category` pada tabel tasks (memerlukan update skema DB).
-- [x] **Env Vars**: Penambahan `VITE_API_URL` dan `HEALTH_URL` untuk fleksibilitas environment.
-- [ ] **Dependencies**: Integrasi `pytest-cov`, `httpx`, dan dependencies microservices lainnya.
+- [ ] **Migrations**: Tidak ada perubahan skema database.
+- [x] **Env Vars**: Penambahan `AUTH_SERVICE_URL`, `TASK_SERVICE_URL`, dan `FRONTEND_URL` untuk konfigurasi Gateway.
+- [x] **Dependencies**: Penambahan `httpx` dan `fastapi` pada service gateway baru.
 
 ## 📸 Proof of Work
-- Pipeline CI/CD modular berhasil dieksekusi di GitHub Actions.
-- Struktur direktori yang rapi dan terdokumentasi.
+Branch `feature/api-gateway-implementation` telah di-push ke repository.
 
 ---
 
 ## 🏁 Checklist Before Merge
 - [x] Kode sudah mengikuti standar **Conventional Commits**.
-- [x] Tidak ada **Hardcoded Secrets** di dalam workflow maupun kode.
-- [x] Dokumentasi internal/README sudah diperbarui untuk mencerminkan struktur baru.
+- [x] Tidak ada **Hardcoded Secrets**.
+- [x] Dokumentasi internal/README sudah diperbarui secara implisit dalam kode.

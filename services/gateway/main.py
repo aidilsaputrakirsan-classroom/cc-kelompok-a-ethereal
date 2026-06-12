@@ -1,6 +1,7 @@
 import os
 import httpx
 import logging
+import asyncio
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -41,35 +42,34 @@ def health():
 @app.get("/status")
 async def get_status():
     """
-    Aggregated health check for all services.
+    Aggregated health check for all services in parallel.
     """
     async with httpx.AsyncClient() as client:
-        # 1. Gateway health
-        results = {
+        # Define health check tasks
+        async def check_auth():
+            try:
+                auth_res = await client.get(f"{AUTH_SERVICE_URL}/health", timeout=2.0)
+                return {"status": "healthy"} if auth_res.status_code == 200 else {"status": "unhealthy"}
+            except Exception as e:
+                logger.error(f"Error checking auth health: {e}")
+                return {"status": "unhealthy", "message": str(e)}
+
+        async def check_tasks():
+            try:
+                task_res = await client.get(f"{TASK_SERVICE_URL}/health", timeout=2.0)
+                return {"status": "healthy"} if task_res.status_code == 200 else {"status": "unhealthy"}
+            except Exception as e:
+                logger.error(f"Error checking task health: {e}")
+                return {"status": "unhealthy", "message": str(e)}
+
+        # Run checks in parallel
+        auth_status, task_status = await asyncio.gather(check_auth(), check_tasks())
+
+        return {
             "gateway": {"status": "healthy"},
-            "auth": {"status": "unhealthy"},
-            "tasks": {"status": "unhealthy"}
+            "auth": auth_status,
+            "tasks": task_status
         }
-
-        # 2. Auth Service health
-        try:
-            auth_res = await client.get(f"{AUTH_SERVICE_URL}/health", timeout=3.0)
-            if auth_res.status_code == 200:
-                results["auth"] = {"status": "healthy"}
-        except Exception as e:
-            logger.error(f"Error checking auth health: {e}")
-            results["auth"] = {"status": "unhealthy", "message": str(e)}
-
-        # 3. Task Service health
-        try:
-            task_res = await client.get(f"{TASK_SERVICE_URL}/health", timeout=3.0)
-            if task_res.status_code == 200:
-                results["tasks"] = {"status": "healthy"}
-        except Exception as e:
-            logger.error(f"Error checking task health: {e}")
-            results["tasks"] = {"status": "unhealthy", "message": str(e)}
-
-    return results
 
 async def proxy_request(url: str, request: Request):
     """
