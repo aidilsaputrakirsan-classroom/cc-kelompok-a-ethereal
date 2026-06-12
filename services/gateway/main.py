@@ -18,13 +18,10 @@ TASK_SERVICE_URL = os.getenv("TASK_SERVICE_URL", "http://localhost:8002")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 # CORS Configuration
-# Di produksi Railway, allow origin dari domain publik gateway itu sendiri dan frontend
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000",
-    "*" # Dipermudah untuk fleksibilitas Railway, bisa diperketat nanti
+    "https://kelarin.up.railway.app",
 ]
 
 app.add_middleware(
@@ -37,7 +34,10 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "service": "gateway"}
+    return {
+        "status": "healthy",
+        "service": "api-gateway"
+    }
 
 @app.get("/status")
 async def get_status():
@@ -133,4 +133,6 @@ async def frontend_proxy(path: str, request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=80)
+    import os
+    port = int(os.environ.get("PORT", 80))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
