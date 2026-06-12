@@ -1,24 +1,30 @@
 ## 📝 Summary
-Perbaikan error 422 pada login dengan mengembalikan format pengiriman data ke `x-www-form-urlencoded` (Form Data). Hal ini memastikan compatibility penuh dengan Backend Monolith lama sekaligus mendukung Auth Service microservice baru yang telah diupdate untuk menangani kedua format (JSON & Form).
+Perbaikan deployment API Gateway pada Railway untuk mengatasi error 502 Bad Gateway dan masalah CORS. Memastikan Gateway mendengarkan pada port yang tepat dan memiliki endpoint health check yang independen.
 
 ## 🔗 Related Task
 - **Target Branch:** `main`
 
 ## 🛠 Type of Change
-- [x] 🐛 **Bug Fix**: Memperbaiki masalah 422 Unprocessable Entity (missing username/password).
-- [x] ♻️ **Refactor**: Peningkatan kompatibilitas cross-version antara frontend dan backend.
+- [x] 🐛 **Bug Fix**: Memperbaiki error 502 dan CORS pada Railway.
+- [x] 🔧 **Chore**: Optimalisasi startup script untuk Railway environment.
 
 ## 🔍 Scope of Work
-- **Frontend**: Mengubah metode pengiriman login dari JSON menjadi `URLSearchParams` (Form Data). Ini adalah format standar yang diharapkan oleh `OAuth2PasswordRequestForm` pada monolith.
-- **Auth Service**: Mengupdate endpoint `/login` agar secara cerdas mendeteksi `Content-Type` dan memproses input baik dari JSON maupun Form Data.
-- **Requirements**: Menambahkan `python-multipart` untuk mendukung pemrosesan Form Data di microservice.
+- **API Gateway (`main.py`)**: 
+    - Mengupdate blok `if __name__ == "__main__":` agar menggunakan variabel environment `PORT` dari Railway.
+    - Menambahkan `uvicorn.run("main:app", ...)` dengan string import agar mendukung reload dan threading yang lebih baik di production.
+    - Menyederhanakan endpoint `/health` agar tidak memiliki dependensi ke service lain (mencegah timeout selama deployment).
+    - Memperketat konfigurasi CORS hanya untuk domain yang diizinkan.
 
 ## 🧪 Testing & Quality Assurance
-- [x] **Compatibility**: Mendukung pengiriman field `email` atau `username`.
-- [x] **Fallback**: Menangani kegagalan parsing JSON atau Form Data dengan pesan error 422 yang jelas.
+- [x] **Local Integration**: Gateway start-up logic telah diverifikasi.
+
+## 🚀 Deployment Impact
+- **Root Directory**: Pastikan diset ke `/services/gateway` di Railway settings.
+- **Start Command**: `python main.py`
+- **Healthcheck Path**: `/health`
 
 ## 📸 Proof of Work
-Branch `feature/login-compatibility-fix` diperbarui dengan commit `b249de4`.
+Branch `fix/railway-gateway-deployment` telah di-push. Perubahan ini akan memastikan Gateway terdeteksi "Healthy" oleh Railway.
 
 ---
 
