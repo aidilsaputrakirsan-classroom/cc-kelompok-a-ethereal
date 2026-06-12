@@ -74,11 +74,11 @@ app.add_middleware(
 async def health_check():
 
     auth_status = "healthy"
-    
-    # Ambil base URL auth-service dari docker-compose. 
+
+    # Ambil base URL auth-service dari docker-compose.
     # Jika tidak diset, gunakan default internal docker network 'http://auth-service:8001'
     auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
-    
+
     # Bersihkan sisa trailing slash jika ada, lalu arahkan pas ke endpoint /health
     auth_health_url = f"{auth_base_url.rstrip('/')}/health"
 
@@ -93,21 +93,19 @@ async def health_check():
                 auth_status = "unhealthy"
 
     except Exception:
-        auth_status = "unhealthy"
+        auth_status = "unreachable"
 
-    overall_status = (
-        "healthy"
-        if auth_status == "healthy"
-        else "degraded"
-    )
-
+    # Overall status reflects only this service's own health.
+    # AUTH-SERVICE reachability is reported separately for monitoring
+    # purposes but does not affect the top-level status field.
     return {
-        "status": overall_status,
+        "status": "healthy",
         "service": "task-service",
         "dependencies": {
             "auth-service": auth_status
         }
     }
+
 @app.get("/metrics")
 async def metrics():
 
