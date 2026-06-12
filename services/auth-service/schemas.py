@@ -18,7 +18,8 @@ class UserResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: EmailStr = None
+    username: str = None
     password: str
 
 

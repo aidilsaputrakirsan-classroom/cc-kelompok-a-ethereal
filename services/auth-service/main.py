@@ -107,8 +107,17 @@ def login(
     login_data: LoginRequest,
     db: Session = Depends(get_db)
 ):
+    # Support both email and username fields for compatibility
+    login_email = login_data.email or login_data.username
+    
+    if not login_email:
+        raise HTTPException(
+            status_code=422,
+            detail="Email or username is required"
+        )
+
     user = db.query(User).filter(
-        User.email == login_data.email
+        User.email == login_email
     ).first()
 
     if not user or not pwd_context.verify(
