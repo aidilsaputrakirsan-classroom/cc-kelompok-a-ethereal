@@ -86,7 +86,7 @@ async def health_check():
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 auth_health_url,
-                timeout=1.0
+                timeout=3.0
             )
 
             if response.status_code != 200:
