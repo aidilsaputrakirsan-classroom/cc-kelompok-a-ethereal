@@ -32,6 +32,13 @@ services:
   # ==================== GATEWAY ====================
   gateway:
     restart: always
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - AUTH_SERVICE_URL=http://kelarin-auth-service.railway.internal:8001
+      - TASK_SERVICE_URL=http://kelarin-task-service.railway.internal:8002
+      - FRONTEND_URL=http://kelarin-frontend.railway.internal:80

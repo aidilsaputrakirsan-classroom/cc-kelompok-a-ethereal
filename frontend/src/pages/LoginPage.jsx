@@ -26,66 +26,47 @@ const LoginPage = ({ setToken, showToast }) => {
     setServiceUnavailable(false);
 
     try {
-      let response;
+      let result;
 
       // ================= REGISTER =================
       if (isRegister) {
-        response = await fetch(
-          `${API_URL}/auth/register`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: formData.email,
-              name: formData.name,
-              password: formData.password,
-            }),
-          }
-        );
+        result = await api.register({
+          email: formData.email,
+          name: formData.name,
+          password: formData.password
+        });
+      } 
+      // ================= LOGIN =================
+      else {
+        result = await api.login({
+          email: formData.email,
+          password: formData.password
+        });
       }
 
-      // ================= LOGIN =================
-else {
-  const formData2 = new URLSearchParams();
-  formData2.append("username", formData.email);
-  formData2.append("password", formData.password);
-
-  // TAMBAH INI untuk debug
-  console.log("Sending:", formData2.toString());
-  console.log("email value:", formData.email);
-  console.log("password value:", formData.password);
-
-  response = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: formData2,
-  });
-}
-
-      // ================= SERVICE DOWN =================
-      if (response.status === 503) {
+      // ================= HANDLE RESULT =================
+      
+      if (result.serviceUnavailable || result.status === 503) {
         setServiceUnavailable(true);
         showToast(
           "Service temporarily unavailable. Please try again later.",
           "error"
         );
-        setLoading(false);
         return;
       }
 
-      // ================= NETWORK ERROR =================
-      if (response.status >= 500) {
+      if (result.status >= 500) {
         throw new Error("Service error");
       }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Authentication failed");
+      if (!result.ok && !isRegister && result.status !== 200) {
+         // for api.js results
+         throw new Error(result.error || "Authentication failed");
+      }
+      
+      if (!isRegister && result.status !== 200 && result.status !== 201) {
+          // Fallback for raw fetch if used
+          throw new Error(result.error || "Operation failed");
       }
 
       // ================= REGISTER SUCCESS =================
@@ -94,33 +75,21 @@ else {
           "Registrasi berhasil! Silakan login.",
           "success"
         );
-
         setIsRegister(false);
-
         setFormData({
           email: "",
           name: "",
           password: "",
         });
       }
-
       // ================= LOGIN SUCCESS =================
       else {
-        const token =
-          data.access_token ||
-          data.token ||
-          data;
-
+        const token = result.data.access_token;
         if (!token) {
-          throw new Error(
-            "Token tidak ditemukan dari backend"
-          );
+          throw new Error("Token tidak ditemukan dari backend");
         }
-
         localStorage.setItem("token", token);
-
         setToken(token);
-
         showToast("Login berhasil!", "success");
       }
     } catch (err) {
