@@ -39,6 +39,10 @@ app.add_middleware(
 def health():
     return {"status": "healthy", "service": "gateway"}
 
+@app.get("/")
+def root():
+    return {"message": "Kelarin API Gateway is running", "status": "healthy"}
+
 @app.get("/status")
 async def get_status():
     """

@@ -1,36 +1,31 @@
 ## 📝 Summary
-Implementasi Central API Gateway menggunakan FastAPI dan refaktorisasi Frontend untuk mendukung arsitektur layanan terpusat. Mengganti direct call ke microservices menjadi melalui Gateway.
+Optimasi performa health check pada API Gateway dan Task Service. Mengurangi latency dengan mengimplementasikan eksekusi paralel dan penyesuaian timeout internal.
 
 ## 🔗 Related Task
 - **Task Link:** N/A
 - **Target Branch:** `main`
 
 ## 🛠 Type of Change
-- [x] ✨ **Feature**: Menambah fungsionalitas baru (API Gateway).
-- [x] ♻️ **Refactor**: Perubahan kode pada Frontend untuk integrasi Gateway.
-- [x] 🔧 **Chore**: Update docker-compose dan environment variables.
+- [x] ✨ **Feature**: Optimasi performa health check.
+- [x] ♻️ **Refactor**: Penggunaan `asyncio.gather` pada Gateway.
 
 ## 🔍 Scope of Work
-- **Backend/Gateway**: Membuat service gateway baru menggunakan FastAPI untuk mem-proxy request ke Auth dan Task service.
-- **Frontend**: Mengupdate `api.js`, `LoginPage.jsx`, dan `StatusPage.jsx` untuk berkomunikasi melalui endpoint tunggal di Gateway.
-- **Infrastructure**: Menambahkan konfigurasi build gateway di `docker-compose.yml` dan `docker-compose.prod.yml`, serta mengupdate environment variables.
+- **Gateway**: Mengubah endpoint `/status` agar melakukan pengecekan ke Auth dan Task service secara paralel menggunakan `asyncio.gather`. Timeout internal dikurangi menjadi 2 detik.
+- **Task Service**: Mengurangi timeout pengecekan dependensi Auth service menjadi 1 detik untuk mempercepat respon health check mandiri.
 
 ## 🧪 Testing & Quality Assurance
-- [ ] **Unit Tests**: N/A
-- [x] **Local Integration**: Struktur folder dan konfigurasi Docker telah diverifikasi.
-- [x] **Visual Check**: Logic pada StatusPage telah disesuaikan untuk menampilkan status agregat dari Gateway.
+- [x] **Local Integration**: Kode telah diverifikasi secara sintaksis dan logis. Eksekusi paralel akan secara signifikan mengurangi "worst-case" latency dari total akumulatif menjadi latency layanan terlambat.
 
 ## 🚀 Deployment Impact
-- [ ] **Migrations**: Tidak ada perubahan skema database.
-- [x] **Env Vars**: Penambahan `AUTH_SERVICE_URL`, `TASK_SERVICE_URL`, dan `FRONTEND_URL` untuk konfigurasi Gateway.
-- [x] **Dependencies**: Penambahan `httpx` dan `fastapi` pada service gateway baru.
+- [ ] **Migrations**: Tidak ada.
+- [ ] **Env Vars**: Tidak ada.
+- [ ] **Dependencies**: `asyncio` (standard library).
 
 ## 📸 Proof of Work
-Branch `feature/api-gateway-implementation` telah di-push ke repository.
+Branch `feature/optimize-healthcheck` telah di-push ke repository.
 
 ---
 
 ## 🏁 Checklist Before Merge
 - [x] Kode sudah mengikuti standar **Conventional Commits**.
 - [x] Tidak ada **Hardcoded Secrets**.
-- [x] Dokumentasi internal/README sudah diperbarui secara implisit dalam kode.
