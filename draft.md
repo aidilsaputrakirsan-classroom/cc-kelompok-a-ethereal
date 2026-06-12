@@ -1,36 +1,34 @@
 ## 📝 Summary
-Implementasi Central API Gateway menggunakan FastAPI dan refaktorisasi Frontend untuk mendukung arsitektur layanan terpusat. Mengganti direct call ke microservices menjadi melalui Gateway.
+Perbaikan error 422 pada login dengan menyelaraskan nama field antara Frontend dan Backend. Memastikan compatibility dengan standard OAuth2 (menggunakan `username`) tanpa memutus dukungan untuk field `email`.
 
 ## 🔗 Related Task
 - **Task Link:** N/A
 - **Target Branch:** `main`
 
 ## 🛠 Type of Change
-- [x] ✨ **Feature**: Menambah fungsionalitas baru (API Gateway).
-- [x] ♻️ **Refactor**: Perubahan kode pada Frontend untuk integrasi Gateway.
-- [x] 🔧 **Chore**: Update docker-compose dan environment variables.
+- [ ] ✨ **Feature**: Menambah fungsionalitas baru.
+- [x] 🐛 **Bug Fix**: Memperbaiki masalah 422 Unprocessable Entity pada login.
+- [x] ♻️ **Refactor**: Peningkatan fleksibilitas skema login.
 
 ## 🔍 Scope of Work
-- **Backend/Gateway**: Membuat service gateway baru menggunakan FastAPI untuk mem-proxy request ke Auth dan Task service.
-- **Frontend**: Mengupdate `api.js`, `LoginPage.jsx`, dan `StatusPage.jsx` untuk berkomunikasi melalui endpoint tunggal di Gateway.
-- **Infrastructure**: Menambahkan konfigurasi build gateway di `docker-compose.yml` dan `docker-compose.prod.yml`, serta mengupdate environment variables.
+- **Auth Service**: 
+    - Mengupdate `LoginRequest` agar menerima field `username` dan `email` secara opsional.
+    - Menambahkan logika fallback untuk menggunakan field mana pun yang tersedia sebagai identitas user.
+- **Frontend**: 
+    - Mengupdate `api.js` agar mengirim data login menggunakan field `username` (yang diisi dengan email) dalam format JSON. Hal ini menyelaraskan frontend dengan ekspektasi backend microservice maupun potensi sisa konfigurasi monolith.
 
 ## 🧪 Testing & Quality Assurance
-- [ ] **Unit Tests**: N/A
-- [x] **Local Integration**: Struktur folder dan konfigurasi Docker telah diverifikasi.
-- [x] **Visual Check**: Logic pada StatusPage telah disesuaikan untuk menampilkan status agregat dari Gateway.
+- [x] **Local Integration**: Skema Pydantic baru telah diverifikasi dapat menerima payload dengan `username` saja.
 
 ## 🚀 Deployment Impact
-- [ ] **Migrations**: Tidak ada perubahan skema database.
-- [x] **Env Vars**: Penambahan `AUTH_SERVICE_URL`, `TASK_SERVICE_URL`, dan `FRONTEND_URL` untuk konfigurasi Gateway.
-- [x] **Dependencies**: Penambahan `httpx` dan `fastapi` pada service gateway baru.
+- [ ] **Migrations**: Tidak ada.
+- [x] **Env Vars**: Pastikan `VITE_API_URL` mengarah ke domain **Gateway** baru agar perubahan ini efektif sepenuhnya.
 
 ## 📸 Proof of Work
-Branch `feature/api-gateway-implementation` telah di-push ke repository.
+Branch `feature/login-compatibility-fix` telah di-push. Error 422 `missing username` pada microservice akan teratasi dengan perubahan ini.
 
 ---
 
 ## 🏁 Checklist Before Merge
 - [x] Kode sudah mengikuti standar **Conventional Commits**.
 - [x] Tidak ada **Hardcoded Secrets**.
-- [x] Dokumentasi internal/README sudah diperbarui secara implisit dalam kode.
