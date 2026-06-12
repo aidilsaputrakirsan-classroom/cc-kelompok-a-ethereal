@@ -7,12 +7,16 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 export const api = {
   login: async ({ email, password }) => {
     try {
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
+
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify({ username: email, password }),
+        body: formData,
       });
 
       const data = await res.json();

@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, Depends, HTTPException, Header, Request
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -102,28 +103,41 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
+# Support both JSON and Form Data for login
 @app.post("/login", response_model=TokenResponse)
-def login(
-    login_data: LoginRequest,
+async def login(
+    request: Request,
     db: Session = Depends(get_db)
 ):
-    # Support both email and username fields for compatibility
-    login_email = login_data.email or login_data.username
-    
-    if not login_email:
+    content_type = request.headers.get("content-type", "")
+    email = None
+    password = None
+
+    if "application/json" in content_type:
+        try:
+            data = await request.json()
+            email = data.get("email") or data.get("username")
+            password = data.get("password")
+        except:
+            raise HTTPException(status_code=422, detail="Invalid JSON")
+    else:
+        # Fallback to Form Data
+        try:
+            form = await request.form()
+            email = form.get("username") or form.get("email")
+            password = form.get("password")
+        except:
+            raise HTTPException(status_code=422, detail="Invalid Form Data")
+
+    if not email or not password:
         raise HTTPException(
             status_code=422,
-            detail="Email or username is required"
+            detail="Email/username and password are required"
         )
 
-    user = db.query(User).filter(
-        User.email == login_email
-    ).first()
+    user = db.query(User).filter(User.email == email).first()
 
-    if not user or not pwd_context.verify(
-        login_data.password,
-        user.hashed_password
-    ):
+    if not user or not pwd_context.verify(password, user.hashed_password):
         raise HTTPException(
             status_code=401,
             detail="Email atau password salah"
@@ -135,9 +149,7 @@ def login(
         "name": user.name,
     })
 
-    return TokenResponse(
-        access_token=token
-    )
+    return TokenResponse(access_token=token)
 
 @app.get("/verify", response_model=VerifyResponse)
 def verify_token(authorization: str = Header(...)):
