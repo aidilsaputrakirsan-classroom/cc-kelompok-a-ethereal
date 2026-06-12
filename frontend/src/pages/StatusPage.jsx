@@ -10,58 +10,9 @@ const API_URL =
 function ServiceCard({
   name,
   icon,
-  healthUrl,
-  metricsUrl,
+  status,
+  loading
 }) {
-  const [health, setHealth] = useState(null);
-  const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      const healthRes = await fetch(healthUrl);
-
-      if (healthRes.ok) {
-        const healthData = await healthRes.json();
-        setHealth(healthData);
-      } else {
-        setHealth({ status: "unhealthy" });
-      }
-    } catch {
-      setHealth({ status: "unreachable" });
-    }
-
-    if (metricsUrl) {
-      try {
-        const metricsRes = await fetch(metricsUrl);
-
-        if (metricsRes.ok) {
-          const metricsData = await metricsRes.json();
-          setMetrics(metricsData);
-        } else {
-          setMetrics(null);
-        }
-      } catch {
-        setMetrics(null);
-      }
-    }
-
-    setLoading(false);
-  }, [healthUrl, metricsUrl]);
-
-  useEffect(() => {
-    fetchStatus();
-
-    const interval = setInterval(
-      fetchStatus,
-      10000
-    );
-
-    return () => clearInterval(interval);
-  }, [fetchStatus]);
-
-  const status = health?.status || "unreachable";
-
   const statusConfig = {
     healthy: {
       label: "Healthy",
@@ -85,8 +36,7 @@ function ServiceCard({
     },
   };
 
-  const errorRate =
-    metrics?.error_rate_percent ?? 0;
+  const currentStatus = status || "unreachable";
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
@@ -97,137 +47,23 @@ function ServiceCard({
 
         <span
           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            statusConfig[status]?.color
+            statusConfig[currentStatus]?.color
           }`}
         >
           {loading
             ? "Checking..."
-            : statusConfig[status]?.label}
+            : statusConfig[currentStatus]?.label}
         </span>
       </div>
 
-      {metrics ? (
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">
-              Requests
-            </p>
-            <p className="font-bold text-lg text-gray-900 dark:text-white">
-              {metrics.total_requests ?? 0}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">
-              Errors
-            </p>
-            <p className="font-bold text-lg text-red-500">
-              {metrics.total_errors ?? 0}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">
-              Error Rate
-            </p>
-
-            <p className="font-semibold text-gray-900 dark:text-white mb-2">
-              {errorRate}%
-            </p>
-
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-              <div
-                className={`h-full transition-all duration-500 ${
-                  errorRate > 10
-                    ? "bg-red-500"
-                    : errorRate > 5
-                    ? "bg-yellow-500"
-                    : "bg-green-500"
-                }`}
-                style={{
-                  width: `${Math.min(
-                    errorRate,
-                    100
-                  )}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">
-              Avg Latency
-            </p>
-            <p className="font-semibold text-gray-900 dark:text-white">
-              {metrics.latency?.avg_ms ?? 0} ms
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">
-              P95 Latency
-            </p>
-            <p className="font-semibold text-gray-900 dark:text-white">
-              {metrics.latency?.p95_ms ?? 0} ms
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">
-              Uptime
-            </p>
-            <p className="font-semibold text-gray-900 dark:text-white">
-              {Math.round(
-                (metrics.uptime_seconds || 0) / 60
-              )} min
-            </p>
-          </div>
+      <div className="space-y-4">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Service is currently {currentStatus}.
         </div>
-      ) : (
-        <div className="space-y-4">
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-gray-500 dark:text-gray-400">
-                Requests
-              </p>
-              <p className="font-bold text-lg text-gray-400">
-                -
-              </p>
-            </div>
-
-            <div>
-              <p className="text-gray-500 dark:text-gray-400">
-                Errors
-              </p>
-              <p className="font-bold text-lg text-gray-400">
-                -
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-gray-500 dark:text-gray-400 mb-2">
-              Error Rate
-            </p>
-
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-              <div
-                className="bg-gray-400 h-full rounded-full"
-                style={{ width: "0%" }}
-              />
-            </div>
-
-            <p className="text-xs text-gray-500 mt-1">
-              0%
-            </p>
-          </div>
-
-          <div className="text-xs text-gray-400 italic">
-            Waiting for metrics service...
-          </div>
+        <div className="text-xs text-gray-400 italic">
+          Checked via API Gateway
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -235,25 +71,45 @@ function ServiceCard({
 export default function StatusPage() {
   const navigate = useNavigate();
 
-  const [lastChecked, setLastChecked] =
-    useState("");
+  const [statuses, setStatuses] = useState({
+    gateway: null,
+    auth: null,
+    tasks: null
+  });
+  const [loading, setLoading] = useState(true);
+  const [lastChecked, setLastChecked] = useState("");
+
+  const fetchAllStatuses = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/status`);
+      if (res.ok) {
+        const data = await res.json();
+        setStatuses({
+          gateway: data.gateway?.status,
+          auth: data.auth?.status,
+          tasks: data.tasks?.status
+        });
+      } else {
+        throw new Error("Failed to fetch status");
+      }
+    } catch (err) {
+      console.error("Error fetching system status:", err);
+      setStatuses({
+        gateway: "unreachable",
+        auth: "unreachable",
+        tasks: "unreachable"
+      });
+    } finally {
+      setLoading(false);
+      setLastChecked(new Date().toLocaleTimeString());
+    }
+  }, []);
 
   useEffect(() => {
-    const updateTime = () => {
-      setLastChecked(
-        new Date().toLocaleTimeString()
-      );
-    };
-
-    updateTime();
-
-    const interval = setInterval(
-      updateTime,
-      10000
-    );
-
+    fetchAllStatuses();
+    const interval = setInterval(fetchAllStatuses, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchAllStatuses]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
@@ -293,29 +149,30 @@ export default function StatusPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Dashboard ini digunakan untuk memantau kondisi
             Authentication Service, Task Service, dan API
-            Gateway pada aplikasi Kelarin.
+            Gateway pada aplikasi Kelarin melalui satu endpoint terpusat.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-3">
+          <ServiceCard
+            name="API Gateway"
+            icon="🚪"
+            status={statuses.gateway}
+            loading={loading}
+          />
+
           <ServiceCard
             name="Authentication Service"
             icon="🔐"
-            healthUrl={`${API_URL}/auth/health`}
-            metricsUrl={`${API_URL}/auth/metrics`}
+            status={statuses.auth}
+            loading={loading}
           />
 
           <ServiceCard
             name="Task Service"
             icon="📋"
-            healthUrl={`${API_URL}/items/health`}
-            metricsUrl={`${API_URL}/items/metrics`}
-          />
-
-          <ServiceCard
-            name="API Gateway"
-            icon="🚪"
-            healthUrl={`${API_URL}/health`}
+            status={statuses.tasks}
+            loading={loading}
           />
         </div>
 

@@ -128,10 +128,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://kelarin-backend.up.railway.app
     container_name: frontend-kelarin
     restart: unless-stopped
     environment:
-      VITE_API_URL: http://localhost
+      VITE_API_URL: https://kelarin-backend.up.railway.app
     networks:
       - kelarin-net
     logging:
@@ -147,13 +149,17 @@ services:
 
   # ==================== API GATEWAY ====================
   gateway:
-    image: nginx:alpine
-    container_name: gateway-nginx
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: gateway-service
     restart: unless-stopped
     ports:
       - "80:80"
-    volumes:
-      - ./services/gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8001
+      TASK_SERVICE_URL: http://task-service:8002
+      FRONTEND_URL: http://frontend:80
     networks:
       - kelarin-net
     depends_on:
@@ -172,7 +178,7 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: 128M
+          memory: 256M
 
 # ==================== VOLUMES & NETWORKS ====================
 volumes:
