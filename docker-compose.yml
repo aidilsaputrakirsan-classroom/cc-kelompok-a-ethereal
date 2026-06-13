@@ -129,18 +129,26 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: https://kelarin-backend.up.railway.app
+        VITE_API_URL: http://localhost
+
     container_name: frontend-kelarin
     restart: unless-stopped
+
+    ports:
+      - "5173:80"
+
     environment:
-      VITE_API_URL: https://kelarin-backend.up.railway.app
+      VITE_API_URL: http://localhost
+
     networks:
       - kelarin-net
+
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+
     deploy:
       resources:
         limits:
