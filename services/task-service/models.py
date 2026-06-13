@@ -28,6 +28,11 @@ class Task(Base):
         nullable=True
     )
 
+    deadline = Column(
+            DateTime,
+            nullable=True
+        )
+    
     category = Column(
         String,
         nullable=True

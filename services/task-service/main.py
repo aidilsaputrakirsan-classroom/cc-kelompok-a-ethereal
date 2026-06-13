@@ -128,6 +128,7 @@ async def create_task(
         description=task_data.description,
         category=task_data.category,
         attachment_url=task_data.attachment_url,
+        deadline=task_data.deadline,
         owner_id=user["user_id"]
     )
 
