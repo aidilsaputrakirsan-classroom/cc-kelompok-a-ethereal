@@ -129,6 +129,11 @@ async def task_proxy(path: str, request: Request):
     return await proxy_request(url, request)
 
 # Catch-all proxy for Frontend (static files / React app)
+@app.api_route("/tasks", methods=["GET", "POST"])
+async def tasks_root(request: Request):
+    url = f"{TASK_SERVICE_URL}/tasks"
+    return await proxy_request(url, request)
+
 @app.api_route("/{path:path}", methods=["GET"])
 async def frontend_proxy(path: str, request: Request):
     # Ignore /status, /health, /auth, /tasks which are handled above

@@ -138,6 +138,22 @@ async def create_task(
     return task
 
 # ================= GET TASKS =================
+
+@app.get(
+    "/tasks",
+    response_model=list[TaskResponse]
+)
+async def get_tasks(
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    tasks = db.query(Task).filter(
+        Task.owner_id == user["user_id"]
+    ).all()
+
+    return tasks
+
+
 @app.get(
     "/tasks/{task_id}",
     response_model=TaskResponse
@@ -153,7 +169,6 @@ async def get_task(
     ).first()
 
     if not task:
-
         record_error()
         check_error_alert()
 
@@ -163,6 +178,7 @@ async def get_task(
         )
 
     return task
+
 # ================= PUBLIC TASKS =================
 
 @app.get(
@@ -175,27 +191,6 @@ async def get_public_tasks(
     tasks = db.query(Task).all()
 
     return tasks
-
-
-# ================= GET TASK DETAIL =================
-
-@app.get(
-    "/tasks/{task_id}",
-    response_model=TaskResponse
-)
-async def get_task(
-    task_id: int,
-    user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    task = db.query(Task).filter(
-        Task.id == task_id,
-        Task.owner_id == user["user_id"]
-    ).first()
-
-    
-
-    return task
 
 # ================= UPDATE TASK =================
 
