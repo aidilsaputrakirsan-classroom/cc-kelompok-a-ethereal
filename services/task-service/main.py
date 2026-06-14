@@ -1,51 +1,62 @@
 import os
 import logging
+from contextlib import asynccontextmanager
 
 import httpx
 
 from dotenv import load_dotenv
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.orm import Session
 
-from database import Base
-from database import engine
-from database import get_db
-
+from database import Base, engine, get_db, run_migrations
 from models import Task
-
 from schemas import (
     TaskCreate,
     TaskUpdate,
     TaskResponse,
     TaskStatsResponse
 )
-
 from auth_client import get_current_user
-
 from logging_config import setup_logging
 from logging_middleware import RequestLoggingMiddleware
-
-from metrics import (
-    get_metrics,
-    record_error,
-    check_error_alert
-)
+from metrics import get_metrics, record_error, check_error_alert
 
 logger = logging.getLogger(__name__)
-
 load_dotenv()
-
-Base.metadata.create_all(bind=engine)
-
 setup_logging()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize DB
+    logger.info("Initializing database...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        run_migrations()
+        logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+    yield
+    # Shutdown logic (if any) can go here
 
 app = FastAPI(
     title="Kelarin Task Service",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
+
+# Global Exception Handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global error handler caught: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal Server Error: {str(exc)}"}
+    )
+
 
 app.add_middleware(RequestLoggingMiddleware)
 
@@ -76,8 +87,8 @@ async def health_check():
     auth_status = "healthy"
 
     # Ambil base URL auth-service dari docker-compose.
-    # Jika tidak diset, gunakan default internal docker network 'http://auth-service:8001'
-    auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001")
+    # Jika tidak diset, gunakan default internal docker network 'http://localhost:8001'
+    auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://localhost:8001")
 
     # Bersihkan sisa trailing slash jika ada, lalu arahkan pas ke endpoint /health
     auth_health_url = f"{auth_base_url.rstrip('/')}/health"
@@ -138,8 +149,7 @@ async def create_task(
 
     return task
 
-# ================= GET TASKS =================
-
+# ================= GET ALL USER TASKS =================
 @app.get(
     "/tasks",
     response_model=list[TaskResponse]
@@ -154,7 +164,7 @@ async def get_tasks(
 
     return tasks
 
-
+# ================= GET TASK DETAIL =================
 @app.get(
     "/tasks/{task_id}",
     response_model=TaskResponse
@@ -172,7 +182,6 @@ async def get_task(
     if not task:
         record_error()
         check_error_alert()
-
         raise HTTPException(
             status_code=404,
             detail="Task not found"
