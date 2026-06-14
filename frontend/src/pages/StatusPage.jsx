@@ -21,7 +21,8 @@ function ServiceCard({
         "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
     },
     unhealthy: {
-      label: "Unhealthy",
+      label:
+        "Unhealthy",
       color:
         "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
     },
@@ -56,6 +57,7 @@ function ServiceCard({
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Service is currently {currentStatus}.
         </div>
+
         <div className="text-xs text-gray-400 italic">
           Checked via API Gateway
         </div>
@@ -72,14 +74,17 @@ export default function StatusPage() {
     auth: null,
     tasks: null
   });
+
   const [loading, setLoading] = useState(true);
   const [lastChecked, setLastChecked] = useState("");
 
   const fetchAllStatuses = useCallback(async () => {
     try {
       const result = await api.getSystemStatus();
+
       if (result.ok && result.data) {
         const { data } = result;
+
         setStatuses({
           gateway: data.gateway?.status || "unreachable",
           auth: data.auth?.status || "unreachable",
@@ -90,6 +95,7 @@ export default function StatusPage() {
       }
     } catch (err) {
       console.error("Error fetching system status:", err);
+
       setStatuses({
         gateway: "unreachable",
         auth: "unreachable",
@@ -103,7 +109,12 @@ export default function StatusPage() {
 
   useEffect(() => {
     fetchAllStatuses();
-    const interval = setInterval(fetchAllStatuses, 10000);
+
+    const interval = setInterval(
+      fetchAllStatuses,
+      10000
+    );
+
     return () => clearInterval(interval);
   }, [fetchAllStatuses]);
 
@@ -156,6 +167,16 @@ export default function StatusPage() {
             status={statuses.tasks}
             loading={loading}
           />
+        </div>
+
+        {/* BACK BUTTON */}
+        <div className="mt-8 flex justify-center">
+          <Button
+            onClick={() => navigate("/")}
+            className="px-6 py-2"
+          >
+            Kembali
+          </Button>
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
