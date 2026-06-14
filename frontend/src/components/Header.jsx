@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Button } from "./ui/Button";
 
 const Header = ({ onLogout, darkMode, onDarkModeChange }) => {
   const toggleDarkMode = () => {
@@ -10,12 +11,12 @@ const Header = ({ onLogout, darkMode, onDarkModeChange }) => {
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <span className="text-2xl">📋</span>
           <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">
             Kelarin
           </span>
-        </div>
+        </Link>
 
         {/* Right Side */}
         <nav className="flex items-center gap-4">
@@ -36,23 +37,26 @@ const Header = ({ onLogout, darkMode, onDarkModeChange }) => {
           </Link>
 
           {/* Dark Mode Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className="px-3 py-1 rounded-lg border text-sm font-medium
-            border-gray-300 dark:border-gray-600
-            text-gray-700 dark:text-white
-            hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-          >
-            {darkMode ? "☀️ Light" : "🌙 Dark"}
-          </button>
+          <div className="w-auto">
+            <Button
+              onClick={toggleDarkMode}
+              variant="secondary"
+              className="px-3 py-1.5 mt-0 text-sm h-9"
+            >
+              {darkMode ? "☀️ Light" : "🌙 Dark"}
+            </Button>
+          </div>
 
           {/* Logout */}
-          <button
-            onClick={onLogout}
-            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-          >
-            Logout
-          </button>
+          <div className="w-auto">
+            <Button
+              onClick={onLogout}
+              variant="link"
+              className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-9"
+            >
+              Logout
+            </Button>
+          </div>
 
         </nav>
       </div>

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Button } from "../components/ui/Button";
 
 const AboutPage = () => {
   const navigate = useNavigate();
@@ -32,23 +33,25 @@ const AboutPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md border p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-4 py-10 transition-colors duration-300">
+      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-8 transition-colors duration-300">
 
         {/* Back Button */}
-        <button
-          onClick={() => navigate("/")}
-          className="mb-6 text-sm font-medium text-[#2E75B6] hover:underline"
-        >
-          ← Kembali ke Dashboard
-        </button>
+        <div className="w-auto mb-6">
+          <Button
+            onClick={() => navigate("/")}
+            variant="link"
+          >
+            ← Kembali ke Dashboard
+          </Button>
+        </div>
 
         {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2 transition-colors duration-300">
           About Kelarin 📋
         </h1>
 
-        <p className="text-gray-600 mb-8">
+        <p className="text-gray-600 dark:text-gray-300 mb-8 transition-colors duration-300">
           Kelarin adalah platform manajemen tugas mahasiswa berbasis cloud
           yang membantu kolaborasi tim menjadi lebih terstruktur, efisien,
           dan mudah diakses kapan saja.
@@ -56,11 +59,11 @@ const AboutPage = () => {
 
         {/* Tech Stack */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4 transition-colors duration-300">
             Tech Stack
           </h2>
 
-          <div className="space-y-2 text-gray-700">
+          <div className="space-y-2 text-gray-700 dark:text-gray-300 transition-colors duration-300">
             <p><strong>Backend:</strong> FastAPI + PostgreSQL</p>
             <p><strong>Frontend:</strong> React + Vite + Tailwind CSS</p>
             <p><strong>Container:</strong> Docker + Docker Compose</p>
@@ -70,26 +73,26 @@ const AboutPage = () => {
 
         {/* Team */}
         <div>
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4 transition-colors duration-300">
             ETHEREAL TEAM
           </h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full border border-gray-200 rounded-lg overflow-hidden">
-              <thead className="bg-gray-100">
+            <table className="w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden transition-colors duration-300">
+              <thead className="bg-gray-100 dark:bg-gray-700 transition-colors duration-300">
                 <tr>
-                  <th className="text-left p-3 border-b">Nama</th>
-                  <th className="text-left p-3 border-b">NIM</th>
-                  <th className="text-left p-3 border-b">Peran</th>
+                  <th className="text-left p-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white">Nama</th>
+                  <th className="text-left p-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white">NIM</th>
+                  <th className="text-left p-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white">Peran</th>
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody className="text-gray-700 dark:text-gray-300">
                 {team.map((member, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="p-3 border-b">{member.name}</td>
-                    <td className="p-3 border-b">{member.nim}</td>
-                    <td className="p-3 border-b">{member.role}</td>
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-300">
+                    <td className="p-3 border-b border-gray-200 dark:border-gray-700">{member.name}</td>
+                    <td className="p-3 border-b border-gray-200 dark:border-gray-700">{member.nim}</td>
+                    <td className="p-3 border-b border-gray-200 dark:border-gray-700">{member.role}</td>
                   </tr>
                 ))}
               </tbody>

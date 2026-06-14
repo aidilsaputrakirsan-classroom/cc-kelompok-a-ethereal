@@ -1,6 +1,6 @@
 import TaskList from "../components/TaskList";
-import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
+import { Button } from "../components/ui/Button";
 
 const HomePage = ({ token, onLogout, showToast }) => {
   const navigate = useNavigate();
@@ -22,22 +22,22 @@ const HomePage = ({ token, onLogout, showToast }) => {
             </p>
           </div>
 
-          <button
-            onClick={() => navigate("/create")}
-            className="bg-[#2E75B6] text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-          >
-            + Tambah Tugas
-          </button>
+          <div className="w-auto">
+            <Button
+              onClick={() => navigate("/create")}
+              variant="primary"
+            >
+              + Tambah Tugas
+            </Button>
+          </div>
         </div>
 
         {/* TASK LIST */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
-          <TaskList token={token} showToast={showToast} />
+          <TaskList token={token} showToast={showToast} onLogout={onLogout} />
         </div>
 
       </main>
-
-      <Footer />
     </div>
   );
 };
