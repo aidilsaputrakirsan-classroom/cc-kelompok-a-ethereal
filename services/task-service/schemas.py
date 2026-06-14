@@ -32,7 +32,11 @@ class TaskResponse(BaseModel):
     attachment_url: Optional[str]
     completed: bool
     owner_id: int
-    deadline: Optional[datetime] = None  # Tambahkan ini
+    assigned_to: Optional[int] = None
+    deadline: Optional[datetime] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
     class Config:
         from_attributes = True
 
