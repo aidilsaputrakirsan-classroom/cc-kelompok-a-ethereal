@@ -75,11 +75,14 @@ function App() {
   };
 
   const handleLogout = () => {
-    setToken(null);
-    localStorage.removeItem("token");
-    showToast("Logout berhasil", "info");
-    navigate("/"); // Redirect to home/login
-  };
+  setToken(null);
+
+  localStorage.removeItem("token");
+  localStorage.removeItem("userEmail");
+
+  showToast("Logout berhasil", "info");
+  navigate("/");
+};
 
   // 🔥 CONFIGURATION CHECK
   if (!import.meta.env.VITE_API_URL) {
@@ -106,7 +109,8 @@ function App() {
         serviceType="auth"
       />
 
-      <Header 
+      <Header
+        token={token}
         onLogout={handleLogout}
         darkMode={darkMode}
         onDarkModeChange={setDarkMode}

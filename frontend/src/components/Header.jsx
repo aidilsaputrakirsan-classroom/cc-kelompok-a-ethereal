@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "./ui/Button";
 
-const Header = ({ onLogout, darkMode, onDarkModeChange }) => {
+const Header = ({
+  token,
+  onLogout,
+  darkMode,
+  onDarkModeChange,
+}) => {
   const toggleDarkMode = () => {
     onDarkModeChange(!darkMode);
   };
@@ -11,7 +16,10 @@ const Header = ({ onLogout, darkMode, onDarkModeChange }) => {
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link
+          to="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <span className="text-2xl">📋</span>
           <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">
             Kelarin
@@ -47,16 +55,18 @@ const Header = ({ onLogout, darkMode, onDarkModeChange }) => {
             </Button>
           </div>
 
-          {/* Logout */}
-          <div className="w-auto">
-            <Button
-              onClick={onLogout}
-              variant="link"
-              className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-9"
-            >
-              Logout
-            </Button>
-          </div>
+          {/* Logout - hanya muncul jika sudah login */}
+          {token && (
+            <div className="w-auto">
+              <Button
+                onClick={onLogout}
+                variant="link"
+                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-9"
+              >
+                Logout
+              </Button>
+            </div>
+          )}
 
         </nav>
       </div>

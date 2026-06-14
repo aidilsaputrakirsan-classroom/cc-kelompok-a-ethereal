@@ -75,14 +75,22 @@ const LoginPage = ({ setToken, showToast }) => {
       }
       // ================= LOGIN SUCCESS =================
       else {
-        const token = result.data.access_token;
-        if (!token) {
-          throw new Error("Token tidak ditemukan dari backend");
-        }
-        localStorage.setItem("token", token);
-        setToken(token);
-        showToast("Login berhasil!", "success");
-      }
+  const token = result.data.access_token;
+
+  if (!token) {
+    throw new Error("Token tidak ditemukan dari backend");
+  }
+
+  // Simpan token
+  localStorage.setItem("token", token);
+
+  // Simpan email user untuk greeting
+  localStorage.setItem("userEmail", email);
+
+  setToken(token);
+
+  showToast("Login berhasil!", "success");
+}
     } catch (err) {
       console.error("Auth error:", err);
 

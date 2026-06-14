@@ -5,20 +5,29 @@ import { Button } from "../components/ui/Button";
 const HomePage = ({ token, onLogout, showToast }) => {
   const navigate = useNavigate();
 
+  const email = localStorage.getItem("userEmail") || "";
+
+  const displayName = email
+    ? email
+        .split("@")[0]
+        .replace(/[._-]/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase())
+    : "User";
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
-      
+
       <main className="flex-grow max-w-6xl w-full mx-auto py-8 px-4">
 
         {/* HEADER DASHBOARD */}
         <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300">
-              Dashboard
+              Halo {displayName}, selamat datang! 👋
             </h1>
 
             <p className="text-sm text-gray-500 dark:text-gray-300 transition-colors duration-300">
-              Kelola tugas kamu dengan lebih rapi ✨
+              Di Kelarin! Kelola tugas kamu dengan lebih rapi ✨
             </p>
           </div>
 
@@ -34,7 +43,11 @@ const HomePage = ({ token, onLogout, showToast }) => {
 
         {/* TASK LIST */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
-          <TaskList token={token} showToast={showToast} onLogout={onLogout} />
+          <TaskList
+            token={token}
+            showToast={showToast}
+            onLogout={onLogout}
+          />
         </div>
 
       </main>
