@@ -10,14 +10,14 @@ const Toast = ({ message, type = "success", onClose, duration = 3000 }) => {
   }, [onClose, duration]);
 
   const styles = {
-    success: "bg-green-500 text-white",
-    error: "bg-red-500 text-white",
-    info: "bg-[#2E75B6] text-white",
+    success: "bg-green-500 dark:bg-green-600 text-white",
+    error: "bg-red-500 dark:bg-red-600 text-white",
+    info: "bg-[#2E75B6] dark:bg-blue-600 text-white",
   };
 
   return (
     <div className="fixed top-5 right-5 z-50 animate-bounce-in">
-      <div className={`${styles[type]} px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3 min-w-[300px]`}>
+      <div className={`${styles[type]} px-6 py-3 rounded-lg shadow-2xl dark:shadow-black/50 flex items-center gap-3 min-w-[300px]`}>
         <span className="text-xl">
           {type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️"}
         </span>

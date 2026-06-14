@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/Footer";
-
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:8000";
+import { api } from "../services/api";
+import { Button } from "../components/ui/Button";
 
 function ServiceCard({
   name,
@@ -80,16 +77,16 @@ export default function StatusPage() {
 
   const fetchAllStatuses = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/status`);
-      if (res.ok) {
-        const data = await res.json();
+      const result = await api.getSystemStatus();
+      if (result.ok && result.data) {
+        const { data } = result;
         setStatuses({
-          gateway: data.gateway?.status,
-          auth: data.auth?.status,
-          tasks: data.tasks?.status
+          gateway: data.gateway?.status || "unreachable",
+          auth: data.auth?.status || "unreachable",
+          tasks: data.tasks?.status || "unreachable"
         });
       } else {
-        throw new Error("Failed to fetch status");
+        throw new Error(result.error || "Failed to fetch status");
       }
     } catch (err) {
       console.error("Error fetching system status:", err);
@@ -124,13 +121,6 @@ export default function StatusPage() {
               Monitoring kesehatan layanan Kelarin secara real-time.
             </p>
           </div>
-
-          <button
-            onClick={() => navigate("/")}
-            className="bg-[#2E75B6] hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow-sm transition"
-          >
-            ← Dashboard
-          </button>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
@@ -187,8 +177,6 @@ export default function StatusPage() {
         </div>
 
       </main>
-
-      <Footer />
     </div>
   );
 }

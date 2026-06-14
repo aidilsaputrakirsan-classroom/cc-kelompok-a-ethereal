@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { api } from "../services/api";
 
 /**
  * Custom hook untuk menangani API calls dengan retry logic
@@ -10,7 +11,7 @@ export const useApi = (showToast) => {
   const [error, setError] = useState(null);
 
   /**
-   * Melakukan fetch dengan retry logic untuk 503 errors
+   * Melakukan fetch dengan retry logic untuk 503 errors (Task 1.3 / 1.9)
    * @param {string} url - API endpoint
    * @param {object} options - fetch options
    * @param {number} maxRetries - maksimal retry attempts (default: 3)
@@ -59,14 +60,21 @@ export const useApi = (showToast) => {
             continue;
           }
 
-          const data = await res.json();
+          // Safe parsing logic
+          const text = await res.text();
+          let data = null;
+          
+          if (text) {
+            try {
+              data = JSON.parse(text);
+            } catch (e) {
+              throw new Error("Invalid response format from server");
+            }
+          }
 
           if (!res.ok) {
-            throw new Error(
-              typeof data.detail === "string"
-                ? data.detail
-                : JSON.stringify(data.detail || data)
-            );
+            let errorMessage = data?.detail || data?.message || data?.error || `Error: ${res.status}`;
+            throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
           }
 
           setError(null);
@@ -117,22 +125,9 @@ export const useApi = (showToast) => {
 export const useAuthServiceStatus = () => {
   const [isAuthServiceDown, setIsAuthServiceDown] = useState(false);
 
-  const checkAuthService = useCallback(async (apiUrl) => {
-    try {
-      const res = await fetch(`${apiUrl}/health`, {
-        method: "GET",
-        signal: AbortSignal.timeout(5000), // 5 second timeout
-      });
-
-      if (res.status === 503) {
-        setIsAuthServiceDown(true);
-      } else {
-        setIsAuthServiceDown(false);
-      }
-    } catch (err) {
-      // If health check fails, assume service is down
-      setIsAuthServiceDown(true);
-    }
+  const checkAuthService = useCallback(async () => {
+    const result = await api.checkHealth();
+    setIsAuthServiceDown(!result.ok);
   }, []);
 
   return {

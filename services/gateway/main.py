@@ -116,29 +116,25 @@ async def proxy_request(url: str, request: Request):
 
 # Proxy routes for Auth Service
 @app.api_route("/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def auth_proxy(path: str, request: Request):
-    # Map /auth/login -> {AUTH_SERVICE_URL}/login
-    # Check if path starts with register, login, or verify
-    url = f"{AUTH_SERVICE_URL}/{path}"
+@app.api_route("/auth", methods=["GET", "POST", "PUT", "DELETE"], include_in_schema=False)
+async def auth_proxy(request: Request, path: str = ""):
+    url = f"{AUTH_SERVICE_URL}/{path}" if path else f"{AUTH_SERVICE_URL}/"
     return await proxy_request(url, request)
 
 # Proxy routes for Task Service
 @app.api_route("/tasks/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def task_proxy(path: str, request: Request):
+@app.api_route("/tasks", methods=["GET", "POST", "PUT", "DELETE"], include_in_schema=False)
+async def task_proxy(request: Request, path: str = ""):
     url = f"{TASK_SERVICE_URL}/tasks/{path}" if path else f"{TASK_SERVICE_URL}/tasks"
     return await proxy_request(url, request)
 
 # Catch-all proxy for Frontend (static files / React app)
-@app.api_route("/tasks", methods=["GET", "POST"])
-async def tasks_root(request: Request):
-    url = f"{TASK_SERVICE_URL}/tasks"
-    return await proxy_request(url, request)
-
 @app.api_route("/{path:path}", methods=["GET"])
-async def frontend_proxy(path: str, request: Request):
-    # Ignore /status, /health, /auth, /tasks which are handled above
-    if path.startswith(("status", "health", "auth", "tasks")):
-        return Response(status_code=404)
+async def frontend_proxy(request: Request, path: str = ""):
+    # Specific exclusion to prevent loops or accidental matching of API paths
+    # This is a fallback for GET requests only
+    if path.split('/')[0] in ["auth", "tasks", "status", "health"]:
+        return JSONResponse(status_code=404, content={"detail": f"Path /{path} not found on Gateway API"})
         
     url = f"{FRONTEND_URL}/{path}"
     return await proxy_request(url, request)

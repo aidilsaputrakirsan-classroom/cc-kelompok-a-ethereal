@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceStatusBanner from "../components/ServiceStatusBanner";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { api } from "../services/api";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
 
 const CreateTask = ({ token, showToast }) => {
   const navigate = useNavigate();
@@ -33,45 +34,22 @@ const CreateTask = ({ token, showToast }) => {
         attachment_url: form.attachment_url,
       };
 
-      console.log("FORM DATA:", payload);
+      const result = await api.createTask(payload, token);
 
-      const response = await fetch(`${API_URL}/tasks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.status === 503) {
+      if (result.serviceUnavailable || result.status === 503) {
         setServiceUnavailable(true);
         showToast(
           "Service temporarily unavailable. Please try again later.",
           "error"
         );
-        setLoading(false);
         return;
       }
 
-      if (response.status >= 500) {
-        throw new Error("Service error");
-      }
-
-      const data = await response.json();
-
-      console.log("RESPONSE:", data);
-
-      if (!response.ok) {
-        throw new Error(
-          typeof data.detail === "string"
-            ? data.detail
-            : JSON.stringify(data.detail)
-        );
+      if (!result.ok) {
+        throw new Error(result.error || "Gagal membuat task");
       }
 
       showToast("Task berhasil dibuat!", "success");
-
       navigate("/");
     } catch (err) {
       console.error(err);
@@ -110,84 +88,89 @@ const CreateTask = ({ token, showToast }) => {
         serviceType="task"
       />
 
-      <div className="w-full max-w-xl bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+      <div className="w-full max-w-xl bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition-colors duration-300">
 
         <h2 className="font-bold text-2xl mb-6 text-gray-800 dark:text-white transition-colors duration-300">
           Tambah Task
         </h2>
 
-        <input
-          placeholder="Judul"
-          value={form.title}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              title: e.target.value,
-            })
-          }
-          disabled={loading}
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-3 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
-        />
-
-        <textarea
-          placeholder="Deskripsi"
-          value={form.description}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              description: e.target.value,
-            })
-          }
-          disabled={loading}
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-3 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
-          rows="4"
-        />
-
-        <input
-          type="url"
-          placeholder="Link Referensi (Opsional)"
-          value={form.attachment_url}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              attachment_url: e.target.value,
-            })
-          }
-          disabled={loading}
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-3 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
-        />
-
-        <input
-          type="datetime-local"
-          aria-label="Deadline"
-          value={form.deadline}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              deadline: e.target.value,
-            })
-          }
-          disabled={loading}
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white p-3 rounded mb-5 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 transition-colors duration-300"
-        />
-
-        <div className="flex gap-3">
-          <button
-            onClick={handleCreate}
+        <form onSubmit={handleCreate}>
+          <Input
+            label="Judul Task"
+            placeholder="Ketik judul tugas..."
+            value={form.title}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                title: e.target.value,
+              })
+            }
+            required
             disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white px-5 py-2 rounded transition-colors duration-300"
-          >
-            {loading ? "Loading..." : "Simpan"}
-          </button>
+          />
 
-          <button
-            onClick={() => navigate("/")}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+              Deskripsi
+            </label>
+            <textarea
+              placeholder="Jelaskan detail tugas..."
+              value={form.description}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  description: e.target.value,
+                })
+              }
+              disabled={loading}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2E75B6] dark:focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500 min-h-[100px]"
+              rows="4"
+            />
+          </div>
+
+          <Input
+            label="Link Referensi (Opsional)"
+            type="url"
+            placeholder="https://example.com"
+            value={form.attachment_url}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                attachment_url: e.target.value,
+              })
+            }
             disabled={loading}
-            className="bg-gray-400 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white px-5 py-2 rounded transition-colors duration-300"
-          >
-            Batal
-          </button>
-        </div>
+          />
+
+          <Input
+            label="Deadline"
+            type="datetime-local"
+            value={form.deadline}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                deadline: e.target.value,
+              })
+            }
+            required
+            disabled={loading}
+          />
+
+          <div className="flex gap-3 mt-6">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Menyimpan..." : "Simpan Task"}
+            </Button>
+
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => navigate("/")}
+              disabled={loading}
+            >
+              Batal
+            </Button>
+          </div>
+        </form>
 
       </div>
     </div>

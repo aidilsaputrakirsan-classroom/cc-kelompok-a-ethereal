@@ -26,20 +26,21 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-          <div className="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center border">
-            <h1 className="text-2xl font-bold text-red-500 mb-4">
+        <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8 max-w-md w-full text-center border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+            <h1 className="text-2xl font-bold text-red-500 dark:text-red-400 mb-4">
               Oops! Terjadi Kesalahan
             </h1>
 
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               Aplikasi mengalami masalah saat memuat data.
               Silakan refresh halaman atau coba lagi nanti.
             </p>
 
             <button
               onClick={this.handleRefresh}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded"
+              type="button"
+              className="w-full bg-[#2E75B6] hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-all shadow-md active:scale-[0.98]"
             >
               Refresh Halaman
             </button>

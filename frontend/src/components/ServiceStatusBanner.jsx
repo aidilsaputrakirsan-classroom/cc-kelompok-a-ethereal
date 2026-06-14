@@ -31,33 +31,33 @@ const ServiceStatusBanner = ({
   const getBackgroundColor = () => {
     switch (serviceType) {
       case "auth":
-        return "bg-yellow-50 border-yellow-200";
+        return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800";
       case "task":
-        return "bg-orange-50 border-orange-200";
+        return "bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800";
       default:
-        return "bg-red-50 border-red-200";
+        return "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800";
     }
   };
 
   const getTextColor = () => {
     switch (serviceType) {
       case "auth":
-        return "text-yellow-800";
+        return "text-yellow-800 dark:text-yellow-200";
       case "task":
-        return "text-orange-800";
+        return "text-orange-800 dark:text-orange-200";
       default:
-        return "text-red-800";
+        return "text-red-800 dark:text-red-200";
     }
   };
 
   const getButtonColor = () => {
     switch (serviceType) {
       case "auth":
-        return "bg-yellow-600 hover:bg-yellow-700";
+        return "bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600";
       case "task":
-        return "bg-orange-600 hover:bg-orange-700";
+        return "bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600";
       default:
-        return "bg-red-600 hover:bg-red-700";
+        return "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600";
     }
   };
 
@@ -88,6 +88,7 @@ const ServiceStatusBanner = ({
           {onRetry && (
             <button
               onClick={onRetry}
+              type="button"
               className={`${getButtonColor()} text-white px-4 py-2 rounded text-sm font-medium transition-colors`}
             >
               Retry
@@ -96,6 +97,7 @@ const ServiceStatusBanner = ({
 
           <button
             onClick={() => setShow(false)}
+            type="button"
             className={`${getTextColor()} hover:bg-opacity-10 px-3 py-2 rounded transition-colors`}
           >
             ✕

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import LoginPage from "./pages/LoginPage";
@@ -9,7 +9,9 @@ import StatusPage from "./pages/StatusPage";
 import Toast from "./components/ui/Toast";
 import AboutPage from "./pages/AboutPage";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import ServiceStatusBanner from "./components/ServiceStatusBanner";
+import { api } from "./services/api";
 
 function App() {
   const [token, setToken] = useState(null);
@@ -40,33 +42,22 @@ function App() {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
     if (darkMode) {
       document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
     }
   }, [darkMode]);
 
   // 🔥 CHECK AUTH SERVICE HEALTH PERIODICALLY
   useEffect(() => {
     const checkAuthServiceHealth = async () => {
-      try {
-        const API_URL =
-          import.meta.env.VITE_API_URL ||
-          "http://localhost:8000";
+      const result = await api.checkHealth();
 
-        const res = await fetch(
-          `${API_URL}/health`,
-          {
-            signal: AbortSignal.timeout(5000),
-          }
-        );
-
-        if (res.status === 503) {
-          setIsAuthServiceDown(true);
-        } else {
-          setIsAuthServiceDown(false);
-        }
-      } catch (err) {
+      if (result.status === 503 || !result.ok) {
         setIsAuthServiceDown(true);
+      } else {
+        setIsAuthServiceDown(false);
       }
     };
 
@@ -100,22 +91,33 @@ function App() {
     showToast("Logout berhasil", "info");
   };
 
-  // 🔥 Allow access to /status without token
-  if (window.location.pathname === '/status') {
-    return <StatusPage />;
-  }
-
-  if (!token) {
+  // 🔥 CONFIGURATION CHECK (Task 1.2)
+  if (!import.meta.env.VITE_API_URL) {
     return (
-      <LoginPage
-        setToken={setToken}
-        showToast={showToast}
-      />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4 transition-colors duration-300">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-xl border border-red-200 dark:border-red-900/30 max-w-md w-full text-center">
+          <div className="text-5xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Configuration Error</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            The environment variable <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded text-red-500 font-mono text-sm">VITE_API_URL</code> is missing. 
+            The application cannot connect to the backend services.
+          </p>
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-left">
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">How to fix:</p>
+            <p className="text-xs text-blue-700 dark:text-blue-400">
+              Ensure you have a <code className="font-bold">.env</code> file with the correct <code className="font-bold">VITE_API_URL</code> defined.
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 
+  // 🔥 Allow access to public routes without token
+  const isPublicRoute = ['/status', '/about'].includes(window.location.pathname);
+
   return (
-    <>
+    <div className="min-h-screen flex flex-col transition-colors duration-300">
       {/* Global Auth Service Status Banner */}
       <ServiceStatusBanner
         isVisible={isAuthServiceDown}
@@ -140,50 +142,63 @@ function App() {
         />
       )}
 
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <HomePage
-              token={token}
-              onLogout={handleLogout}
-              showToast={showToast}
+      <main className="flex-grow flex flex-col">
+        {!token && !isPublicRoute ? (
+          <LoginPage
+            setToken={setToken}
+            showToast={showToast}
+          />
+        ) : (
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <HomePage
+                  token={token}
+                  onLogout={handleLogout}
+                  showToast={showToast}
+                />
+              }
             />
-          }
-        />
 
-        <Route
-          path="/create"
-          element={
-            <CreateTask
-              token={token}
-              showToast={showToast}
+            <Route
+              path="/create"
+              element={
+                <CreateTask
+                  token={token}
+                  showToast={showToast}
+                />
+              }
             />
-          }
-        />
 
-        <Route
-          path="/edit/:id"
-          element={
-            <EditTask
-              token={token}
-              showToast={showToast}
+            <Route
+              path="/edit/:id"
+              element={
+                <EditTask
+                  token={token}
+                  showToast={showToast}
+                />
+              }
             />
-          }
-        />
 
-        <Route
-          path="/about"
-          element={<AboutPage />}
-        />
+            <Route
+              path="/about"
+              element={<AboutPage />}
+            />
 
-        {/* Workshop 14.4 */}
-        <Route
-          path="/status"
-          element={<StatusPage />}
-        />
-      </Routes>
-    </>
+            <Route
+              path="/status"
+              element={<StatusPage />}
+            />
+
+            {/* Catch-all route to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        )}
+      </main>
+
+      <Footer />
+    </div>
   );
 }
 

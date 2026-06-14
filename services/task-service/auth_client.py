@@ -16,9 +16,9 @@ AUTH_SERVICE_URL = os.getenv(
 logger = logging.getLogger(__name__)
 
 # Retry Configuration
-MAX_RETRIES = 3
-BASE_DELAY = 0.5
-TIMEOUT_SECONDS = 5.0
+MAX_RETRIES = 2
+BASE_DELAY = 0.2
+TIMEOUT_SECONDS = 2.0
 
 RETRYABLE_STATUS_CODES = {
     500,

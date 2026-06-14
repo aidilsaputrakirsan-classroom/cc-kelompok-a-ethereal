@@ -1,33 +1,40 @@
 ## 📝 Summary
-Perbaikan deployment API Gateway pada Railway untuk mengatasi error 502 Bad Gateway dan masalah CORS. Memastikan Gateway mendengarkan pada port yang tepat dan memiliki endpoint health check yang independen.
+Refactoring menyeluruh pada frontend untuk standarisasi integrasi API Gateway, perbaikan UI/UX, dukungan tema (Dark Mode), dan penanganan error yang lebih robust.
 
 ## 🔗 Related Task
 - **Target Branch:** `main`
 
 ## 🛠 Type of Change
-- [x] 🐛 **Bug Fix**: Memperbaiki error 502 dan CORS pada Railway.
-- [x] 🔧 **Chore**: Optimalisasi startup script untuk Railway environment.
+- [ ] ✨ **Feature**: Menambah fungsionalitas baru.
+- [ ] 🐛 **Bug Fix**: Memperbaiki masalah yang ada.
+- [x] ♻️ **Refactor**: Perubahan kode yang tidak mengubah fungsi (clean code).
+- [ ] 📝 **Docs**: Perubahan dokumentasi saja.
+- [ ] 🔧 **Chore**: Update build tasks, package manager, atau config.
 
 ## 🔍 Scope of Work
-- **API Gateway (`main.py`)**: 
-    - Mengupdate blok `if __name__ == "__main__":` agar menggunakan variabel environment `PORT` dari Railway.
-    - Menambahkan `uvicorn.run("main:app", ...)` dengan string import agar mendukung reload dan threading yang lebih baik di production.
-    - Menyederhanakan endpoint `/health` agar tidak memiliki dependensi ke service lain (mencegah timeout selama deployment).
-    - Memperketat konfigurasi CORS hanya untuk domain yang diizinkan.
+- **API Integration**: Sentralisasi pemanggilan API melalui gateway menggunakan `VITE_API_URL`. Menghapus hardcoded `localhost` dan fallback yang tidak aman.
+- **Safe Fetch Utility**: Implementasi `handleResponse` yang membaca body sebagai text terlebih dahulu sebelum parsing JSON, mencegah crash pada response kosong atau malformed.
+- **UI Components**: Standarisasi komponen `Button`, `Input`, dan `Toast` dengan dukungan visual feedback (loading, disabled, success/error states).
+- **Theme Support**: Implementasi penuh Dark Mode pada seluruh halaman (`AboutPage`, `StatusPage`, `TaskList`, dll) dengan audit kontras visual.
+- **Robust Error Handling**: Penanganan granular untuk error 401/403 (unauthorized), 503 (service unavailable), dan network errors dengan redirect otomatis ke login jika session habis.
+- **Routing**: Perbaikan navigasi dengan catch-all route dan proteksi halaman yang lebih konsisten.
 
 ## 🧪 Testing & Quality Assurance
-- [x] **Local Integration**: Gateway start-up logic telah diverifikasi.
+- [x] **Unit Tests**: Seluruh 14 test di frontend pass (`npm test`).
+- [x] **Visual Check**: Tampilan diperiksa pada mode terang dan gelap, termasuk status banner dan toast.
 
 ## 🚀 Deployment Impact
-- **Root Directory**: Pastikan diset ke `/services/gateway` di Railway settings.
-- **Start Command**: `python main.py`
-- **Healthcheck Path**: `/health`
+- [ ] **Migrations**: Tidak ada.
+- [x] **Env Vars**: Memerlukan `VITE_API_URL` yang valid (sudah diimplementasikan pengecekan di level UI jika missing).
+- [ ] **Dependencies**: Tidak ada penambahan package baru.
 
 ## 📸 Proof of Work
-Branch `fix/railway-gateway-deployment` telah di-push. Perubahan ini akan memastikan Gateway terdeteksi "Healthy" oleh Railway.
+- **Test Results**: All 14 tests passed in `vitest`.
+- **UI Refinement**: Konsistensi warna dan shadow pada komponen kartu dan form di mode gelap.
 
 ---
 
 ## 🏁 Checklist Before Merge
 - [x] Kode sudah mengikuti standar **Conventional Commits**.
 - [x] Tidak ada **Hardcoded Secrets**.
+- [x] Dokumentasi internal/README sudah diperbarui (via PR summary).

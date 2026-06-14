@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TaskItem from "./TaskItem";
 import ServiceStatusBanner from "./ServiceStatusBanner";
+import { api } from "../services/api";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-const TaskList = ({ token, showToast }) => {
+const TaskList = ({ token, showToast, onLogout }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [serviceUnavailable, setServiceUnavailable] =
@@ -20,27 +19,23 @@ const TaskList = ({ token, showToast }) => {
       setLoading(true);
       setServiceUnavailable(false);
 
-      const res = await fetch(`${API_URL}/tasks`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const result = await api.getTasks(token);
 
-      if (res.status === 503) {
+      if (result.unauthorized) {
+        showToast(result.error, "error");
+        if (onLogout) onLogout();
+        return;
+      }
+
+      if (result.serviceUnavailable || result.status === 503) {
         throw new Error("Service temporarily unavailable");
       }
 
-      if (res.status >= 500) {
-        throw new Error("Service temporarily unavailable");
+      if (!result.ok) {
+        throw new Error(result.error || "Gagal mengambil data");
       }
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || "Gagal mengambil data");
-      }
-
-      setTasks(data);
+      setTasks(Array.isArray(result.data) ? result.data : []);
     } catch (err) {
       console.error(err);
 
@@ -54,7 +49,7 @@ const TaskList = ({ token, showToast }) => {
           "error"
         );
       } else {
-        showToast("Gagal mengambil data", "error");
+        showToast(err.message || "Gagal mengambil data", "error");
       }
     } finally {
       setLoading(false);
@@ -70,19 +65,14 @@ const TaskList = ({ token, showToast }) => {
     try {
       setServiceUnavailable(false);
 
-      const res = await fetch(`${API_URL}/tasks/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const result = await api.deleteTask(id, token);
 
-      if (res.status === 503) {
+      if (result.serviceUnavailable || result.status === 503) {
         throw new Error("Service temporarily unavailable");
       }
 
-      if (res.status >= 500) {
-        throw new Error("Service error");
+      if (!result.ok) {
+        throw new Error(result.error || "Gagal hapus task");
       }
 
       setTasks(tasks.filter((t) => t.id !== id));
@@ -93,8 +83,7 @@ const TaskList = ({ token, showToast }) => {
 
       if (
         err.message.includes("Failed to fetch") ||
-        err.message.includes("Service temporarily unavailable") ||
-        err.message.includes("Service error")
+        err.message.includes("Service temporarily unavailable")
       ) {
         setServiceUnavailable(true);
         showToast(
@@ -102,7 +91,7 @@ const TaskList = ({ token, showToast }) => {
           "error"
         );
       } else {
-        showToast("Gagal hapus task", "error");
+        showToast(err.message || "Gagal hapus task", "error");
       }
     }
   };
@@ -112,19 +101,14 @@ const TaskList = ({ token, showToast }) => {
     try {
       setServiceUnavailable(false);
 
-      const res = await fetch(`${API_URL}/tasks/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const result = await api.deleteTask(id, token);
 
-      if (res.status === 503) {
+      if (result.serviceUnavailable || result.status === 503) {
         throw new Error("Service temporarily unavailable");
       }
 
-      if (res.status >= 500) {
-        throw new Error("Service error");
+      if (!result.ok) {
+        throw new Error(result.error || "Gagal menyelesaikan tugas");
       }
 
       setTasks(tasks.filter((t) => t.id !== id));
@@ -135,8 +119,7 @@ const TaskList = ({ token, showToast }) => {
 
       if (
         err.message.includes("Failed to fetch") ||
-        err.message.includes("Service temporarily unavailable") ||
-        err.message.includes("Service error")
+        err.message.includes("Service temporarily unavailable")
       ) {
         setServiceUnavailable(true);
         showToast(
@@ -144,7 +127,7 @@ const TaskList = ({ token, showToast }) => {
           "error"
         );
       } else {
-        showToast("Gagal menyelesaikan tugas", "error");
+        showToast(err.message || "Gagal menyelesaikan tugas", "error");
       }
     }
   };
@@ -156,8 +139,9 @@ const TaskList = ({ token, showToast }) => {
   // ================= LOADING =================
   if (loading) {
     return (
-      <div className="p-8 text-center">
-        Loading...
+      <div className="p-8 text-center flex flex-col items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2E75B6] mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400">Memuat tugas...</p>
       </div>
     );
   }
@@ -173,24 +157,27 @@ const TaskList = ({ token, showToast }) => {
       />
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-bold text-gray-700">
+        <h2 className="font-bold text-gray-700 dark:text-gray-200">
           Daftar Task
         </h2>
       </div>
 
       {tasks.length > 0 ? (
-        tasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onDelete={handleDelete}
-            onComplete={handleComplete}
-            onEdit={() => navigate(`/edit/${task.id}`)}
-          />
-        ))
+        <div className="space-y-1">
+          {tasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onDelete={handleDelete}
+              onComplete={handleComplete}
+              onEdit={() => navigate(`/edit/${task.id}`)}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="text-center text-gray-400">
-          Tidak ada tugas
+        <div className="text-center py-10 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 transition-colors duration-300">
+          <p className="text-4xl mb-2 opacity-50">📄</p>
+          <p className="font-medium">Belum ada tugas. Semangat! 🚀</p>
         </div>
       )}
     </div>

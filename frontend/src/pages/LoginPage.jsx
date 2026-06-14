@@ -4,8 +4,6 @@ import { Button } from "../components/ui/Button";
 import { api } from "../services/api";
 import ServiceStatusBanner from "../components/ServiceStatusBanner";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const LoginPage = ({ setToken, showToast }) => {
   const [isRegister, setIsRegister] = useState(false);
 
@@ -22,6 +20,17 @@ const LoginPage = ({ setToken, showToast }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // ================= VALIDATION (Task 1.7) =================
+    const email = formData.email.trim().toLowerCase(); // NORMALISASI EMAIL
+    const password = formData.password; // JANGAN TRIM PASSWORD
+    const name = formData.name.trim();
+
+    if (!email || !password || (isRegister && !name)) {
+      showToast("Semua field harus diisi", "error");
+      return;
+    }
+
     setLoading(true);
     setServiceUnavailable(false);
 
@@ -30,22 +39,14 @@ const LoginPage = ({ setToken, showToast }) => {
 
       // ================= REGISTER =================
       if (isRegister) {
-        result = await api.register({
-          email: formData.email,
-          name: formData.name,
-          password: formData.password
-        });
+        result = await api.register({ email, name, password });
       } 
       // ================= LOGIN =================
       else {
-        result = await api.login({
-          email: formData.email,
-          password: formData.password
-        });
+        result = await api.login({ email, password });
       }
 
       // ================= HANDLE RESULT =================
-      
       if (result.serviceUnavailable || result.status === 503) {
         setServiceUnavailable(true);
         showToast(
@@ -55,18 +56,8 @@ const LoginPage = ({ setToken, showToast }) => {
         return;
       }
 
-      if (result.status >= 500) {
-        throw new Error("Service error");
-      }
-
-      if (!result.ok && !isRegister && result.status !== 200) {
-         // for api.js results
-         throw new Error(result.error || "Authentication failed");
-      }
-      
-      if (!isRegister && result.status !== 200 && result.status !== 201) {
-          // Fallback for raw fetch if used
-          throw new Error(result.error || "Operation failed");
+      if (!result.ok) {
+        throw new Error(result.error || "Authentication failed");
       }
 
       // ================= REGISTER SUCCESS =================
