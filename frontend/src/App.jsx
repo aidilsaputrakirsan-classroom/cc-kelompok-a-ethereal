@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import LoginPage from "./pages/LoginPage";
@@ -14,12 +14,13 @@ import ServiceStatusBanner from "./components/ServiceStatusBanner";
 import { api } from "./services/api";
 
 function App() {
+  const navigate = useNavigate();
   const [token, setToken] = useState(null);
   const [notification, setNotification] = useState(null);
   const [isAuthServiceDown, setIsAuthServiceDown] =
     useState(false);
+  
   const [darkMode, setDarkMode] = useState(() => {
-    // Initialize dark mode from localStorage with proper null handling
     try {
       const saved = localStorage.getItem("darkMode");
       return saved !== null ? JSON.parse(saved) : false;
@@ -31,7 +32,6 @@ function App() {
   // 🔥 SYNC TOKEN DARI LOCAL STORAGE
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
-
     if (savedToken) {
       setToken(savedToken);
     }
@@ -53,7 +53,6 @@ function App() {
   useEffect(() => {
     const checkAuthServiceHealth = async () => {
       const result = await api.checkHealth();
-
       if (result.status === 503 || !result.ok) {
         setIsAuthServiceDown(true);
       } else {
@@ -61,27 +60,17 @@ function App() {
       }
     };
 
-    // Check on mount
     checkAuthServiceHealth();
-
-    // Check every 30 seconds when user is logged in
     let interval;
-
     if (token) {
-      interval = setInterval(() => {
-        checkAuthServiceHealth();
-      }, 30000);
+      interval = setInterval(checkAuthServiceHealth, 30000);
     }
-
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [token]);
 
-  const showToast = (
-    message,
-    type = "success"
-  ) => {
+  const showToast = (message, type = "success") => {
     setNotification({ message, type });
   };
 
@@ -89,9 +78,10 @@ function App() {
     setToken(null);
     localStorage.removeItem("token");
     showToast("Logout berhasil", "info");
+    navigate("/"); // Redirect to home/login
   };
 
-  // 🔥 CONFIGURATION CHECK (Task 1.2)
+  // 🔥 CONFIGURATION CHECK
   if (!import.meta.env.VITE_API_URL) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4 transition-colors duration-300">
@@ -99,33 +89,23 @@ function App() {
           <div className="text-5xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Configuration Error</h1>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
-            The environment variable <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded text-red-500 font-mono text-sm">VITE_API_URL</code> is missing. 
-            The application cannot connect to the backend services.
+            The environment variable <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded text-red-500 font-mono text-sm">VITE_API_URL</code> is missing.
           </p>
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-left">
-            <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">How to fix:</p>
-            <p className="text-xs text-blue-700 dark:text-blue-400">
-              Ensure you have a <code className="font-bold">.env</code> file with the correct <code className="font-bold">VITE_API_URL</code> defined.
-            </p>
-          </div>
         </div>
       </div>
     );
   }
 
-  // 🔥 Allow access to public routes without token
-  const isPublicRoute = ['/status', '/about'].includes(window.location.pathname);
+  const isPublicRoute = ["/status", "/about"].includes(window.location.pathname);
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-300">
-      {/* Global Auth Service Status Banner */}
       <ServiceStatusBanner
         isVisible={isAuthServiceDown}
-        message="Authentication service is temporarily unavailable. Some features may be limited."
+        message="Authentication service is temporarily unavailable."
         serviceType="auth"
       />
 
-      {/* Header with Dark Mode Toggle */}
       <Header 
         onLogout={handleLogout}
         darkMode={darkMode}
@@ -136,62 +116,20 @@ function App() {
         <Toast
           message={notification.message}
           type={notification.type}
-          onClose={() =>
-            setNotification(null)
-          }
+          onClose={() => setNotification(null)}
         />
       )}
 
       <main className="flex-grow flex flex-col">
         {!token && !isPublicRoute ? (
-          <LoginPage
-            setToken={setToken}
-            showToast={showToast}
-          />
+          <LoginPage setToken={setToken} showToast={showToast} />
         ) : (
           <Routes>
-            <Route
-              path="/"
-              element={
-                <HomePage
-                  token={token}
-                  onLogout={handleLogout}
-                  showToast={showToast}
-                />
-              }
-            />
-
-            <Route
-              path="/create"
-              element={
-                <CreateTask
-                  token={token}
-                  showToast={showToast}
-                />
-              }
-            />
-
-            <Route
-              path="/edit/:id"
-              element={
-                <EditTask
-                  token={token}
-                  showToast={showToast}
-                />
-              }
-            />
-
-            <Route
-              path="/about"
-              element={<AboutPage />}
-            />
-
-            <Route
-              path="/status"
-              element={<StatusPage />}
-            />
-
-            {/* Catch-all route to home */}
+            <Route path="/" element={<HomePage token={token} onLogout={handleLogout} showToast={showToast} />} />
+            <Route path="/create" element={<CreateTask token={token} showToast={showToast} />} />
+            <Route path="/edit/:id" element={<EditTask token={token} showToast={showToast} />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/status" element={<StatusPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}
