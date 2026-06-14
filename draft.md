@@ -1,5 +1,5 @@
 ## 📝 Summary
-Refactoring menyeluruh pada frontend dan sinkronisasi backend untuk standarisasi integrasi API Gateway, dukungan tema (Dark Mode), perbaikan reliabilitas database, dan penanganan error yang lebih robust.
+Refactoring menyeluruh pada frontend untuk standarisasi integrasi API Gateway, perbaikan UI/UX, dukungan tema (Dark Mode), dan penanganan error yang lebih robust.
 
 ## 🔗 Related Task
 - **Target Branch:** `main`
@@ -12,30 +12,29 @@ Refactoring menyeluruh pada frontend dan sinkronisasi backend untuk standarisasi
 - [ ] 🔧 **Chore**: Update build tasks, package manager, atau config.
 
 ## 🔍 Scope of Work
-### Frontend:
-- **API Integration**: Sentralisasi pemanggilan API melalui gateway menggunakan `VITE_API_URL`. Menghapus hardcoded `localhost` dan development assumptions.
-- **Safe Fetch Utility**: Implementasi `handleResponse` yang membaca body sebagai text sebelum parsing JSON, mencegah crash pada response kosong/malformed.
-- **UI/UX Refinement**: Standarisasi komponen `Button`, `Input`, dan `Toast`. Perbaikan navigasi (catch-all route) dan penanganan session expiry (401/403).
+- **API Integration**: Sentralisasi pemanggilan API melalui gateway menggunakan `VITE_API_URL`. Menghapus hardcoded `localhost` dan fallback yang tidak aman.
+- **Safe Fetch Utility**: Implementasi `handleResponse` yang membaca body sebagai text terlebih dahulu sebelum parsing JSON, mencegah crash pada response kosong atau malformed.
+- **UI Components**: Standarisasi komponen `Button`, `Input`, dan `Toast` dengan dukungan visual feedback (loading, disabled, success/error states).
 - **Theme Support**: Implementasi penuh Dark Mode pada seluruh halaman (`AboutPage`, `StatusPage`, `TaskList`, dll) dengan audit kontras visual.
-
-### Backend (Task Service & Gateway):
-- **Gateway Routing**: Perbaikan pola routing `/tasks` agar tidak lagi 404 dan mendukung base path serta sub-path secara efisien.
-- **DB Synchronization**: Pemetaan `owner_id` ke kolom `created_by` sesuai skema asli database Railway. Penambahan kolom `assigned_to` dan `updated_at`.
-- **Auto-Migration**: Penambahan script `run_migrations` pada startup untuk menjamin ketersediaan kolom `completed` dan `deadline` di PostgreSQL.
-- **FastAPI Lifespan**: Pemindahan inisialisasi DB ke event lifespan untuk mencegah *startup hang* pada koneksi database yang lambat.
+- **Robust Error Handling**: Penanganan granular untuk error 401/403 (unauthorized), 503 (service unavailable), dan network errors dengan redirect otomatis ke login jika session habis.
+- **Routing**: Perbaikan navigasi dengan catch-all route dan proteksi halaman yang lebih konsisten.
 
 ## 🧪 Testing & Quality Assurance
 - [x] **Unit Tests**: Seluruh 14 test di frontend pass (`npm test`).
-- [x] **Integration Check**: Verifikasi alur Login -> Dashboard -> Task Fetching melalui API Gateway.
-- [x] **Visual Check**: Tampilan diperiksa pada mode terang dan gelap, termasuk navbar yang tetap konsisten di halaman status.
+- [x] **Visual Check**: Tampilan diperiksa pada mode terang dan gelap, termasuk status banner dan toast.
 
 ## 🚀 Deployment Impact
-- [ ] **Migrations**: Dijalankan secara otomatis saat startup service.
-- [x] **Env Vars**: Memerlukan `VITE_API_URL` pada frontend dan `DATABASE_URL` yang valid pada backend.
+- [ ] **Migrations**: Tidak ada.
+- [x] **Env Vars**: Memerlukan `VITE_API_URL` yang valid (sudah diimplementasikan pengecekan di level UI jika missing).
+- [ ] **Dependencies**: Tidak ada penambahan package baru.
+
+## 📸 Proof of Work
+- **Test Results**: All 14 tests passed in `vitest`.
+- **UI Refinement**: Konsistensi warna dan shadow pada komponen kartu dan form di mode gelap.
 
 ---
 
 ## 🏁 Checklist Before Merge
 - [x] Kode sudah mengikuti standar **Conventional Commits**.
 - [x] Tidak ada **Hardcoded Secrets**.
-- [x] Dokumentasi internal/README sudah diperbarui.
+- [x] Dokumentasi internal/README sudah diperbarui (via PR summary).
