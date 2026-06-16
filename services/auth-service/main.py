@@ -96,6 +96,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         email=user_data.email,
         name=user_data.name,
         hashed_password=pwd_context.hash(user_data.password),
+        role=user_data.role or "member",
     )
     db.add(user)
     db.commit()
@@ -147,6 +148,7 @@ async def login(
         "sub": str(user.id),
         "email": user.email,
         "name": user.name,
+        "role": user.role,
     })
 
     return TokenResponse(access_token=token)
@@ -173,4 +175,17 @@ def verify_token(authorization: str = Header(...)):
         user_id=int(payload["sub"]),
         email=payload["email"],
         name=payload["name"],
+        role=payload.get("role", "member"),
     )
+
+@app.patch("/users/{user_id}/upgrade-role")
+def upgrade_user_role(user_id: int, new_role: str, db: Session = Depends(get_db)):
+    if new_role not in ["leader", "admin", "member"]:
+        raise HTTPException(status_code=400, detail="Invalid role. Must be 'leader', 'admin', or 'member'")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.role = new_role
+    db.commit()
+    db.refresh(user)
+    return {"message": f"User role successfully updated to {new_role}", "user_id": user.id, "role": user.role}
