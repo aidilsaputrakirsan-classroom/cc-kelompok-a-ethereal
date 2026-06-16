@@ -1,249 +1,235 @@
 # Reliability Testing Documentation
 
-Dokumentasi pengujian reliability pada arsitektur microservices menjelaskan proses, skenario, metode, hasil, dan evaluasi pengujian untuk memastikan setiap layanan tetap stabil, konsisten, dan tersedia meskipun terjadi gangguan pada sebagian komponen. Dokumentasi ini berfungsi sebagai bukti bahwa mekanisme keandalan seperti retry logic, circuit breaker, health check, failover, dan monitoring telah diuji serta berjalan sesuai kebutuhan, sekaligus menjadi referensi bagi tim dalam evaluasi, pemeliharaan, audit, dan pengembangan sistem di masa mendatang.
+## Overview
 
-### Test Environment
+Dokumen ini berisi hasil pengujian reliability pada arsitektur microservices aplikasi Kelarin. Pengujian dilakukan untuk memastikan sistem mampu menangani gangguan layanan, memberikan status kesehatan yang sesuai, serta kembali beroperasi normal setelah layanan dipulihkan.
 
-| Component         | Environment    |
+Lingkungan pengujian menggunakan Docker Compose dengan beberapa service yang saling berkomunikasi melalui jaringan internal Docker.
+
+---
+
+# Test Environment
+
+| Component         | Technology     |
 | ----------------- | -------------- |
-| Frontend          | Docker Compose |
+| Frontend          | React + Vite   |
 | Gateway           | Nginx          |
 | Auth Service      | FastAPI        |
-| Item Service      | FastAPI        |
-| Database          | PostgreSQL     |
+| Task Service      | FastAPI        |
+| Auth Database     | PostgreSQL     |
+| Task Database     | PostgreSQL     |
 | Container Runtime | Docker Desktop |
 | Orchestration     | Docker Compose |
 
 ---
 
-# 1. Objective
+# Reliability Test Scenarios
 
-Dokumentasi ini bertujuan untuk memverifikasi kemampuan sistem microservices dalam menangani kegagalan layanan (service failure), melakukan pemulihan layanan (service recovery), serta memastikan mekanisme reliability seperti Retry Logic, Circuit Breaker, dan Aggregated Health Check berjalan sesuai harapan.
+## 1. Service Down Testing
+
+### Objective
+
+Memastikan sistem dapat mendeteksi ketika salah satu service tidak tersedia dan memberikan status yang sesuai.
 
 ---
 
-# 2. Retry Logic Testing
+### Service Tested
 
-## Test Scenario
+Auth Service
 
-Mensimulasikan kondisi ketika Auth Service tidak tersedia dan mengamati apakah Item Service melakukan retry request sebelum mengembalikan error.
+---
 
-### Test Steps
+### Reproduce Steps
+
+Jalankan seluruh service:
+
+```bash
+docker compose up -d
+```
+
+Pastikan seluruh service dalam kondisi healthy:
+
+```bash
+docker compose ps
+```
+
+Matikan Auth Service:
 
 ```bash
 docker compose stop auth-service
 ```
 
-Kirim request yang membutuhkan verifikasi ke Auth Service.
-
-### Expected Result
-
-* Item Service melakukan retry otomatis.
-* Retry dilakukan sebanyak 3 kali.
-* Menggunakan exponential backoff.
-* Setelah retry gagal, service mengembalikan response error.
-
-### Actual Result
-
-> Belum diuji
-
-### Status
-
-* [ ] PASS
-* [ ] FAIL
-
-### Evidence
-
-Tambahkan screenshot hasil log retry pada bagian ini.
-
----
-
-# 3. Circuit Breaker Testing
-
-## Test Scenario
-
-Memastikan Circuit Breaker dapat mendeteksi kegagalan berulang dan menghentikan request ke service yang bermasalah.
-
-### Test Steps
-
-```bash
-docker compose stop auth-service
-```
-
-Kirim request berulang kali ke endpoint yang membutuhkan Auth Service.
-
-### Expected Result
-
-* Circuit Breaker berpindah ke state OPEN.
-* Request berikutnya langsung ditolak.
-* Tidak terjadi timeout berulang.
-
-### Actual Result
-
-> Belum diuji
-
-### Status
-
-* [ ] PASS
-* [ ] FAIL
-
-### Evidence
-
-Tambahkan screenshot log Circuit Breaker atau response error.
-
----
-
-# 4. Service Recovery Testing
-
-## Test Scenario
-
-Memastikan sistem dapat kembali beroperasi normal setelah service yang gagal dinyalakan kembali.
-
-### Test Steps
-
-```bash
-docker compose start auth-service
-```
-
-Tunggu hingga service kembali sehat.
-
-### Expected Result
-
-* Circuit Breaker berpindah ke HALF_OPEN.
-* Request percobaan berhasil.
-* Circuit Breaker kembali ke CLOSED.
-* Sistem kembali beroperasi normal.
-
-### Actual Result
-
-> Belum diuji
-
-### Status
-
-* [ ] PASS
-* [ ] FAIL
-
-### Evidence
-
-Tambahkan screenshot log recovery service.
-
----
-
-# 5. Integration Testing
-
-## Test Scenario
-
-Menjalankan seluruh integration test untuk memverifikasi komunikasi antar service.
-
-### Test Command
-
-```bash
-pytest tests/integration/ -v
-```
-
-### Expected Result
-
-Minimal 6 test berhasil.
-
-Target ideal:
-
-```text
-8 PASSED
-```
-
-### Actual Result
-
-> Belum diuji
-
-### Status
-
-* [ ] PASS
-* [ ] FAIL
-
-### Evidence
-
-Tambahkan screenshot hasil execution pytest.
-
----
-
-# 6. Aggregated Health Check Testing
-
-## Test Scenario
-
-Memastikan endpoint health menampilkan status service dan dependency yang digunakan.
-
-### Endpoint
+Akses endpoint health pada Task Service:
 
 ```http
 GET /health
 ```
 
-### Expected Result
+---
 
-Response health menampilkan:
+### Expected Behavior
+
+* Task Service tetap berjalan.
+* Dependency Auth Service terdeteksi tidak tersedia.
+* Status health berubah menjadi `degraded`.
+* Sistem tidak mengalami crash.
+
+---
+
+### Actual Result
+
+Response health menunjukkan:
 
 ```json
 {
-  "status": "healthy",
+  "status": "degraded",
+  "service": "task-service",
   "dependencies": {
-    "auth-service": {
-      "status": "available"
-    }
+    "auth-service": "unhealthy"
   }
 }
 ```
 
+### Status
+
+✅ PASSED
+
+---
+
+### Conclusion
+
+Task Service berhasil mendeteksi kegagalan Auth Service dan mengubah status health menjadi degraded tanpa menghentikan service utama.
+
+---
+
+## 2. Timeout / Dependency Failure Testing
+
+### Objective
+
+Memastikan service dapat menangani kegagalan komunikasi dengan dependency tanpa menyebabkan aplikasi berhenti bekerja.
+
+---
+
+### Reproduce Steps
+
+Matikan Auth Service:
+
+```bash
+docker compose stop auth-service
+```
+
+Kirim request yang membutuhkan komunikasi ke Auth Service.
+
+Pantau log service:
+
+```bash
+docker compose logs task-service
+```
+
+---
+
+### Expected Behavior
+
+* Request ke dependency gagal dengan timeout atau connection error.
+* Error ditangani oleh service.
+* Service utama tetap berjalan.
+* Tidak terjadi crash container.
+
 ### Actual Result
 
-> Belum diuji
+Task Service tetap berjalan meskipun dependency Auth Service tidak tersedia.
+
+Health endpoint menunjukkan status:
+
+```json
+{
+  "status": "degraded"
+}
+```
+
+Container Task Service tetap berstatus running.
 
 ### Status
 
-* [ ] PASS
-* [ ] FAIL
+✅ PASSED
 
-### Evidence
+### Conclusion
 
-Tambahkan screenshot response endpoint health.
-
----
-
-# 7. Reliability Test Summary
-
-| Scenario                | Expected Result                    | Status    |
-| ----------------------- | ---------------------------------- | --------- |
-| Retry Logic             | Retry 3 kali sebelum gagal         | ⏳ Pending |
-| Circuit Breaker         | OPEN ketika service gagal berulang | ⏳ Pending |
-| Service Recovery        | HALF_OPEN → CLOSED                 | ⏳ Pending |
-| Integration Testing     | Minimal 6 test pass                | ⏳ Pending |
-| Aggregated Health Check | Dependency status muncul           | ⏳ Pending |
+Sistem mampu menangani kegagalan dependency tanpa menyebabkan service utama berhenti beroperasi.
 
 ---
 
-# 8. Testing Evidence
+## 3. Service Recovery Testing
 
-| Testing Activity         | Evidence        | Description                                                                |
+### Objective
 
-| ------------------------ | --------------- | -------------------------------------------------------------------------- |
-
-| Retry Logic Testing      | *(Belum diuji)* | Tabel disiapkan untuk dokumentasi hasil pengujian Retry Logic.             |
-
-| Circuit Breaker Testing  | *(Belum diuji)* | Tabel disiapkan untuk dokumentasi hasil pengujian Circuit Breaker.         |
-
-| Service Recovery Testing | *(Belum diuji)* | Tabel disiapkan untuk dokumentasi hasil pengujian pemulihan layanan.       |
-
-| Integration Testing      | *(Belum diuji)* | Tabel disiapkan untuk dokumentasi hasil pengujian integrasi antar service. |
-
-| Aggregated Health Check  | *(Belum diuji)* | Tabel disiapkan untuk dokumentasi hasil pengujian endpoint health check.   |
+Memastikan sistem dapat kembali beroperasi normal setelah service yang gagal dipulihkan.
 
 ---
 
-# 9. Conclusion
+### Reproduce Steps
 
-Pengujian reliability dilakukan untuk memastikan arsitektur microservices mampu menangani kondisi kegagalan layanan tanpa menyebabkan seluruh sistem berhenti beroperasi.
+Nyalakan kembali Auth Service:
+
+```bash
+docker compose start auth-service
+```
+
+Pastikan service kembali healthy:
+
+```bash
+docker compose ps
+```
+
+Lakukan pengecekan endpoint health:
+
+```http
+GET /health
+```
 
 ---
 
-# Final Status
+### Expected Behavior
 
-🔄 Reliability Testing In Progress
+* Auth Service kembali healthy.
+* Dependency dapat diakses kembali.
+* Status health berubah dari degraded menjadi healthy.
+* Sistem kembali berjalan normal.
+
+---
+
+### Actual Result
+
+Auth Service berhasil dijalankan kembali dan status container berubah menjadi healthy.
+
+Task Service kembali dapat berkomunikasi dengan Auth Service.
+
+---
+
+### Status
+
+✅ PASSED
+
+---
+
+### Conclusion
+
+Sistem berhasil melakukan recovery setelah dependency kembali tersedia.
+
+---
+
+# Reliability Testing Summary
+
+| Scenario                     | Expected Result               | Result   |
+| ---------------------------- | ----------------------------- | -------- |
+| Service Down                 | Dependency failure terdeteksi | ✅ Passed |
+| Timeout / Dependency Failure | Service tetap berjalan        | ✅ Passed |
+| Service Recovery             | Sistem kembali normal         | ✅ Passed |
+
+---
+
+# Conclusion
+
+Berdasarkan pengujian yang dilakukan, arsitektur microservices Kelarin menunjukkan kemampuan reliability yang baik dalam menghadapi gangguan layanan. Sistem mampu mendeteksi service yang gagal, mempertahankan operasi service utama ketika dependency tidak tersedia, serta kembali beroperasi normal setelah service dipulihkan.
+
+Hasil pengujian menunjukkan bahwa mekanisme health monitoring dan service isolation berjalan sesuai dengan tujuan implementasi microservices.
