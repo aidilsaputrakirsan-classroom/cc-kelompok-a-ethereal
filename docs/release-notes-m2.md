@@ -46,9 +46,9 @@ Pada milestone ini, tim berhasil menyelesaikan proses deployment production, CI/
 
 | Service     | URL                                     |
 | ----------- | --------------------------------------- |
-| Frontend    | https://cc-kelompok-a-ethereal-production.up.railway.app/        |
-| Backend API | https://kelarin.up.railway.app/      |
-| API Docs    | https://kelarin.up.railway.app/docs |
+| Frontend    | https://kelarin.up.railway.app/        |
+| Gateaway API | https://kelarin-backend.up.railway.app/      |
+| API Docs    | https://kelarin-backend.up.railway.app/docs|
 
 ---
 
