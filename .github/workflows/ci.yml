@@ -1,4 +1,4 @@
-﻿# ==============================================
+# ==============================================
 # CI Pipeline — Team Ethereal (Kelarin Project)
 # ==============================================
 name: CI Pipeline
@@ -189,6 +189,20 @@ jobs:
           # Menjalankan test backend terhadap lingkungan yang sudah running
           docker-compose exec -T auth-service pytest
           docker-compose exec -T item-service pytest || echo "No tests in item-service yet"
+
+      - name: 📋 Export Docker Logs
+        if: always()
+        run: |
+          mkdir -p logs
+          docker-compose logs > logs/docker-services.log
+
+      - name: 📤 Upload Docker Logs as Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-services-log
+          path: logs/docker-services.log
+          retention-days: 7
 
       - name: 🛑 Shut down services
         if: always()
