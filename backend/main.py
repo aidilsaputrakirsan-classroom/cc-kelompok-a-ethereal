@@ -294,6 +294,6 @@ def delete_task(
             detail="Task tidak ditemukan"
         )
 
-    deleted = crud.delete_task(db, task_id)
+    crud.delete_task(db, task_id)
 
     return None
