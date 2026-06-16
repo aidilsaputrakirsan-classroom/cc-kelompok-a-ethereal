@@ -10,7 +10,7 @@ try:
     with engine.connect() as connection:
         result = connection.execute(text("SELECT id, email FROM users ORDER BY id"))
         users = result.fetchall()
-        print(f"Users in Railway (auth_db):")
+        print("Users in Railway (auth_db):")
         for user in users:
             print(f"ID: {user[0]}, Email: {user[1]}")
 except Exception as e:

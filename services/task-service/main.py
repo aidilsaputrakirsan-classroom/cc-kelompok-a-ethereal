@@ -161,7 +161,7 @@ async def get_tasks(
     user_id = user["user_id"]
     tasks = db.query(Task).filter(
         ((Task.owner_id == user_id) | (Task.assigned_to == user_id)) &
-        (Task.completed == False)
+        (Task.completed.is_(False))
     ).all()
 
     return tasks

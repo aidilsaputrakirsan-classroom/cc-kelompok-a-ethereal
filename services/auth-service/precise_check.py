@@ -11,7 +11,7 @@ try:
         # Check ty@gmail.com specifically for spaces or hidden chars
         result = connection.execute(text("SELECT email FROM users WHERE LOWER(email) LIKE '%ty@gmail.com%'"))
         users = result.fetchall()
-        print(f"Precise check for ty@gmail.com:")
+        print("Precise check for ty@gmail.com:")
         for user in users:
             print(f"Email in DB: '[{user[0]}]' (Length: {len(user[0])})")
 except Exception as e:

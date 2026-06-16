@@ -10,7 +10,6 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import Base, get_db
-from models import User
 from main import app
 
 # Gunakan database in-memory dengan StaticPool agar koneksi persisten di seluruh sesi test
