@@ -13,7 +13,7 @@ def migrate_users():
     auth_cursor = auth_conn.cursor()
 
     users = monolith_cursor.execute(
-        "SELECT * FROM users"
+        "SELECT id, email, name, hashed_password, created_at FROM users"
     ).fetchall()
 
     for user in users:
@@ -45,7 +45,7 @@ def migrate_tasks():
     task_cursor = task_conn.cursor()
 
     tasks = monolith_cursor.execute(
-        "SELECT * FROM tasks"
+        "SELECT id, title, description, deadline, category, status, attachment_url, created_by, assigned_to, created_at FROM tasks"
     ).fetchall()
 
     for task in tasks:
@@ -57,14 +57,15 @@ def migrate_tasks():
                     id,
                     title,
                     description,
+                    deadline,
                     category,
                     status,
                     attachment_url,
-                    completed,
                     owner_id,
+                    assigned_to,
                     created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 task
             )
