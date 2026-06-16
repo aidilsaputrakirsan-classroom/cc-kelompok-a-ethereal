@@ -14,25 +14,44 @@ Arsitektur microservices pada project ini terdiri dari:
 
 ---
 
-# 2. Architecture Overview
+## 2. Architecture Overview
 
-## Microservices Architecture Diagram
+### Microservices Architecture Diagram
 
 ```mermaid
 graph TD
 
+User --> Frontend
+
 Frontend --> Gateway
 
 Gateway --> AuthService
+
 Gateway --> TaskService
+
+TaskService -->|Verify Token| AuthService
 
 AuthService --> AuthDB
 TaskService --> TaskDB
+
+TaskService --> HealthAggregation
+TaskService --> RetryLogic
+TaskService --> CircuitBreaker
 ```
 
 ---
 
-# 3. Service Overview
+## 3. Reliability Features
+
+| Feature            | Description                                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Health Aggregation | Menggabungkan status kesehatan service dan dependency untuk menentukan kondisi sistem secara keseluruhan.         |
+| Retry Logic        | Melakukan percobaan ulang otomatis ketika komunikasi antar service gagal akibat timeout atau gangguan sementara.  |
+| Circuit Breaker    | Mencegah service terus mengirim request ke dependency yang sedang bermasalah untuk menghindari cascading failure. |
+| Health Monitoring  | Monitoring kondisi service melalui endpoint `/health` dan Docker healthcheck.                                     |
+
+
+## 4. Service Overview
 
 | Service | Port | Description |
 |----------|------|-------------|
@@ -45,9 +64,9 @@ TaskService --> TaskDB
 
 ---
 
-# 4. API Contract
+## 5. API Contract
 
-## Auth Service
+### Auth Service
 
 | Method | Endpoint | Description |
 |---------|-----------|-------------|
@@ -58,11 +77,12 @@ TaskService --> TaskDB
 
 ---
 
-## Task Service
+### Task Service
 
 | Method | Endpoint | Description |
 |---------|-----------|-------------|
 | GET | `/tasks` | Menampilkan seluruh task |
+| GET | `/tasks/{id}` | Menampilkan detail task |
 | POST | `/tasks` | Menambahkan task baru |
 | PUT | `/tasks/{id}` | Mengubah task |
 | DELETE | `/tasks/{id}` | Menghapus task |
@@ -70,7 +90,7 @@ TaskService --> TaskDB
 
 ---
 
-# 5. Docker Compose Workflow
+## 6. Docker Compose Workflow
 
 | Command | Description |
 |----------|-------------|
@@ -81,10 +101,46 @@ TaskService --> TaskDB
 | `docker compose logs task-service` | Melihat logs task-service |
 
 ---
+## 7. Local Development Setup
 
-# 6. Healthcheck & Monitoring
+### Prerequisites
 
-## Health Endpoint
+* Docker Desktop
+* Docker Compose
+* Git
+
+### Menjalankan Seluruh Service
+
+```bash
+docker compose up --build
+```
+
+## 8. Verifikasi Status Service
+
+```bash
+docker compose ps
+```
+
+Expected Result:
+
+* auth-service → healthy
+* task-service → healthy
+* auth-db → healthy
+* task-db → healthy
+* gateway-nginx → healthy
+* frontend → healthy
+
+### Menghentikan Service
+
+```bash
+docker compose down
+```
+
+
+
+## 9. Healthcheck & Monitoring
+
+### Health Endpoint
 
 | Service | Endpoint | Status |
 |----------|-----------|--------|
@@ -93,7 +149,7 @@ TaskService --> TaskDB
 
 ---
 
-## Monitoring Logs
+### Monitoring Logs
 
 | Command | Function |
 |----------|----------|
@@ -102,7 +158,7 @@ TaskService --> TaskDB
 
 ---
 
-# 7. Reliability Mechanisms
+## 10. Reliability Mechanisms
 
 Untuk meningkatkan keandalan sistem microservices, aplikasi Kelarin menerapkan beberapa mekanisme reliability agar layanan tetap dapat beroperasi ketika terjadi gangguan pada salah satu service.
 
@@ -205,7 +261,9 @@ HealthAggregation --> TaskService
 
 ---
 
-## Docker Compose Validation
+## 11. Testing Validation
+
+### Docker Compose Validation
 
 | Service | Status |
 |----------|--------|
@@ -213,8 +271,8 @@ HealthAggregation --> TaskService
 | task-service | ✅ Healthy |
 | auth-db | ✅ Healthy |
 | task-db | ✅ Healthy |
-| frontend | ✅ Running |
-| gateway-nginx | ✅ Running |
+| frontend | ✅ Healthy  |
+| gateway-nginx | ✅ Healthy |
 
 ### Keterangan
 
@@ -224,7 +282,7 @@ HealthAggregation --> TaskService
 
 ---
 
-## Health Endpoint Testing
+## 12. Health Endpoint Testing
 
 | Test Case | Result |
 |------------|--------|
@@ -240,7 +298,7 @@ HealthAggregation --> TaskService
 
 ---
 
-## Feature Testing
+## 13. Feature Testing
 
 | Feature | Result |
 |----------|--------|
@@ -258,7 +316,7 @@ HealthAggregation --> TaskService
 
 ---
 
-# 8. Development vs Microservices Comparison
+## 14. Development vs Microservices Comparison
 
 | Component | Monolith Architecture | Microservices Architecture |
 |------------|----------------------|----------------------------|
@@ -270,7 +328,7 @@ HealthAggregation --> TaskService
 
 ---
 
-# 9. Documentation Evidence
+## 15. Documentation Evidence
 
 | Testing Activity | Evidence | Description |
 |------------------|----------|-------------|
@@ -279,7 +337,7 @@ HealthAggregation --> TaskService
 | Task Service Healthcheck | ![Task Health](assets/item-health.png) | Pengujian dilakukan pada endpoint `/health` tasks-service untuk memastikan service item management berjalan normal tanpa error. |
 | User Registration Testing | ![Register Testing](assets/register-testing.png) | Pengujian dimulai dengan membuat akun baru melalui halaman registrasi untuk memastikan auth-service dapat menyimpan data user dengan baik. |
 | User Login Testing | ![Login Testing](assets/login-testing.png) | Pengujian dilakukan menggunakan akun yang telah terdaftar untuk memastikan proses authentication dan JWT token berjalan normal. |
-| Create Task Testing | ![Create Task](assets/create-item.png) | Pengujian dilakukan dengan menambahkan task baru pada aplikasi untuk memastikan task-service dapat menerima dan menyimpan data dengan baik. |
+| Create Task Testing | ![Create Task](assets/create-item.png) | Pengujian dilakukan dengan menambahkan task baru pada aplikasi untuk memastikan task-service dapat menerima dan menyimpan data with baik. |
 | Read Task Testing | ![Read Task](assets/read-item.png) | Pengujian dilakukan untuk memastikan task yang telah dibuat berhasil ditampilkan pada frontend application. |
 | Update Task Testing | ![Update Task](assets/update-item.png) | Pengujian dilakukan dengan mengubah data task untuk memastikan fitur update berjalan normal pada microservices architecture. |
 | Delete Task Testing | ![Delete Task](assets/delete-item.png) | Pengujian dilakukan dengan menghapus task dari sistem untuk memastikan delete endpoint berjalan dengan baik tanpa error. |
@@ -287,18 +345,71 @@ HealthAggregation --> TaskService
 
 ---
 
-# 10. Debugging Guide
+## 16. Service Debug Guide
 
-| Problem | Solution |
-|----------|----------|
-| Container tidak berjalan | Jalankan `docker compose up --build` |
-| Service unhealthy | Cek logs menggunakan `docker compose logs <service-name>` |
-| Frontend tidak dapat connect backend | Periksa konfigurasi gateway nginx |
-| Endpoint tidak dapat diakses | Pastikan container running dan network Docker aktif |
+### Auth Service
+
+Melihat log Auth Service:
+
+```bash
+docker compose logs auth-service
+```
+
+Health Endpoint:
+
+```text
+http://localhost:8001/health
+```
 
 ---
 
-# 11. Conclusion
+### Task Service
+
+Melihat log Task Service:
+
+```bash
+docker compose logs task-service
+```
+
+Health Endpoint:
+
+```text
+http://localhost:8002/health
+```
+
+---
+
+### API Gateway
+
+Melihat log Gateway:
+
+```bash
+docker compose logs gateway
+```
+
+Endpoint:
+
+```text
+http://localhost
+```
+
+---
+
+### Common Troubleshooting
+
+| Problem                              | Solution                                                  |
+| ------------------------------------ | --------------------------------------------------------- |
+| Container tidak berjalan             | Jalankan `docker compose up --build`                      |
+| Service unhealthy                    | Cek logs menggunakan `docker compose logs <service-name>` |
+| Frontend tidak dapat connect backend | Periksa konfigurasi gateway nginx                         |
+| Endpoint tidak dapat diakses         | Pastikan container running dan network Docker aktif       |
+| Healthcheck gagal                    | Periksa dependency service dan database                   |
+| Gateway tidak meneruskan request     | Periksa konfigurasi reverse proxy nginx                   |
+
+
+---
+
+## 17. Conclusion
 
 Implementasi microservices pada aplikasi Kelarin berhasil dijalankan menggunakan Docker Compose dengan arsitektur multi-service.
 
