@@ -1,7 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
-from fastapi import FastAPI, Depends, HTTPException, Header, Request
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -15,7 +14,8 @@ from schemas import (
     UserResponse,
     LoginRequest,
     TokenResponse,
-    VerifyResponse
+    VerifyResponse,
+    UpgradeRoleRequest
 )
 
 # Create tables
@@ -71,6 +71,18 @@ def decode_token(token: str) -> dict:
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+def get_current_user(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header"
+        )
+
+    token = authorization.split("Bearer ")[1]
+
+    payload = decode_token(token)
+
+    return payload
 
 # =====================
 # ENDPOINTS
@@ -104,36 +116,20 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-# Support both JSON and Form Data for login
+# Support JSON for login
 @app.post("/login", response_model=TokenResponse)
-async def login(
-    request: Request,
+def login(
+    login_data: LoginRequest,
     db: Session = Depends(get_db)
 ):
-    content_type = request.headers.get("content-type", "")
-    email = None
-    password = None
-
-    if "application/json" in content_type:
-        try:
-            data = await request.json()
-            email = data.get("email") or data.get("username")
-            password = data.get("password")
-        except:
-            raise HTTPException(status_code=422, detail="Invalid JSON")
-    else:
-        # Fallback to Form Data
-        try:
-            form = await request.form()
-            email = form.get("username") or form.get("email")
-            password = form.get("password")
-        except:
-            raise HTTPException(status_code=422, detail="Invalid Form Data")
+    """Login user dan return JWT token."""
+    email = login_data.email
+    password = login_data.password
 
     if not email or not password:
         raise HTTPException(
             status_code=422,
-            detail="Email/username and password are required"
+            detail="Email and password are required"
         )
 
     user = db.query(User).filter(User.email == email).first()
@@ -151,7 +147,10 @@ async def login(
         "role": user.role,
     })
 
-    return TokenResponse(access_token=token)
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer"
+    )
 
 @app.get("/verify", response_model=VerifyResponse)
 def verify_token(authorization: str = Header(...)):
@@ -179,13 +178,51 @@ def verify_token(authorization: str = Header(...)):
     )
 
 @app.patch("/users/{user_id}/upgrade-role")
-def upgrade_user_role(user_id: int, new_role: str, db: Session = Depends(get_db)):
+def upgrade_user_role(
+    user_id: int,
+    role_request: UpgradeRoleRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upgrade user role — only admin can do this."""
+    
+    if not current_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required"
+        )
+
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Only admin can upgrade user roles"
+        )
+
+    new_role = role_request.new_role
+    
     if new_role not in ["leader", "admin", "member"]:
-        raise HTTPException(status_code=400, detail="Invalid role. Must be 'leader', 'admin', or 'member'")
-    user = db.query(User).filter(User.id == user_id).first()
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid role. Must be 'leader', 'admin', or 'member'"
+        )
+
+    user = db.query(User).filter(
+        User.id == user_id
+    ).first()
+
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
     user.role = new_role
+
     db.commit()
     db.refresh(user)
-    return {"message": f"User role successfully updated to {new_role}", "user_id": user.id, "role": user.role}
+
+    return {
+        "message": f"User role successfully updated to {new_role}",
+        "user_id": user.id,
+        "role": user.role
+    }
