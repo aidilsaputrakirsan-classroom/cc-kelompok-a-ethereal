@@ -15,8 +15,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - service: backend
-            context: ./backend
           - service: frontend
             context: ./frontend
           - service: auth-service

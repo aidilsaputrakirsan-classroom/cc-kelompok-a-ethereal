@@ -18,14 +18,13 @@ Sistem otomatisasi dibagi menjadi 3 file konfigurasi utama di direktori `.github
 ### A. CI Pipeline (`ci.yml`) — *Validation & Quality Gate*
 Fokus utama dari pipeline ini adalah memverifikasi kode baru sebelum digabungkan (merge) ke branch utama.
 * **Tahap 1: Linting (`lint`)**
-  * Menggunakan **Ruff** linter untuk mendeteksi kesalahan sintaksis, gaya penulisan, dan potensi bug pada semua layanan backend Python (`backend`, `auth-service`, `task-service`).
-* **Tahap 2: Unit Testing (`test-services`)**
+  * Menggunakan **Ruff** linter untuk mendeteksi kesalahan sintaksis, gaya penulisan, dan potensi bug pada semua layanan backend Python (`backend`, `auth-service`, `t* **Tahap 2: Unit Testing (`test-services`)**
   * Menggunakan strategi **Matrix Job** untuk menjalankan tes secara paralel.
-  * Backend (`pytest`): Menjalankan unit test dengan laporan cakupan kode (coverage).
+  * Microservices (`pytest`): Menjalankan unit test dengan laporan cakupan kode (coverage) untuk `auth-service` dan `task-service`.
   * Frontend (`vitest`): Menginstal dependensi melalui `npm ci`, melakukan build, dan menjalankan unit test.
   * *Penting:* Flag bypass (`continue-on-error`) telah dihapus. Jika salah satu unit test gagal, pipeline otomatis berhenti dan PR ditandai merah (gagal).
 * **Tahap 3: Integration Test (`integration-test`)**
-  * Men-spin up seluruh layanan secara lokal di GitHub Runner menggunakan **Docker Compose**.
+  * Men-spin up seluruh layanan secara lokal di GitHub Runner menggunakan **Docker Compose V2 (`docker compose`)**.
   * Menunggu hingga semua kontainer berstatus `healthy`.
   * Mengeksekusi pengujian lintas layanan (integration test) di dalam kontainer `task-service` yang menembak API `auth-service`.
   * Mengekspor log kontainer dan mengunggahnya sebagai **Artifact** (`docker-services-log`) yang dapat diunduh untuk kebutuhan debugging.
@@ -37,7 +36,7 @@ Fokus utama dari pipeline ini adalah memverifikasi kode baru sebelum digabungkan
 ### B. CD Pipeline (`cd.yml`) — *Build Verification*
 Mempersiapkan rilis image Docker saat ada perubahan yang resmi masuk ke branch `main`.
 * **Build Docker Cache (`build-docker`)**
-  * Membangun Docker Image untuk 4 layanan (`backend`, `frontend`, `auth-service`, `task-service`) menggunakan Docker Buildx.
+  * Membangun Docker Image untuk 3 layanan utama (`frontend`, `auth-service`, `task-service`) menggunakan Docker Buildx.
   * Menggunakan cache GitHub Actions (`cache-from: type=gha`, `cache-to: type=gha`) untuk mempercepat proses build di masa mendatang.
 * **Integration Test Akhir (`integration-test`)**
   * Memastikan konfigurasi docker-compose final di `main` dapat berjalan dan merespons health check localhost dengan sukses.
@@ -68,18 +67,19 @@ Jika pipeline CI/CD Anda gagal (berwarna merah), ikuti langkah-langkah berikut:
 1. **Gagal di Tahap `Lint`**:
    * Jalankan linter secara lokal sebelum commit:
      ```bash
-     ruff check backend/
      ruff check services/auth-service/
      ruff check services/task-service/
      ```
 2. **Gagal di Tahap `test-services` (Unit Test)**:
-   * **Backend**: Masuk ke folder backend, pastikan dependensi terinstal, lalu jalankan `pytest`.
+   * **Microservices**: Masuk ke folder microservice yang bersangkutan (`services/auth-service` atau `services/task-service`), pastikan dependensi terinstal, lalu jalankan `python -m pytest`.
    * **Frontend**: Masuk ke folder `frontend`, jalankan `npm run test` untuk memeriksa vitest lokal Anda.
 3. **Gagal di Tahap `integration-test`**:
    * Buka run GitHub Actions yang gagal.
    * Masuk ke tab **Summary** dan unduh file di bawah kolom **Artifacts** bernama `docker-services-log`.
    * Periksa isi file log tersebut untuk melihat error atau crash dump dari kontainer database, backend, auth, maupun task service.
-4. **Gagal di Tahap `deploy-health-check` (Produksi)**:
+4. **Kesalahan `docker-compose: command not found`**:
+   * Runner GitHub Actions modern (`ubuntu-latest` dsb) menggunakan Docker Compose V2 yang dipanggil lewat perintah `docker compose` (menggunakan spasi, bukan tanda hubung `-`). Seluruh workflow CI/CD Kelarin telah diperbarui untuk menggunakan perintah baru ini.
+5. **Gagal di Tahap `deploy-health-check` (Produksi)**:
    * Buka dashboard **Railway** Anda.
-   * Periksa logs untuk masing-masing container (khususnya `auth-service` dan `task-service`).
-   * Cari tahu apakah ada masalah koneksi database, error variabel lingkungan (environment variables), atau crash startup.
+   * Periksa logs untuk masing-masing container (khususnya `auth-service` and `task-service`).
+   * Cari tahu apakah ada masalah koneksi database, error variabel lingkungan (environment variables), atau crash startup.variables), atau crash startup.
