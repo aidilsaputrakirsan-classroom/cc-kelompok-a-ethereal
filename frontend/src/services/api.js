@@ -126,21 +126,15 @@ export const api = {
   // ==========================================
   login: async ({ email, password }) => {
     try {
-      const params = new URLSearchParams();
-
-      params.append("username", email);
-      params.append("password", password);
-
       const res = await fetch(
         `${API_URL}/auth/login`,
         {
           method: "POST",
           headers: {
-            "Content-Type":
-              "application/x-www-form-urlencoded",
+            "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: params.toString(),
+          body: JSON.stringify({ email, password }),
         }
       );
 
@@ -401,4 +395,53 @@ checkHealth: async () => {
     };
   }
 },
+
+  // ==========================================
+  // GET USERS (Admin)
+  // ==========================================
+  getUsers: async (token) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/users`, {
+        headers: {
+          ...getAuthHeader(token),
+        },
+      });
+      return await handleResponse(res);
+    } catch (err) {
+      console.error("Get users error:", err);
+      return {
+        status: 0,
+        data: [],
+        error: err.message || "Network error",
+        networkError: true,
+        ok: false,
+      };
+    }
+  },
+
+  // ==========================================
+  // UPDATE USER BY ADMIN (Admin)
+  // ==========================================
+  updateUserByAdmin: async (userId, updateData, token) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(token),
+        },
+        body: JSON.stringify(updateData),
+      });
+      return await handleResponse(res);
+    } catch (err) {
+      console.error("Update user by admin error:", err);
+      return {
+        status: 0,
+        data: null,
+        error: err.message || "Network error",
+        networkError: true,
+        ok: false,
+      };
+    }
+  },
 };

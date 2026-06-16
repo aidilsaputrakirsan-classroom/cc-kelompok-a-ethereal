@@ -43,9 +43,10 @@ dist-ssr/
 .idea/
 .DS_Store
 Thumbs.db
-test.db
 .pytest_cache/
 *.db
+.coverage
+.coverage.*
 
 # Internal files
 draft.md

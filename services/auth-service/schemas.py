@@ -46,3 +46,12 @@ class UpgradeRoleRequest(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class UserUpdateAdmin(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    password: Optional[str] = None
+
+    class Config:
+        from_attributes = True
