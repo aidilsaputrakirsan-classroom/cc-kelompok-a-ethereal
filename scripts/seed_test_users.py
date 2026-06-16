@@ -36,7 +36,7 @@ def seed_db(db_path):
     # Insert/upsert users
     users_to_seed = [
         ("admin@gmail.com", "Admin User", hashed_password, "admin"),
-        ("leader@gmail.com", "Leader User", hashed_password, "leader"),
+        ("leader@gmail.com", "Leader User", hashed_password, "member"),
         ("member@gmail.com", "Member User", hashed_password, "member")
     ]
 

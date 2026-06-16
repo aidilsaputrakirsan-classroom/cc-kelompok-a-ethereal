@@ -77,7 +77,6 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: '${{ matrix.path }}/requirements.txt'
-        continue-on-error: true
 
       - name: Install Backend Deps
         if: matrix.runtime == 'python'
@@ -86,7 +85,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-cov httpx
-        continue-on-error: true
 
       - name: Run Python Tests
         if: matrix.runtime == 'python'
@@ -94,8 +92,7 @@ jobs:
         env:
           DATABASE_URL: sqlite:///./test.db
           SECRET_KEY: "kelarin_secret_key_untuk_testing_doang"
-        run: pytest --cov=. --cov-report=term-missing || echo "No tests found in ${{ matrix.service }}"
-        continue-on-error: true
+        run: pytest --cov=. --cov-report=term-missing
 
       # Node.js Logic
       - name: Setup Node.js
@@ -157,7 +154,6 @@ jobs:
 
       - name: 🧪 Run Integration Tests
         run: |
-          # Menjalankan integration test task-service terhadap auth-service di dalam docker network
           docker-compose exec -T -e AUTH_SERVICE_URL=http://auth-service:8001 -e TASK_SERVICE_URL=http://task-service:8002 task-service pytest
 
       - name: 📋 Export Docker Logs
@@ -178,41 +174,13 @@ jobs:
         if: always()
         run: docker-compose down
 
-  # =========================================================================
-  # JOB: Automated Production Health Check (Tugas Lead DevOps - Tugas 11)
-  # =========================================================================
-  deploy-health-check:
-    name: 🏥 Deploy & Health Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [integration-test]
-    steps:
-      - name: 🏥 Automated Production Health Check
-        run: |
-          echo "Waiting for Railway deployment to be ready..."
-          # Memberikan jeda 30 detik agar container selesai cold start di produksi
-          sleep 30
-          
-          HEALTH_URL="https://kelarin.up.railway.app/health"
-          echo "Checking health status via: $HEALTH_URL"
-          
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
-          
-          if [ "$HTTP_STATUS" == "200" ]; then
-            echo "✅ Health check passed! Production app is healthy (HTTP $HTTP_STATUS)."
-          else
-            echo "❌ Health check FAILED! Server returned HTTP $HTTP_STATUS."
-            echo "Deployment might be crash looping. Check Railway dashboard logs immediately."
-            exit 1
-          fi
-
   # -------------------------------------------------------------------------
   # OPTIMASI: Notifikasi PR Comment saat CI Gagal
   # -------------------------------------------------------------------------
   notify-failure:
     name: 📢 Notify Failure
     runs-on: ubuntu-latest
-    needs: [lint, test-services, integration-test, deploy-health-check]
+    needs: [lint, test-services, integration-test]
     if: failure() && github.event_name == 'pull_request'
     steps:
       - name: 💬 Leave PR Comment
@@ -220,43 +188,27 @@ jobs:
         with:
           message: |
             ⚠️ **CI Pipeline Gagal!** ⚠️
-            Halo tim **Ethereal**, pemeriksaan otomatis mendeteksi kegagalan pada tahap testing, build, atau health check produksi.
+            Halo tim **Ethereal**, pemeriksaan otomatis mendeteksi kegagalan pada tahap linting, unit testing, atau integration test.
             Mohon cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})** untuk perbaikan.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # -------------------------------------------------------------------------
-  # TUGAS: Notifikasi Deployment Berhasil (Lead CI/CD - Week 11 Revised)
+  # TUGAS: Notifikasi PR Comment saat CI Sukses
   # -------------------------------------------------------------------------
   notify-success:
-    name: 🚀 Notify Success
+    name: 🧪 Notify Success
     runs-on: ubuntu-latest
-    needs: [deploy-health-check]
+    needs: [integration-test]
     if: success() && github.event_name == 'pull_request'
     steps:
-      - name: 🕒 Set Timestamp
-        id: info
-        run: echo "timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_OUTPUT
-
-      - name: 🚀 Leave Deployment Summary Comment
+      - name: 💬 Leave Success Comment
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
-            ### 🚀 Deployment Berhasil!
-            Halo tim **Ethereal**, aplikasi telah berhasil dideploy dan melewati health check.
+            ### ✅ CI Pipeline Sukses!
+            Halo tim **Ethereal**, semua tahapan pemeriksaan otomatis (linting, unit tests, dan integration tests) telah berhasil lolos! 
 
-            **Detail Deployment:**
-            - **Frontend URL:** [https://cc-kelompok-a-ethereal-production.up.railway.app](https://cc-kelompok-a-ethereal-production.up.railway.app)
-            - **Backend URL:** [https://kelarin.up.railway.app](https://kelarin.up.railway.app)
-            - **Commit SHA:** `${{ github.sha }}`
-            - **Timestamp:** `${{ steps.info.outputs.timestamp }}`
-
-            Cek detail log di tab **[Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**.
+            Langkah berikutnya:
+            - Anda dapat melakukan merge PR ini ke `main` jika review manual sudah disetujui.
+            - Pipeline Deployment (CD) akan otomatis dipicu setelah kode di-merge ke branch `main`.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 📊 Add Job Summary
-        run: |
-          echo "### 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Frontend URL:** https://cc-kelompok-a-ethereal-production.up.railway.app" >> $GITHUB_STEP_SUMMARY
-          echo "- **Backend URL:** https://kelarin.up.railway.app" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp:** ${{ steps.info.outputs.timestamp }}" >> $GITHUB_STEP_SUMMARY

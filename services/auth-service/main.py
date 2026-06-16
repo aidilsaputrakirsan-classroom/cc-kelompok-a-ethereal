@@ -15,7 +15,8 @@ from schemas import (
     LoginRequest,
     TokenResponse,
     VerifyResponse,
-    UpgradeRoleRequest
+    UpgradeRoleRequest,
+    UserUpdateAdmin
 )
 
 # Create tables
@@ -200,10 +201,10 @@ def upgrade_user_role(
 
     new_role = role_request.new_role
     
-    if new_role not in ["leader", "admin", "member"]:
+    if new_role not in ["admin", "member"]:
         raise HTTPException(
             status_code=400,
-            detail="Invalid role. Must be 'leader', 'admin', or 'member'"
+            detail="Invalid role. Must be 'admin' or 'member'"
         )
 
     user = db.query(User).filter(
@@ -226,3 +227,63 @@ def upgrade_user_role(
         "user_id": user.id,
         "role": user.role
     }
+
+
+@app.get("/users", response_model=list[UserResponse])
+def get_all_users(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Retrieve all users — admin only."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Hanya administrator yang dapat melihat daftar pengguna."
+        )
+    users = db.query(User).all()
+    return users
+
+
+@app.put("/users/{user_id}", response_model=UserResponse)
+def update_user_by_admin(
+    user_id: int,
+    update_data: UserUpdateAdmin,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user details by admin (name, role, password)."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Hanya administrator yang dapat mengubah data pengguna."
+        )
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="Pengguna tidak ditemukan."
+        )
+    
+    if update_data.name is not None:
+        user.name = update_data.name
+    
+    if update_data.role is not None:
+        if update_data.role not in ["admin", "member"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Peran tidak valid. Harus 'admin' atau 'member'."
+            )
+        user.role = update_data.role
+    
+    if update_data.password is not None:
+        if len(update_data.password) < 8:
+            raise HTTPException(
+                status_code=400,
+                detail="Kata sandi minimal harus 8 karakter."
+            )
+        user.hashed_password = pwd_context.hash(update_data.password)
+    
+    db.commit()
+    db.refresh(user)
+    return user
