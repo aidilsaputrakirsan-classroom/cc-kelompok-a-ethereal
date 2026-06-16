@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -6,7 +7,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-load_dotenv()
+# Load .env.local dulu (untuk local dev), kemudian fallback ke .env (production)
+env_local = Path(".env.local")
+if env_local.exists():
+    load_dotenv(env_local, override=True)
+else:
+    load_dotenv()
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
