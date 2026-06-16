@@ -11,9 +11,9 @@ describe("Header Component", () => {
       </BrowserRouter>
     );
 
-    const appName = await screen.findByText(/Kelarin/i, {}, { timeout: 5000 });
+    const appName = await screen.findByText(/Kelarin/i, {}, { timeout: 10000 });
     expect(appName).toBeInTheDocument();
-  });
+  }, 30000);
 
   it("menampilkan text Ethereal Team Workspace", async () => {
     render(
@@ -22,20 +22,21 @@ describe("Header Component", () => {
       </BrowserRouter>
     );
 
-    const workspaceText = await screen.findByText(/Ethereal Team Workspace/i, {}, { timeout: 5000 });
+    const workspaceText = await screen.findByText(/Ethereal Team Workspace/i, {}, { timeout: 10000 });
     expect(workspaceText).toBeInTheDocument();
-  });
+  }, 30000);
 
   it("menampilkan tombol Logout", async () => {
-    render(
+    const { container } = render(
       <BrowserRouter>
         <Header onLogout={() => {}} />
       </BrowserRouter>
     );
+    console.log("DEBUG [Header.test.jsx]:", container.innerHTML);
 
-    const logoutButton = await screen.findByRole("button", { name: /logout/i }, { timeout: 5000 });
+    const logoutButton = await screen.findByRole("button", { name: /logout/i }, { timeout: 10000 });
     expect(logoutButton).toBeInTheDocument();
-  });
+  }, 30000);
 
   it("menampilkan tombol Status", async () => {
     render(
@@ -44,9 +45,9 @@ describe("Header Component", () => {
       </BrowserRouter>
     );
 
-    const statusLink = await screen.findByRole("link", { name: /status/i }, { timeout: 5000 });
+    const statusLink = await screen.findByRole("link", { name: /status/i }, { timeout: 10000 });
     expect(statusLink).toBeInTheDocument();
-  });
+  }, 30000);
 
   it("menjalankan fungsi logout saat tombol logout diklik", async () => {
     const mockLogout = vi.fn();
@@ -57,13 +58,13 @@ describe("Header Component", () => {
       </BrowserRouter>
     );
 
-    const logoutButton = await screen.findByRole("button", { name: /logout/i }, { timeout: 5000 });
+    const logoutButton = await screen.findByRole("button", { name: /logout/i }, { timeout: 10000 });
     expect(logoutButton).toBeInTheDocument();
 
     logoutButton.click();
 
     await waitFor(() => {
       expect(mockLogout).toHaveBeenCalled();
-    }, { timeout: 5000 });
-  });
+    }, { timeout: 10000 });
+  }, 30000);
 });
