@@ -1,9 +1,10 @@
+import os
 import pytest
 import httpx
 
 
-AUTH_URL = "http://localhost:8001"
-TASK_URL = "http://localhost:8002"
+AUTH_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:8001")
+TASK_URL = os.getenv("TASK_SERVICE_URL", "http://localhost:8002")
 
 
 @pytest.mark.asyncio
