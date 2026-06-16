@@ -3,23 +3,42 @@
 # ============================================================
 
 services:
-  # ==================== DATABASE (PROD) ====================
-  db:
-    # Menghapus eksposur port 5433 ke host laptop/publik
-    # untuk keamanan maksimal di server production.
-    ports: !reset [] 
+  # ==================== DATABASES ====================
+  auth-db:
+    restart: always
+  
+  task-db:
     restart: always
 
-  # ==================== BACKEND (PROD) ====================
-  backend:
+  # ==================== BACKEND SERVICES ====================
+  auth-service:
+    restart: always
     environment:
       - DEBUG=false
-      - CORS_ORIGINS=https://kelarin-app.com # Masih sementara --> Perlu mengganti sesuai domain nanti
-    restart: always
-    # Menghilangkan mounting volume kodingan jika ada (opsional)
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=https://kelarin.up.railway.app
 
-  # ==================== FRONTEND (PROD) ====================
-  frontend:
-    # Di production, frontend biasanya dilayani oleh Nginx yang stabil
+  task-service:
     restart: always
-    # Memastikan frontend hanya menggunakan profil prod saat di-deploy
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=https://kelarin.up.railway.app
+
+  # ==================== FRONTEND ====================
+  frontend:
+    restart: always
+
+  # ==================== GATEWAY ====================
+  gateway:
+    restart: always
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - AUTH_SERVICE_URL=http://kelarin-auth-service.railway.internal:8001
+      - TASK_SERVICE_URL=http://kelarin-task-service.railway.internal:8002
+      - FRONTEND_URL=http://kelarin-frontend.railway.internal:80

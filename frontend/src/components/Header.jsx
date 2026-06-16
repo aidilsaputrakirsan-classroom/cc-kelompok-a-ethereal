@@ -1,22 +1,14 @@
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "./ui/Button";
 
-const Header = ({ onLogout }) => {
-  const [darkMode, setDarkMode] = useState(
-    JSON.parse(localStorage.getItem("darkMode")) || false
-  );
-
-  useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
-
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
-
+const Header = ({
+  token,
+  onLogout,
+  darkMode,
+  onDarkModeChange,
+}) => {
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    onDarkModeChange(!darkMode);
   };
 
   return (
@@ -24,12 +16,15 @@ const Header = ({ onLogout }) => {
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <Link
+          to="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <span className="text-2xl">📋</span>
           <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">
             Kelarin
           </span>
-        </div>
+        </Link>
 
         {/* Right Side */}
         <nav className="flex items-center gap-4">
@@ -41,24 +36,37 @@ const Header = ({ onLogout }) => {
 
           <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
 
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className="px-3 py-1 rounded-lg border text-sm font-medium
-            border-gray-300 dark:border-gray-600
-            text-gray-700 dark:text-white
-            hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+          {/* Status Dashboard */}
+          <Link
+            to="/status"
+            className="text-sm font-medium text-gray-700 dark:text-white hover:text-[#2E75B6] transition-colors"
           >
-            {darkMode ? "☀️ Light" : "🌙 Dark"}
-          </button>
+            📊 Status
+          </Link>
 
-          {/* Logout */}
-          <button
-            onClick={onLogout}
-            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-          >
-            Logout
-          </button>
+          {/* Dark Mode Toggle */}
+          <div className="w-auto">
+            <Button
+              onClick={toggleDarkMode}
+              variant="secondary"
+              className="px-3 py-1.5 mt-0 text-sm h-9"
+            >
+              {darkMode ? "☀️ Light" : "🌙 Dark"}
+            </Button>
+          </div>
+
+          {/* Logout - hanya muncul jika sudah login */}
+          {token && (
+            <div className="w-auto">
+              <Button
+                onClick={onLogout}
+                variant="link"
+                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-9"
+              >
+                Logout
+              </Button>
+            </div>
+          )}
 
         </nav>
       </div>

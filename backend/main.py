@@ -22,6 +22,7 @@ from auth import create_access_token, get_current_user
 from config import settings
 
 import crud
+import httpx
 
 load_dotenv()
 
@@ -36,21 +37,21 @@ app = FastAPI(
 
 # ================= CORS =================
 
-# Kita tulis langsung alamat localhost secara mentah di kode (Hardcoded Whitelist)
-# Langkah ini 100% aman untuk development lokal tim Ethereal
+# Domain di bawah ini langsung mencakup lokal development DAN domain produksi Railway kelompokmu
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "https://kelarin.up.railway.app"  # <-- LANGSUNG DIKUNCI DI SINI UNTUK RAILWAY
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,        # Memaksa FastAPI menerima port frontend kalian
+    allow_origins=origins,        
     allow_credentials=True,
-    allow_methods=["*"],          # Mengizinkan semua method (GET, POST, PUT, DELETE)
-    allow_headers=["*"],          # Mengizinkan semua headers (termasuk Authorization Token)
+    allow_methods=["*"],          
+    allow_headers=["*"],          
 )
 
 # ================= HEALTH =================
@@ -151,6 +152,119 @@ def create_task(
         user_id=current_user.id
     )
 
+# ================= MICROSERVICE HEALTH =================
+
+@app.get("/auth/health")
+async def auth_service_health():
+
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8001/health",
+                timeout=5.0
+            )
+
+            return response.json()
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Auth Service unavailable: {str(e)}"
+        )
+
+@app.get("/tasks/health")
+async def task_service_health():
+
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8002/health",
+                timeout=5.0
+            )
+
+            return response.json()
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Task Service unavailable: {str(e)}"
+        )
+
+
+@app.get("/tasks/metrics")
+async def task_service_metrics():
+
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8002/metrics",
+                timeout=5.0
+            )
+
+            return response.json()
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Metrics Service unavailable: {str(e)}"
+        )
+
+@app.get("/system/status")
+async def system_status():
+
+    result = {
+        "gateway": {
+            "status": "healthy"
+        },
+        "auth": {
+            "status": "unreachable"
+        },
+        "tasks": {
+            "status": "unreachable"
+        }
+    }
+
+    # AUTH SERVICE
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8001/health",
+                timeout=5.0
+            )
+
+            if response.status_code == 200:
+                result["auth"]["status"] = "healthy"
+            else:
+                result["auth"]["status"] = "unhealthy"
+
+    except Exception:
+        result["auth"]["status"] = "unreachable"
+
+    # TASK SERVICE
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8002/health",
+                timeout=5.0
+            )
+
+            if response.status_code == 200:
+                result["tasks"]["status"] = "healthy"
+            else:
+                result["tasks"]["status"] = "unhealthy"
+
+    except Exception:
+        result["tasks"]["status"] = "unreachable"
+
+    return result
 
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(
@@ -181,7 +295,7 @@ def get_task(
 
     task = crud.get_task(db, task_id)
 
-    if not task:
+    if not task or (task.created_by != current_user.id and task.assigned_to != current_user.id):
         raise HTTPException(
             status_code=404,
             detail="Task tidak ditemukan"
@@ -198,17 +312,19 @@ def update_task(
     current_user: User = Depends(get_current_user),
 ):
 
+    # Check ownership first
+    db_task = crud.get_task(db, task_id)
+    if not db_task or db_task.created_by != current_user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Task tidak ditemukan"
+        )
+
     updated = crud.update_task(
         db,
         task_id,
         task
     )
-
-    if not updated:
-        raise HTTPException(
-            status_code=404,
-            detail="Task tidak ditemukan"
-        )
 
     return updated
 
@@ -220,12 +336,14 @@ def delete_task(
     current_user: User = Depends(get_current_user),
 ):
 
-    deleted = crud.delete_task(db, task_id)
-
-    if not deleted:
+    # Check ownership first
+    db_task = crud.get_task(db, task_id)
+    if not db_task or db_task.created_by != current_user.id:
         raise HTTPException(
             status_code=404,
             detail="Task tidak ditemukan"
         )
+
+    crud.delete_task(db, task_id)
 
     return None

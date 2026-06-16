@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 from typing import Optional
@@ -8,6 +10,7 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     attachment_url: Optional[str] = None
+    deadline: Optional[datetime] = None  # Tambahkan ini
 
 
 class TaskUpdate(BaseModel):
@@ -17,6 +20,7 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = None
     attachment_url: Optional[str] = None
     completed: Optional[bool] = None
+    deadline: Optional[datetime] = None  # Tambahkan ini
 
 
 class TaskResponse(BaseModel):
@@ -28,6 +32,10 @@ class TaskResponse(BaseModel):
     attachment_url: Optional[str]
     completed: bool
     owner_id: int
+    assigned_to: Optional[int] = None
+    deadline: Optional[datetime] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

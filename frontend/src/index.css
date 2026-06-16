@@ -1,17 +1,24 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 /* =========================
-   DARK MODE MANUAL SUPPORT
+   GLOBAL THEME SUPPORT
 ========================= */
 
-html.dark {
-  background-color: #111827;
-  color: white;
-}
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  
+  html.dark, 
+  html.dark body {
+    @apply bg-gray-900 text-white;
+  }
 
-html.dark body {
-  background-color: #111827;
-  color: white;
+  body {
+    @apply transition-colors duration-300;
+  }
 }
 
 /* =========================

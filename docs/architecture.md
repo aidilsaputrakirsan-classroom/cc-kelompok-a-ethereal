@@ -7,7 +7,7 @@ Pada modul ini, backend monolith dipecah menjadi beberapa service independen aga
 
 Arsitektur microservices pada project ini terdiri dari:
 - Auth Service
-- Item Service
+- Tasks Service
 - API Gateway (Nginx)
 - Database terpisah untuk setiap service
 - Frontend Application
@@ -24,10 +24,10 @@ graph TD
 Frontend --> Gateway
 
 Gateway --> AuthService
-Gateway --> ItemService
+Gateway --> TaskService
 
 AuthService --> AuthDB
-ItemService --> ItemDB
+TaskService --> TaskDB
 ```
 
 ---
@@ -39,9 +39,9 @@ ItemService --> ItemDB
 | Frontend | 80 | User interface aplikasi |
 | Gateway (Nginx) | 80 | API Gateway dan reverse proxy |
 | Auth Service | 8001 | Authentication dan authorization service |
-| Item Service | 8002 | CRUD item management |
+| Task Service | 8002 | CRUD item management |
 | Auth Database | 5432 | Database khusus authentication |
-| Item Database | 5432 | Database khusus item service |
+| Tasks Database | 5432 | Database khusus task service |
 
 ---
 
@@ -58,15 +58,15 @@ ItemService --> ItemDB
 
 ---
 
-## Item Service
+## Task Service
 
 | Method | Endpoint | Description |
 |---------|-----------|-------------|
-| GET | `/items` | Menampilkan seluruh item |
-| POST | `/items` | Menambahkan item baru |
-| PUT | `/items/{id}` | Mengubah item |
-| DELETE | `/items/{id}` | Menghapus item |
-| GET | `/health` | Healthcheck item-service |
+| GET | `/tasks` | Menampilkan seluruh task |
+| POST | `/tasks` | Menambahkan task baru |
+| PUT | `/tasks/{id}` | Mengubah task |
+| DELETE | `/tasks/{id}` | Menghapus task |
+| GET | `/health` | Healthcheck task-service |
 
 ---
 
@@ -78,7 +78,7 @@ ItemService --> ItemDB
 | `docker compose down` | Menghentikan seluruh container |
 | `docker compose ps` | Melihat status container |
 | `docker compose logs auth-service` | Melihat logs auth-service |
-| `docker compose logs item-service` | Melihat logs item-service |
+| `docker compose logs task-service` | Melihat logs task-service |
 
 ---
 
@@ -89,7 +89,7 @@ ItemService --> ItemDB
 | Service | Endpoint | Status |
 |----------|-----------|--------|
 | Auth Service | `/health` | ✅ Active |
-| Item Service | `/health` | ✅ Active |
+| Task Service | `/health` | ✅ Active |
 
 ---
 
@@ -98,20 +98,121 @@ ItemService --> ItemDB
 | Command | Function |
 |----------|----------|
 | `docker compose logs auth-service` | Monitoring auth-service |
-| `docker compose logs item-service` | Monitoring item-service |
+| `docker compose logs task-service` | Monitoring task-service |
 
 ---
 
-# 7. Testing Validation
+# 7. Reliability Mechanisms
+
+Untuk meningkatkan keandalan sistem microservices, aplikasi Kelarin menerapkan beberapa mekanisme reliability agar layanan tetap dapat beroperasi ketika terjadi gangguan pada salah satu service.
+
+---
+
+## Retry Logic
+
+Retry Logic digunakan ketika Item Service gagal berkomunikasi dengan Auth Service akibat gangguan sementara seperti timeout, keterlambatan jaringan, atau service yang belum siap menerima request.
+
+Saat terjadi kegagalan komunikasi, sistem akan mencoba kembali request beberapa kali sebelum mengembalikan error kepada pengguna.
+
+### Tujuan
+
+- Mengatasi kegagalan sementara (temporary failure).
+- Meningkatkan keberhasilan komunikasi antar service.
+- Mengurangi kemungkinan request gagal akibat service belum siap.
+
+### Workflow
+
+```text
+Task Service
+      |
+      v
+Auth Service
+      |
+    Gagal
+      |
+Retry Request
+      |
+    Berhasil
+      |
+Response ke User
+```
+
+---
+
+## Circuit Breaker
+
+Circuit Breaker digunakan untuk mencegah Item Service terus mengirim request ke Auth Service yang sedang mengalami gangguan.
+
+Apabila jumlah kegagalan komunikasi telah melewati batas tertentu, Circuit Breaker akan memblokir sementara request berikutnya sehingga sistem tidak mengalami overload dan timeout berulang.
+
+### State Circuit Breaker
+
+| State | Description |
+|---------|-------------|
+| CLOSED | Semua request diteruskan ke service tujuan |
+| OPEN | Request langsung ditolak karena service dianggap bermasalah |
+| HALF-OPEN | Sistem mencoba mengirim request percobaan untuk memeriksa apakah service sudah pulih |
+
+### Tujuan
+
+- Menghindari cascading failure antar service.
+- Mengurangi timeout yang berulang.
+- Mempercepat response ketika dependency sedang tidak tersedia.
+
+---
+
+## Health Aggregation
+
+Health Aggregation digunakan untuk memantau kondisi seluruh service melalui satu endpoint monitoring terpusat.
+
+Gateway akan mengumpulkan status kesehatan dari beberapa service dan menampilkan kondisi sistem secara keseluruhan.
+
+### Service yang Dipantau
+
+| Service | Health Endpoint |
+|----------|----------------|
+| Auth Service | `/health` |
+| Task Service | `/health` |
+
+### Tujuan
+
+- Mempermudah monitoring sistem.
+- Mempercepat proses troubleshooting.
+- Memberikan informasi kesehatan sistem secara menyeluruh.
+- Membantu proses deployment dan observability.
+
+---
+
+## Reliability Architecture Flow
+
+```mermaid
+graph TD
+
+Frontend --> Gateway
+
+Gateway --> TaskService
+Gateway --> AuthService
+
+TaskService --> RetryLogic
+RetryLogic --> CircuitBreaker
+CircuitBreaker --> AuthService
+
+Gateway --> HealthAggregation
+
+HealthAggregation --> AuthService
+HealthAggregation --> TaskService
+```
+
+---
 
 ## Docker Compose Validation
 
 | Service | Status |
 |----------|--------|
 | auth-service | ✅ Healthy |
-| item-service | ✅ Healthy |
+| task-service | ✅ Healthy |
 | auth-db | ✅ Healthy |
-| item-db | ✅ Healthy |
+| task-db | ✅ Healthy |
 | frontend | ✅ Running |
 | gateway-nginx | ✅ Running |
 
@@ -128,7 +229,7 @@ ItemService --> ItemDB
 | Test Case | Result |
 |------------|--------|
 | Auth Service `/health` accessible | ✅ Passed |
-| Item Service `/health` accessible | ✅ Passed |
+| Task Service `/health` accessible | ✅ Passed |
 | Health status returns `200 OK` | ✅ Passed |
 
 ### Keterangan
@@ -145,10 +246,10 @@ ItemService --> ItemDB
 |----------|--------|
 | Register User | ✅ Passed |
 | Login User | ✅ Passed |
-| Create Item | ✅ Passed |
-| Read Item | ✅ Passed |
-| Update Item | ✅ Passed |
-| Delete Item | ✅ Passed |
+| Create Task | ✅ Passed |
+| Read Task | ✅ Passed |
+| Update Task | ✅ Passed |
+| Delete Task | ✅ Passed |
 
 ### Keterangan
 
@@ -175,13 +276,13 @@ ItemService --> ItemDB
 |------------------|----------|-------------|
 | Docker Compose Validation | ![Docker Compose](assets/docker-compose-ps.png) | Pengujian dilakukan menggunakan perintah `docker compose ps` untuk memastikan seluruh container microservices berjalan dengan status running dan healthy. |
 | Auth Service Healthcheck | ![Auth Health](assets/auth-health.png) | Pengujian dilakukan pada endpoint `/health` auth-service melalui Swagger untuk memastikan service authentication berjalan normal dengan response `200 OK`. |
-| Item Service Healthcheck | ![Item Health](assets/item-health.png) | Pengujian dilakukan pada endpoint `/health` item-service untuk memastikan service item management berjalan normal tanpa error. |
+| Task Service Healthcheck | ![Task Health](assets/item-health.png) | Pengujian dilakukan pada endpoint `/health` tasks-service untuk memastikan service item management berjalan normal tanpa error. |
 | User Registration Testing | ![Register Testing](assets/register-testing.png) | Pengujian dimulai dengan membuat akun baru melalui halaman registrasi untuk memastikan auth-service dapat menyimpan data user dengan baik. |
 | User Login Testing | ![Login Testing](assets/login-testing.png) | Pengujian dilakukan menggunakan akun yang telah terdaftar untuk memastikan proses authentication dan JWT token berjalan normal. |
-| Create Item Testing | ![Create Item](assets/create-item.png) | Pengujian dilakukan dengan menambahkan item baru pada aplikasi untuk memastikan item-service dapat menerima dan menyimpan data dengan baik. |
-| Read Item Testing | ![Read Item](assets/read-item.png) | Pengujian dilakukan untuk memastikan item yang telah dibuat berhasil ditampilkan pada frontend application. |
-| Update Item Testing | ![Update Item](assets/update-item.png) | Pengujian dilakukan dengan mengubah data item untuk memastikan fitur update berjalan normal pada microservices architecture. |
-| Delete Item Testing | ![Delete Item](assets/delete-item.png) | Pengujian dilakukan dengan menghapus item dari sistem untuk memastikan delete endpoint berjalan dengan baik tanpa error. |
+| Create Task Testing | ![Create Task](assets/create-item.png) | Pengujian dilakukan dengan menambahkan task baru pada aplikasi untuk memastikan task-service dapat menerima dan menyimpan data dengan baik. |
+| Read Task Testing | ![Read Task](assets/read-item.png) | Pengujian dilakukan untuk memastikan task yang telah dibuat berhasil ditampilkan pada frontend application. |
+| Update Task Testing | ![Update Task](assets/update-item.png) | Pengujian dilakukan dengan mengubah data task untuk memastikan fitur update berjalan normal pada microservices architecture. |
+| Delete Task Testing | ![Delete Task](assets/delete-item.png) | Pengujian dilakukan dengan menghapus task dari sistem untuk memastikan delete endpoint berjalan dengan baik tanpa error. |
 | Frontend Microservices Testing | ![Frontend Testing](assets/frontend-dashboard.png) | Pengujian dilakukan dengan membuka aplikasi melalui gateway nginx untuk memastikan frontend berhasil terhubung dengan backend microservices. |
 
 ---

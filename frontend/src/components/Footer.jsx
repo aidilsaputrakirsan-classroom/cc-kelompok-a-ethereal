@@ -45,20 +45,20 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-100 dark:border-gray-700 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-gray-400 dark:text-gray-300">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             &copy; {currentYear} Kelarin Cloud App. All rights reserved.
           </p>
 
           <div className="flex gap-6">
-            <a href="#" className="text-xs text-gray-400 dark:text-gray-300 hover:text-[#2E75B6] transition-colors">
+            <a href="#" className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#2E75B6] dark:hover:text-blue-400 transition-colors">
               Documentation
             </a>
 
-            <a href="#" className="text-xs text-gray-400 dark:text-gray-300 hover:text-[#2E75B6] transition-colors">
+            <a href="#" className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#2E75B6] dark:hover:text-blue-400 transition-colors">
               GitHub
             </a>
 
-            <a href="#" className="text-xs text-gray-400 dark:text-gray-300 hover:text-[#2E75B6] transition-colors">
+            <a href="#" className="text-xs text-gray-500 dark:text-gray-400 hover:text-[#2E75B6] dark:hover:text-blue-400 transition-colors">
               Privacy Policy
             </a>
           </div>

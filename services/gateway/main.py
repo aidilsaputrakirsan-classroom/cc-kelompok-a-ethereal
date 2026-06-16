@@ -1,0 +1,146 @@
+import os
+import httpx
+import logging
+import asyncio
+from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("gateway")
+
+app = FastAPI(title="API Gateway")
+
+# Environment variables for internal service URLs
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:8001")
+TASK_SERVICE_URL = os.getenv("TASK_SERVICE_URL", "http://localhost:8002")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+# CORS Configuration
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://kelarin.up.railway.app",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy",
+        "service": "api-gateway"
+    }
+
+@app.get("/")
+def root():
+    return {
+        "status": "healthy",
+        "message": "Kelarin API Gateway is running"
+    }
+
+@app.get("/status")
+async def get_status():
+    """
+    Aggregated health check for all services in parallel.
+    """
+    async with httpx.AsyncClient() as client:
+        # Define health check tasks
+        async def check_auth():
+            try:
+                auth_res = await client.get(f"{AUTH_SERVICE_URL}/health", timeout=2.0)
+                return {"status": "healthy"} if auth_res.status_code == 200 else {"status": "unhealthy"}
+            except Exception as e:
+                logger.error(f"Error checking auth health: {e}")
+                return {"status": "unhealthy", "message": str(e)}
+
+        async def check_tasks():
+            try:
+                task_res = await client.get(f"{TASK_SERVICE_URL}/health", timeout=2.0)
+                return {"status": "healthy"} if task_res.status_code == 200 else {"status": "unhealthy"}
+            except Exception as e:
+                logger.error(f"Error checking task health: {e}")
+                return {"status": "unhealthy", "message": str(e)}
+
+        # Run checks in parallel
+        auth_status, task_status = await asyncio.gather(check_auth(), check_tasks())
+
+        return {
+            "gateway": {"status": "healthy"},
+            "auth": auth_status,
+            "tasks": task_status
+        }
+
+async def proxy_request(url: str, request: Request):
+    """
+    Generic proxy function to forward requests to microservices.
+    """
+    logger.info(f"Proxying {request.method} {request.url} -> {url}")
+    async with httpx.AsyncClient() as client:
+        method = request.method
+        content = await request.body()
+        headers = dict(request.headers)
+        
+        # Remove headers that should be recalculated by httpx
+        headers.pop("host", None)
+        headers.pop("content-length", None)
+
+        try:
+            response = await client.request(
+                method,
+                url,
+                content=content,
+                headers=headers,
+                params=request.query_params,
+                timeout=10.0
+            )
+            
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=dict(response.headers)
+            )
+        except Exception as e:
+            logger.error(f"Proxy error to {url}: {e}")
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "Service unavailable"}
+            )
+
+# Proxy routes for Auth Service
+@app.api_route("/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+@app.api_route("/auth", methods=["GET", "POST", "PUT", "DELETE"], include_in_schema=False)
+async def auth_proxy(request: Request, path: str = ""):
+    url = f"{AUTH_SERVICE_URL}/{path}" if path else f"{AUTH_SERVICE_URL}/"
+    return await proxy_request(url, request)
+
+# Proxy routes for Task Service
+@app.api_route("/tasks/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+@app.api_route("/tasks", methods=["GET", "POST", "PUT", "DELETE"], include_in_schema=False)
+async def task_proxy(request: Request, path: str = ""):
+    url = f"{TASK_SERVICE_URL}/tasks/{path}" if path else f"{TASK_SERVICE_URL}/tasks"
+    return await proxy_request(url, request)
+
+# Catch-all proxy for Frontend (static files / React app)
+@app.api_route("/{path:path}", methods=["GET"])
+async def frontend_proxy(request: Request, path: str = ""):
+    # Specific exclusion to prevent loops or accidental matching of API paths
+    # This is a fallback for GET requests only
+    if path.split('/')[0] in ["auth", "tasks", "status", "health"]:
+        return JSONResponse(status_code=404, content={"detail": f"Path /{path} not found on Gateway API"})
+        
+    url = f"{FRONTEND_URL}/{path}"
+    return await proxy_request(url, request)
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 80))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)

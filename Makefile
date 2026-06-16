@@ -1,9 +1,9 @@
 # ============================================================
 # Makefile — Kelarin App Automation Tools (Team Ethereal)
-# Modul 12 Task Terstruktur: Advance Healthchecks & Gateway
+# Modul 14: Monitoring, Logging & Observability Support
 # ============================================================
 
-.PHONY: build up down logs push clean restart lint test pr-check ps
+.PHONY: build up down logs push clean restart lint test pr-check ps prod status
 
 # ==================== CORE TARGETS ====================
 
@@ -12,10 +12,15 @@ build:
 	@echo "🛠️  Membangun seluruh image microservices..."
 	docker compose build
 
-# Jalankan semua service di background (Gateway akan menunggu semua backend healthy)
+# Jalankan semua service di background
 up:
 	@echo "🚀 Menyalakan ekosistem microservices dan API Gateway..."
 	docker compose up --build -d
+
+# Jalankan versi PRODUCTION (menggunakan override file)
+prod:
+	@echo "📦 Menjalankan sistem dalam mode PRODUCTION..."
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # Hentikan dan hapus container beserta network
 down:
@@ -26,11 +31,6 @@ down:
 logs:
 	@echo "📋 Menampilkan log dari seluruh kontainer..."
 	docker compose logs -f
-
-# Push semua image ke Docker Hub (Tugas Lead CI/CD)
-push:
-	@echo "📤 Membawa hasil build image ke Docker Hub..."
-	docker compose push
 
 # Hentikan, hapus container, beserta volume (reset total database)
 clean:
@@ -43,31 +43,39 @@ restart:
 	@echo "🔄 Memuat ulang seluruh layanan..."
 	docker compose restart
 
-# Memeriksa status kesehatan kontainer secara berkala
-ps:
+# Memeriksa status kesehatan kontainer
+status:
 	@echo "🔍 Memeriksa status dan kesehatan kontainer..."
 	docker compose ps
 
 # ==================== AUTOMATION & QA TARGETS ====================
 
-# Menjalankan linter untuk mengecek kualitas kode di auth-service
+# [BARU] Menjalankan script log helper
+trace:
+	@echo "🔗 Membuka log trace untuk correlation ID..."
+	./scripts/logs.sh trace $(id)
+
+# [BARU] Menjalankan pengecekan metrics
+metrics:
+	@echo "📊 Mengambil snapshot metrik dari services..."
+	./scripts/logs.sh metrics
+
+# Menjalankan linter untuk mengecek kualitas kode
 lint:
-	@echo "🔍 Mengecek kualitas kode pada auth-service..."
+	@echo "🔍 Mengecek kualitas kode..."
 	docker compose exec auth-service ruff check . || echo "Linter failed or not installed"
 
-# Placeholder untuk testing (Unit Test)
+# Menjalankan unit tests
 test:
-	@echo "🧪 Running unit tests for Kelarin Microservices App..."
-	@echo "Executing tests inside task-service..."
-	docker compose run --rm item-service pytest || echo "No tests implemented yet, but environment is ready."
+	@echo "🧪 Running unit tests..."
+	docker compose run --rm task-service pytest || echo "No tests implemented."
 
-# PR Check: Simulasi build dan health-check komplit lewat pintu API Gateway (Port 80)
+# PR Check: Simulasi build dan health-check
 pr-check:
 	@echo "🚨 Menjalankan simulasi Pipeline PR Check..."
 	docker compose build
 	docker compose up -d
-	@echo "⏳ Menunggu kontainer melakukan inisialisasi..."
 	sleep 5
 	@echo "📡 Memverifikasi kesehatan pintu utama API Gateway..."
 	curl -f http://localhost/health || (echo "❌ Health check API Gateway gagal!"; exit 1)
-	@echo "✅ PR Check Passed! Infrastruktur microservices aman untuk di-merge ke branch main."
+	@echo "✅ PR Check Passed!"

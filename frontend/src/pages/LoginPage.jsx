@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { api } from "../services/api";
+import ServiceStatusBanner from "../components/ServiceStatusBanner";
 
 const LoginPage = ({ setToken, showToast }) => {
   const [isRegister, setIsRegister] = useState(false);
@@ -14,61 +14,50 @@ const LoginPage = ({ setToken, showToast }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [serviceUnavailable, setServiceUnavailable] =
+    useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // ================= VALIDATION (Task 1.7) =================
+    const email = formData.email.trim().toLowerCase(); // NORMALISASI EMAIL
+    const password = formData.password; // JANGAN TRIM PASSWORD
+    const name = formData.name.trim();
+
+    if (!email || !password || (isRegister && !name)) {
+      showToast("Semua field harus diisi", "error");
+      return;
+    }
+
     setLoading(true);
+    setServiceUnavailable(false);
 
     try {
-      const endpoint = isRegister
-        ? `${API_URL}/auth/register`
-        : `${API_URL}/auth/login`;
-
-      let body;
-      let headers = {};
+      let result;
 
       // ================= REGISTER =================
       if (isRegister) {
-        body = JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          password: formData.password,
-        });
-
-        headers = {
-          "Content-Type": "application/json",
-        };
-      }
-
+        result = await api.register({ email, name, password });
+      } 
       // ================= LOGIN =================
       else {
-        body = JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        headers = {
-          "Content-Type": "application/json",
-        };
+        result = await api.login({ email, password });
       }
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        body,
-      });
-
-      // ================= SERVICE DOWN =================
-      if (response.status >= 500) {
-        throw new Error("Service temporarily unavailable");
+      // ================= HANDLE RESULT =================
+      if (result.serviceUnavailable || result.status === 503) {
+        setServiceUnavailable(true);
+        showToast(
+          "Service temporarily unavailable. Please try again later.",
+          "error"
+        );
+        return;
       }
 
-      const data = await response.json();
-
-      console.log("LOGIN RESPONSE:", data);
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Authentication failed");
+      if (!result.ok) {
+        throw new Error(result.error || "Authentication failed");
       }
 
       // ================= REGISTER SUCCESS =================
@@ -77,65 +66,76 @@ const LoginPage = ({ setToken, showToast }) => {
           "Registrasi berhasil! Silakan login.",
           "success"
         );
-
         setIsRegister(false);
-
         setFormData({
           email: "",
           name: "",
           password: "",
         });
       }
-
       // ================= LOGIN SUCCESS =================
       else {
-        const token =
-          data.access_token ||
-          data.token ||
-          data;
+  const token = result.data.access_token;
 
-        if (!token) {
-          throw new Error("Token tidak ditemukan dari backend");
-        }
+  if (!token) {
+    throw new Error("Token tidak ditemukan dari backend");
+  }
 
-        localStorage.setItem("token", token);
+  // Simpan token
+  localStorage.setItem("token", token);
 
-        setToken(token);
+  // Simpan email user untuk greeting
+  localStorage.setItem("userEmail", email);
 
-        showToast("Login berhasil!", "success");
-      }
+  setToken(token);
+
+  showToast("Login berhasil!", "success");
+}
     } catch (err) {
-      console.error(err);
+      console.error("Auth error:", err);
+
+      const errorMsg = err.message || "Terjadi kesalahan";
 
       if (
-        err.message.includes("Failed to fetch") ||
-        err.message.includes("Service temporarily unavailable")
+        errorMsg.includes("Failed to fetch") ||
+        errorMsg.includes("Service error")
       ) {
+        setServiceUnavailable(true);
         showToast(
-          "Service temporarily unavailable",
+          "Service temporarily unavailable. Please try again later.",
           "error"
         );
       } else {
-        showToast(
-          err.message || "Terjadi kesalahan",
-          "error"
-        );
+        showToast(errorMsg, "error");
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetry = () => {
+    setRetryAttempt((prev) => prev + 1);
+    setServiceUnavailable(false);
+  };
+
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      {/* Service Status Banner */}
+      <ServiceStatusBanner
+        isVisible={serviceUnavailable}
+        message="Authentication service is temporarily unavailable"
+        onRetry={handleRetry}
+        serviceType="auth"
+      />
+
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300">
 
         <header className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white transition-colors duration-300">
             Kelarin 📋
           </h2>
 
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-500 dark:text-gray-400 mt-2 transition-colors duration-300">
             {isRegister
               ? "Create your student account"
               : "Welcome back!"}
@@ -155,6 +155,7 @@ const LoginPage = ({ setToken, showToast }) => {
                   name: e.target.value,
                 })
               }
+              disabled={loading}
             />
           )}
 
@@ -170,6 +171,7 @@ const LoginPage = ({ setToken, showToast }) => {
                 email: e.target.value,
               })
             }
+            disabled={loading}
           />
 
           <Input
@@ -184,6 +186,7 @@ const LoginPage = ({ setToken, showToast }) => {
                 password: e.target.value,
               })
             }
+            disabled={loading}
           />
 
           <Button type="submit" disabled={loading}>
@@ -195,11 +198,12 @@ const LoginPage = ({ setToken, showToast }) => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center border-t border-gray-100 pt-4">
+        <div className="mt-6 text-center border-t border-gray-100 dark:border-gray-700 pt-4 transition-colors duration-300">
           <Button
             variant="link"
             type="button"
             onClick={() => setIsRegister(!isRegister)}
+            disabled={loading}
           >
             {isRegister
               ? "Sudah punya akun? Login"
