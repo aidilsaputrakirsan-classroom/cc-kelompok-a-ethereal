@@ -15,6 +15,7 @@ describe("TaskList Component", () => {
   it("menampilkan empty state jika tidak ada task", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       text: async () => JSON.stringify([]),
       json: async () => [],
     });
@@ -26,13 +27,18 @@ describe("TaskList Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/belum ada tugas/i)).toBeInTheDocument();
+      expect(
+        screen.getByText((content, node) => 
+          node.children.length === 0 && node.textContent.toLowerCase().includes("belum ada tugas")
+        )
+      ).toBeInTheDocument();
     });
   });
 
   it("menampilkan daftar task dari API", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       text: async () => JSON.stringify([
         {
           id: 1,
