@@ -14,25 +14,61 @@ Arsitektur microservices pada project ini terdiri dari:
 
 ---
 
-# 2. Architecture Overview
+## 2. Architecture Overview
 
-## Microservices Architecture Diagram
+### Microservices Architecture Diagram
 
 ```mermaid
+
 graph TD
+
+
+
+User --> Frontend
+
+
 
 Frontend --> Gateway
 
+
+
 Gateway --> AuthService
-Gateway --> ItemService
+
+Gateway --> TaskService
+
+
+
+TaskService -->|Verify Token| AuthService
+
+
 
 AuthService --> AuthDB
-ItemService --> ItemDB
+
+TaskService --> TaskDB
+
+
+
+TaskService --> HealthAggregation
+
+TaskService --> RetryLogic
+
+TaskService --> CircuitBreaker
+
 ```
 
 ---
 
-# 3. Service Overview
+## 3. Reliability Features
+
+| Feature            | Description                                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Health Aggregation | Menggabungkan status kesehatan service dan dependency untuk menentukan kondisi sistem secara keseluruhan.         |
+| Retry Logic        | Melakukan percobaan ulang otomatis ketika komunikasi antar service gagal akibat timeout atau gangguan sementara.  |
+| Circuit Breaker    | Mencegah service terus mengirim request ke dependency yang sedang bermasalah untuk menghindari cascading failure. |
+| Health Monitoring  | Monitoring kondisi service melalui endpoint `/health` dan Docker healthcheck.                                     |
+
+
+## 4. Service Overview
 
 | Service | Port | Description |
 |----------|------|-------------|
@@ -45,9 +81,9 @@ ItemService --> ItemDB
 
 ---
 
-# 4. API Contract
+## 5. API Contract
 
-## Auth Service
+### Auth Service
 
 | Method | Endpoint | Description |
 |---------|-----------|-------------|
@@ -58,19 +94,20 @@ ItemService --> ItemDB
 
 ---
 
-## Item Service
+### Task Service
 
 | Method | Endpoint | Description |
 |---------|-----------|-------------|
-| GET | `/items` | Menampilkan seluruh item |
-| POST | `/items` | Menambahkan item baru |
-| PUT | `/items/{id}` | Mengubah item |
-| DELETE | `/items/{id}` | Menghapus item |
-| GET | `/health` | Healthcheck item-service |
+| GET | `/tasks` | Menampilkan seluruh task |
+| GET | `/tasks/{id}` | Menampilkan detail task |
+| POST | `/tasks` | Menambahkan task baru |
+| PUT | `/tasks/{id}` | Mengubah task |
+| DELETE | `/tasks/{id}` | Menghapus task |
+| GET | `/health` | Healthcheck task-service |
 
 ---
 
-# 5. Docker Compose Workflow
+## 6. Docker Compose Workflow
 
 | Command | Description |
 |----------|-------------|
@@ -81,10 +118,46 @@ ItemService --> ItemDB
 | `docker compose logs item-service` | Melihat logs item-service |
 
 ---
+## 7. Local Development Setup
 
-# 6. Healthcheck & Monitoring
+### Prerequisites
 
-## Health Endpoint
+* Docker Desktop
+* Docker Compose
+* Git
+
+### Menjalankan Seluruh Service
+
+```bash
+docker compose up --build
+```
+
+## 8. Verifikasi Status Service
+
+```bash
+docker compose ps
+```
+
+Expected Result:
+
+* auth-service → healthy
+* task-service → healthy
+* auth-db → healthy
+* task-db → healthy
+* gateway-nginx → healthy
+* frontend → healthy
+
+### Menghentikan Service
+
+```bash
+docker compose down
+```
+
+
+
+## 9. Healthcheck & Monitoring
+
+### Health Endpoint
 
 | Service | Endpoint | Status |
 |----------|-----------|--------|
@@ -93,7 +166,7 @@ ItemService --> ItemDB
 
 ---
 
-## Monitoring Logs
+### Monitoring Logs
 
 | Command | Function |
 |----------|----------|
@@ -102,9 +175,9 @@ ItemService --> ItemDB
 
 ---
 
-# 7. Testing Validation
+## 10. Testing Validation
 
-## Docker Compose Validation
+### Docker Compose Validation
 
 | Service | Status |
 |----------|--------|
@@ -112,8 +185,8 @@ ItemService --> ItemDB
 | item-service | ✅ Healthy |
 | auth-db | ✅ Healthy |
 | item-db | ✅ Healthy |
-| frontend | ✅ Running |
-| gateway-nginx | ✅ Running |
+| frontend | ✅ Healthy  |
+| gateway-nginx | ✅ Healthy |
 
 ### Keterangan
 
@@ -123,7 +196,7 @@ ItemService --> ItemDB
 
 ---
 
-## Health Endpoint Testing
+## 11. Health Endpoint Testing
 
 | Test Case | Result |
 |------------|--------|
@@ -139,16 +212,16 @@ ItemService --> ItemDB
 
 ---
 
-## Feature Testing
+## 12. Feature Testing
 
 | Feature | Result |
 |----------|--------|
 | Register User | ✅ Passed |
 | Login User | ✅ Passed |
-| Create Item | ✅ Passed |
-| Read Item | ✅ Passed |
-| Update Item | ✅ Passed |
-| Delete Item | ✅ Passed |
+| Create Task | ✅ Passed |
+| Read Task | ✅ Passed |
+| Update Task | ✅ Passed |
+| Delete Task | ✅ Passed |
 
 ### Keterangan
 
@@ -157,7 +230,7 @@ ItemService --> ItemDB
 
 ---
 
-# 8. Development vs Microservices Comparison
+# 13. Development vs Microservices Comparison
 
 | Component | Monolith Architecture | Microservices Architecture |
 |------------|----------------------|----------------------------|
@@ -169,7 +242,7 @@ ItemService --> ItemDB
 
 ---
 
-# 9. Documentation Evidence
+## 14. Documentation Evidence
 
 | Testing Activity | Evidence | Description |
 |------------------|----------|-------------|
@@ -186,18 +259,71 @@ ItemService --> ItemDB
 
 ---
 
-# 10. Debugging Guide
+## 15. Service Debug Guide
 
-| Problem | Solution |
-|----------|----------|
-| Container tidak berjalan | Jalankan `docker compose up --build` |
-| Service unhealthy | Cek logs menggunakan `docker compose logs <service-name>` |
-| Frontend tidak dapat connect backend | Periksa konfigurasi gateway nginx |
-| Endpoint tidak dapat diakses | Pastikan container running dan network Docker aktif |
+### Auth Service
+
+Melihat log Auth Service:
+
+```bash
+docker compose logs auth-service
+```
+
+Health Endpoint:
+
+```text
+http://localhost:8001/health
+```
 
 ---
 
-# 11. Conclusion
+### Task Service
+
+Melihat log Task Service:
+
+```bash
+docker compose logs task-service
+```
+
+Health Endpoint:
+
+```text
+http://localhost:8002/health
+```
+
+---
+
+### API Gateway
+
+Melihat log Gateway:
+
+```bash
+docker compose logs gateway
+```
+
+Endpoint:
+
+```text
+http://localhost
+```
+
+---
+
+### Common Troubleshooting
+
+| Problem                              | Solution                                                  |
+| ------------------------------------ | --------------------------------------------------------- |
+| Container tidak berjalan             | Jalankan `docker compose up --build`                      |
+| Service unhealthy                    | Cek logs menggunakan `docker compose logs <service-name>` |
+| Frontend tidak dapat connect backend | Periksa konfigurasi gateway nginx                         |
+| Endpoint tidak dapat diakses         | Pastikan container running dan network Docker aktif       |
+| Healthcheck gagal                    | Periksa dependency service dan database                   |
+| Gateway tidak meneruskan request     | Periksa konfigurasi reverse proxy nginx                   |
+
+
+---
+
+# 13. Conclusion
 
 Implementasi microservices pada aplikasi Kelarin berhasil dijalankan menggunakan Docker Compose dengan arsitektur multi-service.
 
