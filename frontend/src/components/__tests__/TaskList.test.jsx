@@ -26,13 +26,8 @@ describe("TaskList Component", () => {
       </BrowserRouter>
     );
 
-    await waitFor(() => {
-      expect(
-        screen.getByText((content, node) => 
-          node.nodeType === 1 && node.children.length === 0 && node.textContent.toLowerCase().includes("belum ada tugas")
-        )
-      ).toBeInTheDocument();
-    });
+    const emptyStateText = await screen.findByText(/belum ada tugas/i, {}, { timeout: 5000 });
+    expect(emptyStateText).toBeInTheDocument();
   });
 
   it("menampilkan daftar task dari API", async () => {
@@ -63,11 +58,10 @@ describe("TaskList Component", () => {
       </BrowserRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByText("Tugas Cloud")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Kerjakan testing frontend/i)
-      ).toBeInTheDocument();
-    });
+    const taskTitle = await screen.findByText("Tugas Cloud", {}, { timeout: 5000 });
+    expect(taskTitle).toBeInTheDocument();
+
+    const taskDescription = await screen.findByText(/Kerjakan testing frontend/i, {}, { timeout: 5000 });
+    expect(taskDescription).toBeInTheDocument();
   });
 });
