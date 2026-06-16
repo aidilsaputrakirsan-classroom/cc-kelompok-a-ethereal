@@ -43,8 +43,6 @@ async def _call_auth_service(headers: dict) -> dict:
     dengan Retry Logic + Circuit Breaker.
     """
 
-    last_exception = None
-
     # Circuit Breaker Check
     if not circuit_breaker.can_execute():
         raise HTTPException(
@@ -90,31 +88,25 @@ async def _call_auth_service(headers: dict) -> dict:
                     f"(attempt {attempt}/{MAX_RETRIES})"
                 )
 
-                last_exception = response
-
             else:
                 raise HTTPException(
                     status_code=response.status_code,
                     detail="Unexpected auth response"
                 )
 
-        except httpx.ConnectError as e:
+        except httpx.ConnectError:
 
             logger.warning(
                 f"Cannot connect to Auth Service "
                 f"(attempt {attempt}/{MAX_RETRIES})"
             )
 
-            last_exception = e
-
-        except httpx.TimeoutException as e:
+        except httpx.TimeoutException:
 
             logger.warning(
                 f"Auth Service timeout "
                 f"(attempt {attempt}/{MAX_RETRIES})"
             )
-
-            last_exception = e
 
         # Exponential Backoff
         if attempt < MAX_RETRIES:

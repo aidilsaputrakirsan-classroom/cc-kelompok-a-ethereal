@@ -11,7 +11,7 @@ try:
     with engine.connect() as connection:
         result = connection.execute(text("SELECT id, title, created_by FROM tasks LIMIT 20"))
         tasks = result.fetchall()
-        print(f"Tasks in Railway (task_db):")
+        print("Tasks in Railway (task_db):")
         for task in tasks:
             print(f"Task ID: {task[0]}, Title: {task[1]}, Owner (created_by): {task[2]}")
 except Exception as e:
