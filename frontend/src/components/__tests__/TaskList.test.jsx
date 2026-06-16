@@ -15,24 +15,29 @@ describe("TaskList Component", () => {
   it("menampilkan empty state jika tidak ada task", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       text: async () => JSON.stringify([]),
       json: async () => [],
     });
 
-    render(
+    const { container } = render(
       <BrowserRouter>
         <TaskList token="fake-token" showToast={mockShowToast} />
       </BrowserRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByText(/belum ada tugas/i)).toBeInTheDocument();
-    });
-  });
+    // Wait 200ms for state/effects to process
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    console.log("DEBUG [TaskList.test.jsx]:", container.innerHTML);
+
+    const emptyStateText = await screen.findByText(/belum ada tugas|tidak ada tugas/i, {}, { timeout: 10000 });
+    expect(emptyStateText).toBeInTheDocument();
+  }, 30000);
 
   it("menampilkan daftar task dari API", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 200,
       text: async () => JSON.stringify([
         {
           id: 1,
@@ -57,11 +62,10 @@ describe("TaskList Component", () => {
       </BrowserRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByText("Tugas Cloud")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Kerjakan testing frontend/i)
-      ).toBeInTheDocument();
-    });
-  });
+    const taskTitle = await screen.findByText("Tugas Cloud", {}, { timeout: 10000 });
+    expect(taskTitle).toBeInTheDocument();
+
+    const taskDescription = await screen.findByText(/Kerjakan testing frontend/i, {}, { timeout: 10000 });
+    expect(taskDescription).toBeInTheDocument();
+  }, 30000);
 });

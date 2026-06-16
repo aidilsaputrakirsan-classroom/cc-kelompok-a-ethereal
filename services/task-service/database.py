@@ -10,7 +10,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv(
     "TASK_DATABASE_URL",
-    "sqlite:///./task.db"
+    os.getenv("DATABASE_URL", "sqlite:///./task.db")
 )
 
 engine = create_engine(DATABASE_URL)

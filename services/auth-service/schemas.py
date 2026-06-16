@@ -2,16 +2,20 @@ from pydantic import BaseModel
 from pydantic import EmailStr
 
 
+from typing import Optional
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
+    role: Optional[str] = "member"
 
 
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
     name: str
+    role: str
 
     class Config:
         from_attributes = True
@@ -32,3 +36,4 @@ class VerifyResponse(BaseModel):
     user_id: int
     email: EmailStr
     name: str
+    role: str

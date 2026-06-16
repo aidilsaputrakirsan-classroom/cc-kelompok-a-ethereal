@@ -158,8 +158,10 @@ async def get_tasks(
     user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    user_id = user["user_id"]
     tasks = db.query(Task).filter(
-        Task.owner_id == user["user_id"]
+        ((Task.owner_id == user_id) | (Task.assigned_to == user_id)) &
+        (Task.completed == False)
     ).all()
 
     return tasks

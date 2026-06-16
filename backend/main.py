@@ -245,7 +245,7 @@ def get_task(
 
     task = crud.get_task(db, task_id)
 
-    if not task:
+    if not task or (task.created_by != current_user.id and task.assigned_to != current_user.id):
         raise HTTPException(
             status_code=404,
             detail="Task tidak ditemukan"
@@ -262,17 +262,19 @@ def update_task(
     current_user: User = Depends(get_current_user),
 ):
 
+    # Check ownership first
+    db_task = crud.get_task(db, task_id)
+    if not db_task or db_task.created_by != current_user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Task tidak ditemukan"
+        )
+
     updated = crud.update_task(
         db,
         task_id,
         task
     )
-
-    if not updated:
-        raise HTTPException(
-            status_code=404,
-            detail="Task tidak ditemukan"
-        )
 
     return updated
 
@@ -284,12 +286,14 @@ def delete_task(
     current_user: User = Depends(get_current_user),
 ):
 
-    deleted = crud.delete_task(db, task_id)
-
-    if not deleted:
+    # Check ownership first
+    db_task = crud.get_task(db, task_id)
+    if not db_task or db_task.created_by != current_user.id:
         raise HTTPException(
             status_code=404,
             detail="Task tidak ditemukan"
         )
+
+    crud.delete_task(db, task_id)
 
     return None
