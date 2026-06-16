@@ -29,7 +29,7 @@ describe("TaskList Component", () => {
     await waitFor(() => {
       expect(
         screen.getByText((content, node) => 
-          node.children.length === 0 && node.textContent.toLowerCase().includes("belum ada tugas")
+          node.nodeType === 1 && node.children.length === 0 && node.textContent.toLowerCase().includes("belum ada tugas")
         )
       ).toBeInTheDocument();
     });

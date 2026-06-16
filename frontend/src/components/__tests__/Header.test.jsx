@@ -38,7 +38,9 @@ describe("Header Component", () => {
     );
 
     expect(
-      screen.getByText(/Logout/i)
+      screen.getByText((content, node) => 
+        node.nodeType === 1 && node.children.length === 0 && node.textContent.toLowerCase().includes("logout")
+      )
     ).toBeInTheDocument();
   });
 
@@ -64,7 +66,9 @@ describe("Header Component", () => {
     );
 
     const logoutButton =
-      screen.getByText(/Logout/i);
+      screen.getByText((content, node) => 
+        node.nodeType === 1 && node.children.length === 0 && node.textContent.toLowerCase().includes("logout")
+      );
 
     logoutButton.click();
 
