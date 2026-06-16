@@ -22,9 +22,11 @@ class UserResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr = None
-    username: str = None
+    email: str
     password: str
+    
+    class Config:
+        from_attributes = True
 
 
 class TokenResponse(BaseModel):
@@ -37,3 +39,10 @@ class VerifyResponse(BaseModel):
     email: EmailStr
     name: str
     role: str
+
+
+class UpgradeRoleRequest(BaseModel):
+    new_role: str
+    
+    class Config:
+        from_attributes = True
