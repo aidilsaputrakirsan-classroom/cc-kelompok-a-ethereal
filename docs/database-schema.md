@@ -4,7 +4,7 @@
 
 Dokumen ini merupakan spesifikasi formal skema database untuk proyek **Kelarin**, yaitu sistem manajemen tugas kolaboratif berbasis cloud yang dirancang untuk lingkungan akademik.
 
-![Kelarin ERD](../img/db.png)
+![Kelarin ERD](assets/db.png)
 *Gambar 1. Diagram Entity Relationship dari Skema Database Kelarin*
 
 ---

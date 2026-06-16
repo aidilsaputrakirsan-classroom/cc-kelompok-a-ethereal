@@ -4,6 +4,67 @@ Semua perubahan penting dalam proyek ini akan dicatat dalam file ini.
 
 Format ini didasarkan pada [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-06-16
+
+### Added
+- **User Management**: Implementasi User Roles (Admin, Leader, Member) dan seeding data pengguna untuk otorisasi berbasis peran.
+- **Task Enhancements**: Fitur deadline pada pembuatan dan manajemen tugas.
+- **Monitoring**: Dashboard Monitoring/Status Layanan yang telah dipoles untuk visibilitas kesehatan sistem.
+- **Error Handling UI**: Implementasi UI penanganan error untuk layanan yang tidak tersedia (503 Service Unavailable).
+
+### Changed
+- **CI/CD Stability**: Peningkatan stabilitas pengujian frontend pada GitHub CI dengan optimasi timeout dan assertions yang lebih robust.
+- **Frontend Integration**: Refaktor integrasi frontend menyeluruh untuk perbaikan UI dan pengalaman pengguna.
+- **Health Checks**: Optimasi health checks dengan eksekusi paralel untuk pemantauan layanan yang lebih cepat.
+
+### Fixed
+- **Task Security**: Penegakan kepemilikan tugas (*Task Ownership*) untuk memastikan user hanya dapat mengakses data miliknya.
+- **Database & Migrations**: Perbaikan script migrasi database dan mekanisme fallback database.
+- **Auth & Integration**: Perbaikan bug pada tombol Logout dan sinkronisasi integrasi layanan.
+- **Backend Cleanup**: Pembersihan variabel tidak terpakai dan optimasi kode pada backend.
+
+## [0.19.0] - 2026-06-13
+
+### Added
+- **API Gateway**: Implementasi Central API Gateway sebagai titik masuk tunggal (entry point) untuk arsitektur microservices.
+- **Service Routing**: Konfigurasi routing layanan dan penanganan payload tugas yang lebih terpusat.
+
+### Fixed
+- **Deployment**: Optimasi Gateway untuk deployment Railway, menyelesaikan masalah 502 Bad Gateway dan CORS.
+- **Login Compatibility**: Restorasi dukungan form-data login untuk kompatibilitas dengan monolith dan pembaruan auth-service untuk menangani berbagai format payload.
+- **Auth Service**: Perbaikan dependensi `psycopg2-binary` dan pembacaan `DATABASE_URL` pada auth-service.
+
+## [0.18.0] - 2026-06-09
+
+### Added
+- **Observability**: Implementasi *Structured Logging* (JSON), Correlation ID untuk tracing, dan endpoint `/metrics` untuk monitoring.
+- **Resilience**: Mekanisme *Error Alerting*, *Retry Logic* dengan exponential backoff, dan *Circuit Breaker* pada komunikasi inter-service.
+- **Migration**: Script migrasi data otomatis dari monolith ke arsitektur microservices.
+- **Documentation**: Penambahan Panduan Operasional, dokumentasi Observabilitas, dan laporan Pengujian Reliabilitas.
+
+### Changed
+- **Service Renaming**: Refaktor penamaan dari "Item Service" menjadi "Task Service" untuk konsistensi terminologi bisnis.
+
+### Fixed
+- **Fault Tolerance**: Penguatan resiliensi melalui pemantauan kesehatan dependensi dan dukungan inisialisasi database otomatis.
+
+## [0.17.0] - 2026-05-27
+
+### Added
+- **Modular CI/CD**: Pemisahan workflow menjadi `ci.yml` (validasi PR) dan `cd.yml` (deployment) untuk manajemen pipeline yang lebih bersih.
+- **Automated Testing**: Integrasi pengujian otomatis menggunakan docker-compose di dalam pipeline CI.
+- **Notifications**: Fitur notifikasi deployment dan ringkasan langkah pada pipeline CD.
+- **Architecture Docs**: Dokumentasi arsitektur microservices dan bukti pengujian produksi.
+
+### Changed
+- **Repository Structure**: Reorganisasi besar repositori; pemindahan script utilitas ke `scripts/` dan aset dokumentasi ke `docs/assets/`.
+- **Contribution Standards**: Standarisasi proses kontribusi dan pembersihan repositori secara komprehensif.
+- **Docker Optimization**: Optimasi build Docker menggunakan GitHub Actions Caching.
+
+### Fixed
+- **Frontend Testing**: Perbaikan masalah ambiguous input dan penambahan aria-label pada pengujian CreateTask.
+- **Auth Crash**: Perbaikan crash pada bcrypt di auth-service dan sinkronisasi route gateway untuk pembuatan tugas.
+
 ## [0.16.0] - 2026-05-13
 
 ### Added

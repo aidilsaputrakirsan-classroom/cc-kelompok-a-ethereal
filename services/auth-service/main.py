@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, Depends, HTTPException, Header, Request
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -26,14 +27,23 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# CORS
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+# ================= CORS =================
+
+# Domain di bawah ini mencakup lokal development DAN domain produksi Railway kelompokmu
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "https://kelarin.up.railway.app"  # <-- LANGSUNG DIKUNCI DI SINI UNTUK PRODUCTION RAILWAY
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=origins,        
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],          
+    allow_headers=["*"],          
 )
 
 # Password hashing
@@ -86,6 +96,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         email=user_data.email,
         name=user_data.name,
         hashed_password=pwd_context.hash(user_data.password),
+        role=user_data.role or "member",
     )
     db.add(user)
     db.commit()
@@ -93,19 +104,41 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
+# Support both JSON and Form Data for login
 @app.post("/login", response_model=TokenResponse)
-def login(
-    login_data: LoginRequest,
+async def login(
+    request: Request,
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(
-        User.email == login_data.email
-    ).first()
+    content_type = request.headers.get("content-type", "")
+    email = None
+    password = None
 
-    if not user or not pwd_context.verify(
-        login_data.password,
-        user.hashed_password
-    ):
+    if "application/json" in content_type:
+        try:
+            data = await request.json()
+            email = data.get("email") or data.get("username")
+            password = data.get("password")
+        except:
+            raise HTTPException(status_code=422, detail="Invalid JSON")
+    else:
+        # Fallback to Form Data
+        try:
+            form = await request.form()
+            email = form.get("username") or form.get("email")
+            password = form.get("password")
+        except:
+            raise HTTPException(status_code=422, detail="Invalid Form Data")
+
+    if not email or not password:
+        raise HTTPException(
+            status_code=422,
+            detail="Email/username and password are required"
+        )
+
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user or not pwd_context.verify(password, user.hashed_password):
         raise HTTPException(
             status_code=401,
             detail="Email atau password salah"
@@ -115,11 +148,10 @@ def login(
         "sub": str(user.id),
         "email": user.email,
         "name": user.name,
+        "role": user.role,
     })
 
-    return TokenResponse(
-        access_token=token
-    )
+    return TokenResponse(access_token=token)
 
 @app.get("/verify", response_model=VerifyResponse)
 def verify_token(authorization: str = Header(...)):
@@ -143,4 +175,17 @@ def verify_token(authorization: str = Header(...)):
         user_id=int(payload["sub"]),
         email=payload["email"],
         name=payload["name"],
+        role=payload.get("role", "member"),
     )
+
+@app.patch("/users/{user_id}/upgrade-role")
+def upgrade_user_role(user_id: int, new_role: str, db: Session = Depends(get_db)):
+    if new_role not in ["leader", "admin", "member"]:
+        raise HTTPException(status_code=400, detail="Invalid role. Must be 'leader', 'admin', or 'member'")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.role = new_role
+    db.commit()
+    db.refresh(user)
+    return {"message": f"User role successfully updated to {new_role}", "user_id": user.id, "role": user.role}

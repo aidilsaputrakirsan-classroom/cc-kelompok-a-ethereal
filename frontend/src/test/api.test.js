@@ -11,6 +11,14 @@ describe("API Service - Kelarin Tasks", () => {
   it("fetchTasks memanggil endpoint yang benar", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
+      text: async () => JSON.stringify([
+        {
+          id: 1,
+          title: "Tugas Cloud",
+          description: "Praktikum testing",
+          deadline: "2026-05-10T10:00:00",
+        },
+      ]),
       json: async () => ([
         {
           id: 1,
@@ -21,11 +29,12 @@ describe("API Service - Kelarin Tasks", () => {
       ]),
     });
 
-    const response = await fetch("http://localhost:8000/tasks");
-    const data = await response.json();
+    const response = await fetch("http://api-gateway.test/tasks");
+    const text = await response.text();
+    const data = JSON.parse(text);
 
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:8000/tasks"
+      "http://api-gateway.test/tasks"
     );
 
     expect(data).toEqual([
@@ -44,7 +53,7 @@ describe("API Service - Kelarin Tasks", () => {
     );
 
     await expect(
-      fetch("http://localhost:8000/tasks")
+      fetch("http://api-gateway.test/tasks")
     ).rejects.toThrow("Network error");
   });
 });

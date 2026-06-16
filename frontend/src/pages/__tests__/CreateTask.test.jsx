@@ -20,7 +20,7 @@ describe("CreateTask Page", () => {
       </BrowserRouter>
     );
 
-    const titleInput = screen.getByPlaceholderText(/judul/i);
+    const titleInput = screen.getByPlaceholderText(/ketik judul tugas/i);
 
     fireEvent.change(titleInput, {
       target: { value: "Tugas Praktikum Cloud" },
@@ -32,6 +32,11 @@ describe("CreateTask Page", () => {
   it("form submit berjalan saat klik simpan", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
+      status: 201,
+      text: async () => JSON.stringify({
+        id: 1,
+        title: "Tugas Baru",
+      }),
       json: async () => ({
         id: 1,
         title: "Tugas Baru",
@@ -44,15 +49,15 @@ describe("CreateTask Page", () => {
       </BrowserRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText(/judul/i), {
+    fireEvent.change(screen.getByPlaceholderText(/ketik judul tugas/i), {
       target: { value: "Tugas Baru" },
     });
 
-    fireEvent.change(screen.getByPlaceholderText(/deskripsi/i), {
+    fireEvent.change(screen.getByPlaceholderText(/jelaskan detail tugas/i), {
       target: { value: "Deskripsi tugas" },
     });
 
-    const deadlineInput = screen.getByDisplayValue("");
+    const deadlineInput = screen.getByLabelText(/deadline/i);
 
     fireEvent.change(deadlineInput, {
       target: { value: "2026-05-11T10:00" },
