@@ -47,6 +47,7 @@ def root():
     }
 
 @app.get("/status")
+@app.get("/system/status")
 async def get_status():
     """
     Aggregated health check for all services in parallel.
@@ -133,7 +134,7 @@ async def task_proxy(request: Request, path: str = ""):
 async def frontend_proxy(request: Request, path: str = ""):
     # Specific exclusion to prevent loops or accidental matching of API paths
     # This is a fallback for GET requests only
-    if path.split('/')[0] in ["auth", "tasks", "status", "health"]:
+    if path.split('/')[0] in ["auth", "tasks", "status", "health", "system"]:
         return JSONResponse(status_code=404, content={"detail": f"Path /{path} not found on Gateway API"})
         
     url = f"{FRONTEND_URL}/{path}"
