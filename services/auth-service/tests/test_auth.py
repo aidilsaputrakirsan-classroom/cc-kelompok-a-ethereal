@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 import sys
 import os
 
@@ -12,12 +13,13 @@ from database import Base, get_db
 from models import User
 from main import app
 
-# Gunakan file SQLite sementara untuk menghindari masalah multi-koneksi pada :memory:
-TEST_DB_FILE = "./test_temp.db"
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{TEST_DB_FILE}"
+# Gunakan database in-memory dengan StaticPool agar koneksi persisten di seluruh sesi test
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -35,25 +37,11 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def setup_database():
-    # Hapus file database sementara jika tersisa dari run sebelumnya
-    if os.path.exists(TEST_DB_FILE):
-        try:
-            os.remove(TEST_DB_FILE)
-        except Exception:
-            pass
-
     # Create tables
     Base.metadata.create_all(bind=engine)
     yield
     # Drop tables after test runs
     Base.metadata.drop_all(bind=engine)
-    
-    # Bersihkan file database sementara setelah test selesai
-    if os.path.exists(TEST_DB_FILE):
-        try:
-            os.remove(TEST_DB_FILE)
-        except Exception:
-            pass
 
 
 def test_health_check():
