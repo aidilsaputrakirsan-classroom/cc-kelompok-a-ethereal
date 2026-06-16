@@ -174,7 +174,6 @@ async def auth_service_health():
             detail=f"Auth Service unavailable: {str(e)}"
         )
 
-
 @app.get("/tasks/health")
 async def task_service_health():
 
@@ -215,6 +214,57 @@ async def task_service_metrics():
             status_code=503,
             detail=f"Metrics Service unavailable: {str(e)}"
         )
+
+@app.get("/system/status")
+async def system_status():
+
+    result = {
+        "gateway": {
+            "status": "healthy"
+        },
+        "auth": {
+            "status": "unreachable"
+        },
+        "tasks": {
+            "status": "unreachable"
+        }
+    }
+
+    # AUTH SERVICE
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8001/health",
+                timeout=5.0
+            )
+
+            if response.status_code == 200:
+                result["auth"]["status"] = "healthy"
+            else:
+                result["auth"]["status"] = "unhealthy"
+
+    except Exception:
+        result["auth"]["status"] = "unreachable"
+
+    # TASK SERVICE
+    try:
+        async with httpx.AsyncClient() as client:
+
+            response = await client.get(
+                "http://localhost:8002/health",
+                timeout=5.0
+            )
+
+            if response.status_code == 200:
+                result["tasks"]["status"] = "healthy"
+            else:
+                result["tasks"]["status"] = "unhealthy"
+
+    except Exception:
+        result["tasks"]["status"] = "unreachable"
+
+    return result
 
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(

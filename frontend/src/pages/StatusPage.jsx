@@ -82,6 +82,9 @@ export default function StatusPage() {
     try {
       const result = await api.getSystemStatus();
 
+      console.log("STATUS RESULT:", result);
+      console.log("STATUS DATA:", result.data);
+
       if (result.ok && result.data) {
         const { data } = result;
 
