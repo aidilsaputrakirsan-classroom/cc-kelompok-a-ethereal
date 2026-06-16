@@ -355,27 +355,50 @@ export const api = {
     }
   },
 
-  // ==========================================
-  // HEALTH CHECK
-  // ==========================================
-  checkHealth: async () => {
-    try {
-      const res = await fetch(
-        `${API_URL}/health`,
-        {
-          signal: AbortSignal.timeout(5000),
-        }
-      );
+// ==========================================
+// SYSTEM STATUS
+// ==========================================
+getSystemStatus: async () => {
+  try {
+    const res = await fetch(
+      `${API_URL}/system/status`
+    );
 
-      return {
-        status: res.status,
-        ok: res.ok,
-      };
-    } catch {
-      return {
-        status: 0,
-        ok: false,
-      };
-    }
-  },
+    return await handleResponse(res);
+  } catch (err) {
+    console.error("System status error:", err);
+
+    return {
+      status: 0,
+      data: null,
+      error: err.message || "Network error",
+      networkError: true,
+      ok: false,
+    };
+  }
+},
+
+// ==========================================
+// HEALTH CHECK
+// ==========================================
+checkHealth: async () => {
+  try {
+    const res = await fetch(
+      `${API_URL}/health`,
+      {
+        signal: AbortSignal.timeout(5000),
+      }
+    );
+
+    return {
+      status: res.status,
+      ok: res.ok,
+    };
+  } catch {
+    return {
+      status: 0,
+      ok: false,
+    };
+  }
+},
 };
