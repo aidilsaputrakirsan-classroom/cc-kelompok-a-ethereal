@@ -7,7 +7,7 @@ describe("Header Component", () => {
   it("menampilkan nama aplikasi Kelarin", async () => {
     render(
       <BrowserRouter>
-        <Header onLogout={() => {}} />
+        <Header token="fake-token" onLogout={() => {}} />
       </BrowserRouter>
     );
 
@@ -18,7 +18,7 @@ describe("Header Component", () => {
   it("menampilkan text Ethereal Team Workspace", async () => {
     render(
       <BrowserRouter>
-        <Header onLogout={() => {}} />
+        <Header token="fake-token" onLogout={() => {}} />
       </BrowserRouter>
     );
 
@@ -29,7 +29,7 @@ describe("Header Component", () => {
   it("menampilkan tombol Logout", async () => {
     const { container } = render(
       <BrowserRouter>
-        <Header onLogout={() => {}} />
+        <Header token="fake-token" onLogout={() => {}} />
       </BrowserRouter>
     );
     console.log("DEBUG [Header.test.jsx]:", container.innerHTML);
@@ -41,7 +41,7 @@ describe("Header Component", () => {
   it("menampilkan tombol Status", async () => {
     render(
       <BrowserRouter>
-        <Header onLogout={() => {}} />
+        <Header token="fake-token" onLogout={() => {}} />
       </BrowserRouter>
     );
 
@@ -54,7 +54,7 @@ describe("Header Component", () => {
 
     render(
       <BrowserRouter>
-        <Header onLogout={mockLogout} />
+        <Header token="fake-token" onLogout={mockLogout} />
       </BrowserRouter>
     );
 

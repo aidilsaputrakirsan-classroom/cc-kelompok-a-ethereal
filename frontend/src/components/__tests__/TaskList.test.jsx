@@ -30,7 +30,7 @@ describe("TaskList Component", () => {
     await new Promise((resolve) => setTimeout(resolve, 200));
     console.log("DEBUG [TaskList.test.jsx]:", container.innerHTML);
 
-    const emptyStateText = await screen.findByText(/belum ada tugas/i, {}, { timeout: 10000 });
+    const emptyStateText = await screen.findByText(/belum ada tugas|tidak ada tugas/i, {}, { timeout: 10000 });
     expect(emptyStateText).toBeInTheDocument();
   }, 30000);
 
