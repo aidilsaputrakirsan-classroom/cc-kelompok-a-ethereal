@@ -100,6 +100,12 @@ def health_check():
 @app.post("/register", response_model=UserResponse, status_code=201)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register user baru."""
+    if len(user_data.password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail="Kata sandi minimal harus 8 karakter."
+        )
+
     # Check duplicate email
     existing = db.query(User).filter(User.email == user_data.email).first()
     if existing:
