@@ -294,3 +294,35 @@ def update_user_by_admin(
     db.commit()
     db.refresh(user)
     return user
+
+
+@app.delete("/users/{user_id}")
+def delete_user_by_admin(
+    user_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete user by admin."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Hanya administrator yang dapat menghapus pengguna."
+        )
+
+    # Mencegah admin menghapus dirinya sendiri
+    if int(current_user.get("sub")) == user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Anda tidak dapat menghapus akun Anda sendiri."
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="Pengguna tidak ditemukan."
+        )
+
+    db.delete(user)
+    db.commit()
+    return {"message": "Pengguna berhasil dihapus."}

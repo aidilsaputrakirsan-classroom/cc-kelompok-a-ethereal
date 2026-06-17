@@ -444,4 +444,28 @@ checkHealth: async () => {
       };
     }
   },
+
+  // ==========================================
+  // DELETE USER BY ADMIN (Admin)
+  // ==========================================
+  deleteUserByAdmin: async (userId, token) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          ...getAuthHeader(token),
+        },
+      });
+      return await handleResponse(res);
+    } catch (err) {
+      console.error("Delete user by admin error:", err);
+      return {
+        status: 0,
+        data: null,
+        error: err.message || "Network error",
+        networkError: true,
+        ok: false,
+      };
+    }
+  },
 };
