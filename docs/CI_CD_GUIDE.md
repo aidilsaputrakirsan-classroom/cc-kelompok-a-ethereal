@@ -74,9 +74,12 @@ Jika pipeline CI/CD Anda gagal (berwarna merah), ikuti langkah-langkah berikut:
    * **Microservices**: Masuk ke folder microservice yang bersangkutan (`services/auth-service` atau `services/task-service`), pastikan dependensi terinstal, lalu jalankan `python -m pytest`.
    * **Frontend**: Masuk ke folder `frontend`, jalankan `npm run test` untuk memeriksa vitest lokal Anda.
 3. **Gagal di Tahap `integration-test`**:
-   * Buka run GitHub Actions yang gagal.
-   * Masuk ke tab **Summary** dan unduh file di bawah kolom **Artifacts** bernama `docker-services-log`.
-   * Periksa isi file log tersebut untuk melihat error atau crash dump dari kontainer database, backend, auth, maupun task service.
+   * **Menjalankan Secara Lokal**: Untuk mereproduksi atau menguji pengujian integrasi secara lokal di komputer Anda, jalankan kontainer terlebih dahulu (`docker compose up -d`), kemudian jalankan perintah berikut:
+     ```bash
+     docker compose exec task-service pytest integration_tests/
+     ```
+     *(Catatan: Berkas `pytest.ini` sengaja dikonfigurasi dengan `testpaths = tests` agar perintah `pytest` lokal biasa di luar Docker hanya memicu Unit Test untuk mencegah timbulnya galat `ConnectError` akibat port database/services yang belum menyala).*
+   * **Mengecek Log Runner**: Buka run GitHub Actions yang gagal, masuk ke tab **Summary**, lalu unduh file di bawah kolom **Artifacts** bernama `docker-services-log`. Periksa isi file log tersebut untuk melihat error atau crash dump dari kontainer database, auth, maupun task service.
 4. **Kesalahan `docker-compose: command not found`**:
    * Runner GitHub Actions modern (`ubuntu-latest` dsb) menggunakan Docker Compose V2 yang dipanggil lewat perintah `docker compose` (menggunakan spasi, bukan tanda hubung `-`). Seluruh workflow CI/CD Kelarin telah diperbarui untuk menggunakan perintah baru ini.
 5. **Gagal di Tahap `deploy-health-check` (Produksi)**:
