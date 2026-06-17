@@ -22,6 +22,7 @@ origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     "https://kelarin.up.railway.app",
+    "https://cc-kelompok-a-ethereal-production.up.railway.app",
 ]
 
 app.add_middleware(

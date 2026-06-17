@@ -126,23 +126,23 @@ Menampilkan informasi tim pengembang.
 
 **POST /auth/register**
 
-**Request Body:**
+**Request Body (application/json):**
 
 | Field    | Tipe     | Wajib | Constraint                          |
 | -------- | -------- | ----- | ----------------------------------- |
-| email    | EmailStr | Ya    | Domain student.itk.ac.id            |
-| name     | string   | Ya    | 2–100 karakter                      |
-| password | string   | Ya    | ≥8 karakter, 1 huruf besar, 1 angka |
+| email    | EmailStr | Ya    | Domain email valid (e.g. itk.ac.id) |
+| name     | string   | Ya    | Nama lengkap pengguna               |
+| password | string   | Ya    | ≥8 karakter                         |
+| role     | string   | Tidak | Default: "member"                   |
 
 **Response (201 Created):**
 
-```json id="c3k9hx"
+```json
 {
-  "id": 101,
+  "id": 1,
   "email": "user@student.itk.ac.id",
   "name": "Student Name",
-  "is_active": true,
-  "created_at": "2024-03-22T01:45:04Z"
+  "role": "member"
 }
 ```
 
@@ -152,18 +152,16 @@ Menampilkan informasi tim pengembang.
 
 **POST /auth/login**
 
-* Content-Type: `application/x-www-form-urlencoded`
-
-**Request Body:**
+**Request Body (application/json):**
 
 | Field    | Tipe   | Wajib | Deskripsi      |
 | -------- | ------ | ----- | -------------- |
-| username | string | Ya    | Email pengguna |
+| email    | string | Ya    | Email pengguna |
 | password | string | Ya    | Password       |
 
 **Response (200 OK):**
 
-```json id="mfz6nb"
+```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5...",
   "token_type": "bearer"
@@ -172,159 +170,270 @@ Menampilkan informasi tim pengembang.
 
 ---
 
-### **8.3 Profil User Saat Ini**
+### **8.3 Verifikasi Token**
 
-**GET /auth/me**
+**GET /auth/verify**
 
-* Akses: Protected
+* Akses: Protected (Memerlukan token)
+* Header: `Authorization: Bearer <access_token>`
 
 **Response (200 OK):**
 
-```json id="pzkj9g"
+```json
 {
-  "id": 101,
+  "user_id": 1,
   "email": "user@student.itk.ac.id",
   "name": "Student Name",
-  "is_active": true,
-  "created_at": "2024-03-22T01:53:42Z"
+  "role": "member"
 }
 ```
 
 ---
 
-## **9. Endpoint Manajemen Item (Task)**
-
-> Catatan: `/items` merepresentasikan **tugas (tasks)** dalam logika bisnis.
+## **9. Endpoint Manajemen Tugas (Tasks)**
 
 ---
 
-### **9.1 Create Item**
+### **9.1 Create Task**
 
-**POST /items**
+**POST /tasks**
 
-* Akses: Protected
+* Akses: Protected (Memerlukan token)
+* Header: `Authorization: Bearer <access_token>`
 
-**Request Body:**
+**Request Body (application/json):**
 
-| Field       | Tipe    | Wajib | Constraint     |
-| ----------- | ------- | ----- | -------------- |
-| name        | string  | Ya    | 1–100 karakter |
-| description | string  | Tidak | Opsional       |
-| price       | float   | Ya    | > 0            |
-| quantity    | integer | Tidak | Default 0, ≥ 0 |
+| Field          | Tipe    | Wajib | Constraint          |
+| -------------- | ------- | ----- | ------------------- |
+| title          | string  | Ya    | Judul tugas         |
+| description    | string  | Tidak | Deskripsi tugas     |
+| category       | string  | Tidak | Kategori tugas      |
+| attachment_url | string  | Tidak | URL lampiran file   |
+| deadline       | string  | Tidak | Tanggal & waktu ISO |
 
 **Response (201 Created):**
 
-```json id="0qth41"
+```json
 {
   "id": 1,
-  "name": "Cloud Computing Report",
-  "description": "Final project documentation",
-  "price": 150000.0,
-  "quantity": 5,
-  "created_at": "2024-03-07T14:16:52Z",
+  "title": "Laporan Akhir Cloud Computing",
+  "description": "Dokumentasi deployment microservices",
+  "category": "Tugas Besar",
+  "status": "pending",
+  "attachment_url": "https://storage.googleapis.com/kelarin/docs.pdf",
+  "completed": false,
+  "owner_id": 1,
+  "assigned_to": null,
+  "deadline": "2026-06-20T23:59:59Z",
+  "created_at": "2026-06-17T02:00:00Z",
   "updated_at": null
 }
 ```
 
 ---
 
-### **9.2 List Items**
+### **9.2 List Tasks**
 
-**GET /items**
+**GET /tasks**
 
-* Akses: Protected
-
-**Query Parameters:**
-
-| Parameter | Tipe    | Default | Deskripsi      |
-| --------- | ------- | ------- | -------------- |
-| skip      | integer | 0       | Offset data    |
-| limit     | integer | 20      | Maks 100       |
-| search    | string  | null    | Filter keyword |
+* Akses: Protected (Memerlukan token)
+* Header: `Authorization: Bearer <access_token>`
+* Mengembalikan seluruh tugas aktif (belum selesai) milik user atau yang ditugaskan ke user.
 
 **Response (200 OK):**
 
-```json id="gxyum5"
-{
-  "total": 1,
-  "items": [
-    {
-      "id": 1,
-      "name": "Cloud Computing Report",
-      "price": 150000.0,
-      "quantity": 5
-    }
-  ]
-}
+```json
+[
+  {
+    "id": 1,
+    "title": "Laporan Akhir Cloud Computing",
+    "description": "Dokumentasi deployment microservices",
+    "category": "Tugas Besar",
+    "status": "pending",
+    "attachment_url": "https://storage.googleapis.com/kelarin/docs.pdf",
+    "completed": false,
+    "owner_id": 1,
+    "assigned_to": null,
+    "deadline": "2026-06-20T23:59:59Z",
+    "created_at": "2026-06-17T02:00:00Z",
+    "updated_at": null
+  }
+]
 ```
 
 ---
 
-### **9.3 Update Item**
+### **9.3 Update Task**
 
-**PUT /items/{item_id}**
+**PUT /tasks/{task_id}**
 
-* Akses: Protected
+* Akses: Protected (Memerlukan token)
+* Header: `Authorization: Bearer <access_token>`
+
+**Request Body (application/json - semua field opsional):**
+
+| Field          | Tipe    | Wajib | Deskripsi            |
+| -------------- | ------- | ----- | -------------------- |
+| title          | string  | Tidak | Judul tugas baru     |
+| description    | string  | Tidak | Deskripsi tugas baru |
+| category       | string  | Tidak | Kategori baru        |
+| status         | string  | Tidak | Status tugas baru    |
+| attachment_url | string  | Tidak | URL lampiran baru    |
+| completed      | boolean | Tidak | Menandai tugas done  |
+| deadline       | string  | Tidak | Deadline baru        |
 
 **Response (200 OK):**
 
-```json id="zq9yhn"
+```json
 {
   "id": 1,
-  "name": "Updated Report Name",
-  "price": 160000.0,
-  "updated_at": "2024-03-07T16:20:00Z"
+  "title": "Laporan Akhir Cloud Computing - Revisi 1",
+  "description": "Dokumentasi deployment microservices",
+  "category": "Tugas Besar",
+  "status": "in-progress",
+  "attachment_url": "https://storage.googleapis.com/kelarin/docs.pdf",
+  "completed": false,
+  "owner_id": 1,
+  "assigned_to": null,
+  "deadline": "2026-06-22T23:59:59Z",
+  "created_at": "2026-06-17T02:00:00Z",
+  "updated_at": "2026-06-17T03:30:00Z"
 }
 ```
 
 ---
 
-### **9.4 Delete Item**
+### **9.4 Delete Task**
 
-**DELETE /items/{item_id}**
+**DELETE /tasks/{task_id}**
 
-* Akses: Protected
-
-**Response:**
-
-* `204 No Content` → Berhasil
-* `404 Not Found` → Data tidak ditemukan
-
----
-
-## **10. Endpoint Analitik dan Monitoring**
-
-### **10.1 Statistik Item**
-
-**GET /items/stats**
-
-* Akses: Protected
+* Akses: Protected (Memerlukan token)
+* Header: `Authorization: Bearer <access_token>`
 
 **Response (200 OK):**
 
-```json id="r0qxkp"
+```json
 {
-  "total_items": 45,
-  "total_value": 6750000.0,
-  "average_price": 150000.0,
-  "max_price_item": {
-    "id": 12,
-    "name": "Enterprise Server Rack",
-    "price": 2500000.0
-  }
+  "message": "Task deleted"
 }
 ```
 
 ---
 
-### **10.2 Metrics Sistem**
+## **10. Endpoint Analitik dan Administrasi**
+
+### **10.1 Statistik Tugas**
+
+**GET /tasks/stats**
+
+* Akses: Protected (Memerlukan token)
+* Header: `Authorization: Bearer <access_token>`
+
+**Response (200 OK):**
+
+```json
+{
+  "total_tasks": 10,
+  "completed_tasks": 6,
+  "pending_tasks": 4
+}
+```
+
+---
+
+### **10.2 Kelola Pengguna (Admin Only)**
+
+**GET /auth/users**
+
+* Akses: Admin Only
+* Header: `Authorization: Bearer <admin_token>`
+* Mengambil daftar seluruh pengguna terdaftar dalam sistem.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "email": "admin@itk.ac.id",
+    "name": "Administrator",
+    "role": "admin"
+  },
+  {
+    "id": 2,
+    "email": "user@student.itk.ac.id",
+    "name": "Student Name",
+    "role": "member"
+  }
+]
+```
+
+---
+
+### **10.3 Edit Data Pengguna (Admin Only)**
+
+**PUT /auth/users/{user_id}**
+
+* Akses: Admin Only
+* Header: `Authorization: Bearer <admin_token>`
+* Melakukan update nama, peran, atau reset kata sandi pengguna secara global.
+
+**Request Body (application/json - semua field opsional):**
+
+| Field    | Tipe   | Wajib | Deskripsi                     |
+| -------- | ------ | ----- | ----------------------------- |
+| name     | string | Tidak | Nama baru                     |
+| role     | string | Tidak | Peran baru ('admin'/'member') |
+| password | string | Tidak | Reset kata sandi baru         |
+
+**Response (200 OK):**
+
+```json
+{
+  "id": 2,
+  "email": "user@student.itk.ac.id",
+  "name": "Updated Student Name",
+  "role": "admin"
+}
+```
+
+---
+
+### **10.4 Upgrade Peran Pengguna (Admin Only)**
+
+**PATCH /auth/users/{user_id}/upgrade-role**
+
+* Akses: Admin Only
+* Header: `Authorization: Bearer <admin_token>`
+* Mengubah peran pengguna secara spesifik.
+
+**Request Body (application/json):**
+
+```json
+{
+  "new_role": "admin"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "User role successfully updated to admin",
+  "user_id": 2,
+  "role": "admin"
+}
+```
+
+---
+
+### **10.5 Metrics Sistem**
 
 **GET /metrics**
 
 **Response (200 OK):**
 
-```json id="ztb5d9"
+```json
 {
   "request_count": 1250,
   "error_rate": 0.02,
@@ -338,19 +447,7 @@ Menampilkan informasi tim pengembang.
 
 ---
 
-## **11. Resilience: Circuit Breaker**
-
-Digunakan antara **Item Service** dan **Auth Service**:
-
-* **CLOSED** → Normal
-* **OPEN** → Gagal cepat (service down)
-* **HALF-OPEN** → Uji pemulihan
-
-Mencegah kegagalan berantai antar service.
-
----
-
-## **12. Referensi Error API**
+## **11. Referensi Error API**
 
 | Code | Nama                 | Deskripsi                    |
 | ---- | -------------------- | ---------------------------- |
@@ -359,22 +456,8 @@ Mencegah kegagalan berantai antar service.
 | 204  | No Content           | Berhasil tanpa response body |
 | 400  | Bad Request          | Request tidak valid          |
 | 401  | Unauthorized         | JWT tidak valid / tidak ada  |
+| 403  | Forbidden            | Hak akses tidak mencukupi    |
 | 404  | Not Found            | Data tidak ditemukan         |
 | 422  | Unprocessable Entity | Error validasi (Pydantic)    |
-| 429  | Too Many Requests    | Melebihi batas request       |
 | 503  | Service Unavailable  | Service down / maintenance   |
 
-### **Rate Limit**
-
-* Auth → 5 request/detik
-* API → 20 request/detik (oleh Nginx)
-
----
-
-Kalau kamu mau jujur aja—ini udah level dokumentasi **hampir production-grade**.
-Kalau ditambah:
-
-* contoh **curl/Postman**
-* atau **sequence diagram request flow**
-
-itu langsung naik jadi *“ini bukan tugas, ini udah kayak kerjaan beneran.”*

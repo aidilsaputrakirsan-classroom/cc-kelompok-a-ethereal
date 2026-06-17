@@ -340,30 +340,35 @@ task-db-kelarin      Up (healthy)
 # **7. Project Structure**
 
 ```
-cc-kelompok-ethereal_a/
-├── backend/
-│   ├── crud.py
-│   ├── database.py
-│   ├── main.py
-│   ├── models.py
-│   ├── requirements.txt
-│   ├── schemas.py
-│   └── scripts/setup.sh
-├── frontend/
+cc-kelompok-a-ethereal/
+├── frontend/                  # Antarmuka Pengguna (React + Vite)
 │   ├── src/
-│   │   ├── components/
-│   │   ├── services/
-│   │   ├── App.jsx
-│   │   └── main.jsx
 │   ├── package.json
-│   └── vite.config.js
-├── docs/
+│   └── Dockerfile
+├── services/                  # Arsitektur Microservices
+│   ├── auth-service/          # Layanan Autentikasi & Pengguna (FastAPI)
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── schemas.py
+│   │   └── Dockerfile
+│   ├── task-service/          # Layanan CRUD Tugas & Statistik (FastAPI)
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── schemas.py
+│   │   └── Dockerfile
+│   └── gateway/               # API Gateway & Reverse Proxy
+│       ├── main.py
+│       └── Dockerfile
+├── docs/                      # Dokumentasi & Laporan Pengujian
 │   ├── api-documentation.md
-│   └── setup-guide.md
-├── scripts/
-│   ├── dev.sh
-│   ├── docker.sh
-│   └── setup.sh
+│   ├── deployment-guide.md
+│   ├── release-notes-uas.md
+│   └── ...
+├── .github/workflows/         # Pipeline CI/CD (GitHub Actions)
+│   ├── ci.yml                 # CI Pipeline
+│   └── deploy.yml             # Deploy Pipeline
+├── docker-compose.yml         # Orkestrasi Container Lokal
+├── Makefile                   # Otomatisasi Perintah Pengembang
 ├── .gitignore
 └── README.md
 ```
@@ -450,24 +455,25 @@ Dokumentasi pengujian yang lebih rinci tersedia pada folder `/docs`.
 
 ### Task Service
 
-| Method | Endpoint      | Auth | Deskripsi                 |
-| ------ | ------------- | ---- | ------------------------- |
-| GET    | `/items`      | Yes  | Menampilkan seluruh tugas |
-| POST   | `/items`      | Yes  | Menambahkan tugas baru    |
-| PUT    | `/items/{id}` | Yes  | Mengubah data tugas       |
-| DELETE | `/items/{id}` | Yes  | Menghapus tugas           |
-| GET    | `/health`     | No   | Health check Task Service |
+| Method | Endpoint             | Auth | Deskripsi                  |
+| ------ | -------------------- | ---- | -------------------------- |
+| GET    | `/tasks`             | Yes  | Menampilkan tugas aktif    |
+| POST   | `/tasks`             | Yes  | Menambahkan tugas baru     |
+| GET    | `/tasks/{task_id}`   | Yes  | Detail tugas spesifik      |
+| PUT    | `/tasks/{task_id}`   | Yes  | Mengubah data tugas        |
+| DELETE | `/tasks/{task_id}`   | Yes  | Menghapus tugas            |
+| GET    | `/tasks/stats`       | Yes  | Mengambil statistik tugas  |
+| GET    | `/health`            | No   | Health check Task Service  |
 
 ---
 
-### Admin Features
+### Admin Features (Auth Service via Gateway)
 
-| Method | Endpoint           | Auth  | Deskripsi                    |
-| ------ | ------------------ | ----- | ---------------------------- |
-| GET    | `/users`           | Admin | Menampilkan seluruh pengguna |
-| PUT    | `/users/{id}`      | Admin | Mengubah data pengguna       |
-| DELETE | `/users/{id}`      | Admin | Menghapus pengguna           |
-| PUT    | `/users/{id}/role` | Admin | Mengubah role pengguna       |
+| Method | Endpoint                         | Auth  | Deskripsi                             |
+| ------ | -------------------------------- | ----- | ------------------------------------- |
+| GET    | `/auth/users`                    | Admin | Menampilkan seluruh pengguna terdaftar|
+| PUT    | `/auth/users/{user_id}`          | Admin | Mengubah data profil pengguna global  |
+| PATCH  | `/auth/users/{user_id}/upgrade-role`| Admin| Mengubah peran pengguna secara spesifik |
 
 ---
 

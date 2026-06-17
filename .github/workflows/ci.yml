@@ -149,7 +149,7 @@ jobs:
 
       - name: 🧪 Run Integration Tests
         run: |
-          docker compose exec -T -e AUTH_SERVICE_URL=http://auth-service:8001 -e TASK_SERVICE_URL=http://task-service:8002 task-service pytest
+          docker compose exec -T -e AUTH_SERVICE_URL=http://auth-service:8001 -e TASK_SERVICE_URL=http://task-service:8002 task-service pytest integration_tests/
 
       - name: 📋 Export Docker Logs
         if: always()
