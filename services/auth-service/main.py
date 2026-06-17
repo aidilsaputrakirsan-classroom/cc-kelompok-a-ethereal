@@ -36,7 +36,8 @@ origins = [
     "http://localhost:3000",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
-    "https://kelarin.up.railway.app"  # <-- LANGSUNG DIKUNCI DI SINI UNTUK PRODUCTION RAILWAY
+    "https://kelarin.up.railway.app",  # <-- LANGSUNG DIKUNCI DI SINI UNTUK PRODUCTION RAILWAY
+    "https://cc-kelompok-a-ethereal-production.up.railway.app"
 ]
 
 app.add_middleware(
