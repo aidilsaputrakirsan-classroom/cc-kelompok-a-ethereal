@@ -119,6 +119,34 @@ const AdminPage = ({ token, showToast }) => {
     }
   };
 
+  const handleDeleteUser = async (user) => {
+    if (user.id === currentUser.id) {
+      showToast("Anda tidak dapat menghapus akun Anda sendiri!", "error");
+      return;
+    }
+
+    if (window.confirm(`Apakah Anda yakin ingin menghapus pengguna "${user.name}" (${user.email})? Tindakan ini tidak dapat dibatalkan.`)) {
+      setLoading(true);
+      try {
+        const res = await api.deleteUserByAdmin(user.id, token);
+        if (res.ok) {
+          showToast(`Pengguna "${user.name}" berhasil dihapus.`, "success");
+          fetchUsers();
+          if (editingUser && editingUser.id === user.id) {
+            setEditingUser(null);
+          }
+        } else {
+          showToast(res.error || "Gagal menghapus pengguna", "error");
+        }
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        showToast("Terjadi kesalahan jaringan", "error");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -162,12 +190,23 @@ const AdminPage = ({ token, showToast }) => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 flex-grow space-y-8">
+      {/* Back Button */}
+      <div className="flex justify-start">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 hover:text-[#2E75B6] dark:text-gray-200 dark:hover:text-blue-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 rounded-xl shadow-sm hover:shadow transition-all active:scale-[0.98] group"
+        >
+          <span className="text-lg transform group-hover:-translate-x-0.5 transition-transform">←</span>
+          Kembali ke Beranda
+        </button>
+      </div>
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
           👑 Manajemen Pengguna
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-gray-550 dark:text-gray-400 mt-1">
           Halaman kontrol administrator untuk mengelola nama, peran, dan kata sandi pengguna sistem Kelarin.
         </p>
       </div>
@@ -249,13 +288,23 @@ const AdminPage = ({ token, showToast }) => {
                           </span>
                         </td>
                         <td className="p-4 text-center">
-                          <Button
-                            variant="secondary"
-                            onClick={() => handleEditClick(user)}
-                            className="w-auto px-3 py-1.5 text-xs h-8 inline-flex items-center gap-1 mt-0"
-                          >
-                            ✏️ Edit
-                          </Button>
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() => handleEditClick(user)}
+                              className="w-auto px-3 py-1.5 text-xs h-8 inline-flex items-center gap-1 mt-0"
+                            >
+                              ✏️ Edit
+                            </Button>
+                            <Button
+                              variant="danger"
+                              onClick={() => handleDeleteUser(user)}
+                              className="w-auto px-3 py-1.5 text-xs h-8 inline-flex items-center gap-1 mt-0"
+                              disabled={user.id === currentUser.id}
+                            >
+                              🗑️ Hapus
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -309,7 +358,7 @@ const AdminPage = ({ token, showToast }) => {
                         role: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-750 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2E75B6] dark:focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-3.5 py-2.5 border border-gray-200 dark:border-gray-700/60 rounded-xl bg-gray-50/50 dark:bg-gray-900/40 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2E75B6]/20 dark:focus:ring-blue-500/25 focus:border-[#2E75B6] dark:focus:border-blue-500 outline-none transition-all shadow-sm cursor-pointer"
                     disabled={loading}
                   >
                     <option value="member">member (Anggota)</option>
