@@ -204,7 +204,7 @@ const AdminPage = ({ token, showToast }) => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-          👑 Manajemen Pengguna
+          👑 Manajemen Pengguna Kelarin
         </h1>
         <p className="text-gray-550 dark:text-gray-400 mt-1">
           Halaman kontrol administrator untuk mengelola nama, peran, dan kata sandi pengguna sistem Kelarin.
